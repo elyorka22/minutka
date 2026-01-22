@@ -8,26 +8,6 @@ import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
 import { getOrders } from '@/lib/api';
 
-export default function AdminOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
-
-  useEffect(() => {
-    async function fetchOrders() {
-      try {
-        const data = await getOrders();
-        setOrders(data);
-      } catch (error) {
-        console.error('Error fetching orders:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchOrders();
-  }, []);
-
-
 const statusLabels: Record<OrderStatus, string> = {
   pending: 'В ожидании',
   accepted: 'Принят',
@@ -50,8 +30,17 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
 
   useEffect(() => {
-    setOrders(demoOrders);
-    setLoading(false);
+    async function fetchOrders() {
+      try {
+        const data = await getOrders();
+        setOrders(data);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchOrders();
   }, []);
 
   const handleStatusChange = (orderId: string, newStatus: OrderStatus) => {
