@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Banner } from '@/lib/types';
+import { Banner, BannerPosition } from '@/lib/types';
 import { demoBanners } from '@/lib/demoData';
 
 export default function AdminBannersPage() {
@@ -225,12 +225,13 @@ function BannerFormModal({
               </label>
               <select
                 value={formData.position}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, position: e.target.value as BannerPosition })}
                 required
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="homepage">Главная страница</option>
                 <option value="recommended">Рекомендуем сегодня</option>
+                <option value="restaurant_page">Страница ресторана</option>
               </select>
             </div>
 
