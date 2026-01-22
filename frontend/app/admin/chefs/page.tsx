@@ -206,6 +206,7 @@ export default function AdminChefsPage() {
       {showForm && (
         <ChefFormModal
           chef={editingChef}
+          restaurants={restaurants}
           onClose={() => {
             setShowForm(false);
             setEditingChef(null);
@@ -228,10 +229,12 @@ export default function AdminChefsPage() {
 // Chef Form Modal Component
 function ChefFormModal({
   chef,
+  restaurants,
   onClose,
   onSave,
 }: {
   chef: Chef | null;
+  restaurants: Restaurant[];
   onClose: () => void;
   onSave: (chef: Chef) => void;
 }) {
