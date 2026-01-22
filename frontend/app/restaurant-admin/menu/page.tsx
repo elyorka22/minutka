@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { MenuItem } from '@/lib/types';
 import { getMenuItems } from '@/lib/api';
 import Image from 'next/image';
+import ImageUpload from '@/components/ImageUpload';
 
 export default function RestaurantAdminMenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
