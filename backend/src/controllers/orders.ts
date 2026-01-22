@@ -4,7 +4,7 @@
 
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
-import { Order, OrderStatus } from '../../shared/types';
+import { Order, OrderStatus } from '../types';
 
 /**
  * POST /api/orders

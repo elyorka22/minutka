@@ -4,7 +4,7 @@
 
 import { Context } from 'telegraf';
 import { apiRequest } from '../config/api';
-import { Restaurant } from '../../shared/types';
+import { Restaurant } from '../types';
 import { supabase } from '../config/supabase';
 
 /**

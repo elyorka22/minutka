@@ -4,7 +4,7 @@
 
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
-import { Banner } from '../../shared/types';
+import { Banner } from '../types';
 
 /**
  * GET /api/banners

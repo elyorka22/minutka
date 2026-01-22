@@ -3,7 +3,7 @@
 // ============================================
 
 import { InlineKeyboardMarkup } from 'telegraf/typings/core/types/typegram';
-import { Restaurant } from '../../shared/types';
+import { Restaurant } from '../types';
 
 /**
  * Создает inline клавиатуру со списком ресторанов

@@ -6,7 +6,7 @@
 import { Telegraf } from 'telegraf';
 import { supabase } from '../config/supabase';
 import { apiRequest } from '../config/api';
-import { Order } from '../../shared/types';
+import { Order } from '../types';
 
 let botInstance: Telegraf | null = null;
 

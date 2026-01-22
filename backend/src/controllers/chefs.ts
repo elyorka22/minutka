@@ -4,7 +4,7 @@
 
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
-import { Chef } from '../../shared/types';
+import { Chef } from '../types';
 
 /**
  * GET /api/chefs

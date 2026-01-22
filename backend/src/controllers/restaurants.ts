@@ -4,7 +4,7 @@
 
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
-import { Restaurant } from '../../shared/types';
+import { Restaurant } from '../types';
 
 /**
  * GET /api/restaurants
