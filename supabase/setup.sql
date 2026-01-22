@@ -332,7 +332,8 @@ VALUES ('images', 'images', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- Политика для публичного чтения изображений
-CREATE POLICY IF NOT EXISTS "Public can view images"
+DROP POLICY IF EXISTS "Public can view images" ON storage.objects;
+CREATE POLICY "Public can view images"
 ON storage.objects FOR SELECT
 USING (bucket_id = 'images');
 
