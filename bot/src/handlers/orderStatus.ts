@@ -27,7 +27,7 @@ export async function orderStatusHandler(
     }
 
     // Получаем заказ
-    const order = await apiRequest(`/api/orders/${orderId}`);
+    const order: any = await apiRequest(`/api/orders/${orderId}`);
 
     if (!order) {
       await ctx.answerCbQuery('Buyurtma topilmadi');

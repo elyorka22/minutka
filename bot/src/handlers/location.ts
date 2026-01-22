@@ -58,7 +58,7 @@ export async function locationHandler(ctx: Context) {
     }
 
     // Создаем заказ через API
-    const order = await apiRequest('/api/orders', {
+    const order: any = await apiRequest('/api/orders', {
       method: 'POST',
       body: JSON.stringify({
         restaurant_id: restaurantId,

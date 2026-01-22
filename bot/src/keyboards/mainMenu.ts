@@ -27,35 +27,27 @@ export async function createMainMenuKeyboard() {
     const botInfoText = settingsMap['button_bot_info_text'] || 'ℹ️ Bot haqida';
     const partnershipText = settingsMap['button_partnership_text'] || '🤝 Hamkorlik';
 
-    return {
-      keyboard: [
-        [
-          { text: botInfoText },
-          { text: partnershipText }
-        ],
-        [
-          { text: '🆔 Chat ID' }
-        ]
+    return Markup.keyboard([
+      [
+        Markup.button.text(botInfoText),
+        Markup.button.text(partnershipText)
       ],
-      resize_keyboard: true,
-      persistent: true
-    };
+      [
+        Markup.button.text('🆔 Chat ID')
+      ]
+    ]).resize().persistent();
   } catch (error) {
     console.error('Error loading button texts from DB, using defaults:', error);
     // В случае ошибки используем значения по умолчанию
-    return {
-      keyboard: [
-        [
-          { text: 'ℹ️ Bot haqida' },
-          { text: '🤝 Hamkorlik' }
-        ],
-        [
-          { text: '🆔 Chat ID' }
-        ]
+    return Markup.keyboard([
+      [
+        Markup.button.text('ℹ️ Bot haqida'),
+        Markup.button.text('🤝 Hamkorlik')
       ],
-      resize_keyboard: true,
-      persistent: true
-    };
+      [
+        Markup.button.text('🆔 Chat ID')
+      ]
+    ]).resize().persistent();
   }
 }
 

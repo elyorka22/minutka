@@ -32,9 +32,6 @@ initUserNotification(bot);
 // Register handlers
 bot.start(async (ctx) => {
   await startHandler(ctx);
-  // Показываем главное меню с кнопками из БД
-  const keyboard = await createMainMenuKeyboard();
-  await ctx.reply('Asosiy menyu:', keyboard);
 });
 bot.command('restaurants', startHandler); // Альтернативная команда для списка ресторанов
 

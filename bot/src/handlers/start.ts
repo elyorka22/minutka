@@ -20,7 +20,7 @@ export async function startHandler(ctx: Context) {
       'Buyurtma berish uchun restoran tanlang:',
       { 
         parse_mode: 'Markdown',
-        reply_markup: mainMenuKeyboard
+        ...mainMenuKeyboard
       }
     );
 
