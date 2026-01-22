@@ -23,12 +23,24 @@
 
 ### 1.2 Применение миграций
 
+**Рекомендуемый способ (проще всего):**
+
+1. В Supabase Dashboard перейдите в **SQL Editor**
+2. Нажмите **New Query**
+3. Откройте файл **`supabase/setup.sql`** из репозитория
+4. Скопируйте весь код и вставьте в SQL Editor
+5. Нажмите **Run** (или `Ctrl/Cmd + Enter`)
+
+✅ Готово! База данных полностью настроена.
+
+**Альтернативный способ (по миграциям):**
+
 1. В Supabase Dashboard перейдите в **SQL Editor**
 2. Выполните миграции в порядке:
    - `supabase/migrations/001_initial_schema.sql`
    - `supabase/migrations/002_add_chefs_remove_restaurant_role.sql`
 
-Или используйте Supabase CLI:
+**Или используйте Supabase CLI:**
 ```bash
 # Установите Supabase CLI
 npm install -g supabase
@@ -184,7 +196,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://your-backend-domain.railway.app
-NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=your_bot_username
+NEXT_PUBLIC_TELEGRAM_BOT=your_bot_username
 ```
 
 **Важно:** Переменные с префиксом `NEXT_PUBLIC_` доступны в браузере.
