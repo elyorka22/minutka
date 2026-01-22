@@ -45,7 +45,7 @@ export default function AdminChefsPage() {
   };
 
   const getRestaurantName = (restaurantId: string) => {
-    const restaurant = demoRestaurants.find((r) => r.id === restaurantId);
+    const restaurant = restaurants.find((r) => r.id === restaurantId);
     return restaurant?.name || 'Неизвестный ресторан';
   };
 
