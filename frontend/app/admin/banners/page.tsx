@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { Banner, BannerPosition } from '@/lib/types';
 import { demoBanners } from '@/lib/demoData';
+import ImageUpload from '@/components/ImageUpload';
 
 export default function AdminBannersPage() {
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -194,18 +195,13 @@ function BannerFormModal({
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                URL изображения *
-              </label>
-              <input
-                type="url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-            </div>
+            <ImageUpload
+              value={formData.image_url}
+              onChange={(url) => setFormData({ ...formData, image_url: url })}
+              folder="banners"
+              label="Изображение баннера"
+              required
+            />
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">

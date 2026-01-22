@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import ImageUpload from '@/components/ImageUpload';
 
 interface Category {
   id: string;
@@ -188,31 +189,13 @@ export default function CategoriesPage() {
                 placeholder="Например: Italyan"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                URL изображения *
-              </label>
-              <input
-                type="url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="https://example.com/image.jpg"
-              />
-              {formData.image_url && (
-                <div className="mt-2 relative w-32 h-32 rounded-lg overflow-hidden border border-gray-300">
-                  <Image
-                    src={formData.image_url}
-                    alt="Preview"
-                    fill
-                    className="object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+            <ImageUpload
+              value={formData.image_url}
+              onChange={(url) => setFormData({ ...formData, image_url: url })}
+              folder="categories"
+              label="Изображение категории"
+              required
+            />
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Порядок отображения

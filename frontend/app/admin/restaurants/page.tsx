@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Restaurant } from '@/lib/types';
 import { getRestaurants } from '@/lib/api';
 import { demoRestaurants } from '@/lib/demoData';
+import ImageUpload from '@/components/ImageUpload';
 
 export default function AdminRestaurantsPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
@@ -275,17 +276,13 @@ function RestaurantFormModal({
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                URL изображения
-              </label>
-              <input
-                type="url"
-                value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-            </div>
+            <ImageUpload
+              value={formData.image_url || ''}
+              onChange={(url) => setFormData({ ...formData, image_url: url })}
+              folder="restaurants"
+              label="Изображение ресторана"
+              required={false}
+            />
 
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <label className="flex items-center">

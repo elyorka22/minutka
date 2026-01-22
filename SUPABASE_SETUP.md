@@ -89,6 +89,10 @@ supabase db push
    - Все таблицы должны иметь включенный RLS
    - Политики должны быть активны
 
+4. **Storage настроен:**
+   - В Supabase Dashboard → Storage должен быть bucket `images`
+   - Bucket должен быть публичным (public: true)
+
 ---
 
 ## 📝 Важные заметки
@@ -99,9 +103,24 @@ supabase db push
 
 ---
 
+## 📦 Настройка Storage для изображений
+
+После применения основного SQL, настройте Storage:
+
+1. В Supabase Dashboard → **Storage**
+2. Проверьте, что bucket `images` создан
+3. Если нет, выполните файл `supabase/storage_setup.sql` в SQL Editor
+
+Или создайте bucket вручную:
+1. Storage → **New bucket**
+2. Name: `images`
+3. Public bucket: **Включено** ✅
+4. Create bucket
+
 ## 🔗 Ссылки на файлы
 
 - Полный SQL: [`supabase/setup.sql`](./supabase/setup.sql)
+- Storage setup: [`supabase/storage_setup.sql`](./supabase/storage_setup.sql)
 - Миграция 1: [`supabase/migrations/001_initial_schema.sql`](./supabase/migrations/001_initial_schema.sql)
 - Миграция 2: [`supabase/migrations/002_add_chefs_remove_restaurant_role.sql`](./supabase/migrations/002_add_chefs_remove_restaurant_role.sql)
 

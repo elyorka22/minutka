@@ -12,6 +12,7 @@ import bannersRouter from './routes/banners';
 import botSettingsRouter from './routes/botSettings';
 import categoriesRouter from './routes/categories';
 import chefsRouter from './routes/chefs';
+import uploadRouter from './routes/upload';
 
 // Load environment variables
 dotenv.config();
@@ -39,6 +40,7 @@ app.use('/api/banners', bannersRouter);
 app.use('/api/bot-settings', botSettingsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/chefs', chefsRouter);
+app.use('/api/upload', uploadRouter);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

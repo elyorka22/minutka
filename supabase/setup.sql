@@ -323,9 +323,24 @@ INSERT INTO restaurant_categories (name, image_url, display_order) VALUES
 ON CONFLICT DO NOTHING;
 
 -- ============================================
+-- STORAGE SETUP
+-- ============================================
+
+-- Создаем bucket для изображений
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('images', 'images', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Политика для публичного чтения изображений
+CREATE POLICY IF NOT EXISTS "Public can view images"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'images');
+
+-- ============================================
 -- COMPLETE!
 -- ============================================
 -- База данных настроена и готова к использованию
 -- Все таблицы, индексы, триггеры и RLS политики созданы
+-- Storage bucket для изображений создан
 -- ============================================
 
