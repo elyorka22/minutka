@@ -142,18 +142,26 @@ function BannerFormModal({
   onSave: (banner: Banner) => void;
 }) {
   const [formData, setFormData] = useState({
+    restaurant_id: banner?.restaurant_id || null,
     title: banner?.title || '',
     image_url: banner?.image_url || '',
     link_url: banner?.link_url || '',
     position: banner?.position || 'homepage',
     is_active: banner?.is_active ?? true,
+    display_order: banner?.display_order || 0,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const newBanner: Banner = {
       id: banner?.id || Date.now().toString(),
-      ...formData,
+      restaurant_id: formData.restaurant_id,
+      title: formData.title || null,
+      image_url: formData.image_url,
+      link_url: formData.link_url || null,
+      position: formData.position,
+      is_active: formData.is_active,
+      display_order: formData.display_order,
       created_at: banner?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -224,6 +232,19 @@ function BannerFormModal({
                 <option value="homepage">Главная страница</option>
                 <option value="recommended">Рекомендуем сегодня</option>
               </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Порядок отображения
+              </label>
+              <input
+                type="number"
+                value={formData.display_order}
+                onChange={(e) => setFormData({ ...formData, display_order: parseInt(e.target.value) || 0 })}
+                min="0"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
             </div>
 
             <div>
