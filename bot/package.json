@@ -1,0 +1,25 @@
+{
+  "name": "@kafeshka/bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for Kafeshka platform",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "telegraf": "^4.15.0",
+    "dotenv": "^16.3.1",
+    "@supabase/supabase-js": "^2.38.5",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "typescript": "^5.3.0",
+    "tsx": "^4.7.0"
+  }
+}
+
+

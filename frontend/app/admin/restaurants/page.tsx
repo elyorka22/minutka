@@ -1,0 +1,332 @@
+// ============================================
+// Admin Restaurants Page - Управление ресторанами
+// ============================================
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Restaurant } from '@/lib/types';
+import { getRestaurants } from '@/lib/api';
+import { demoRestaurants } from '@/lib/demoData';
+
+export default function AdminRestaurantsPage() {
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
+
+  useEffect(() => {
+    // В MVP используем демо данные
+    setRestaurants(demoRestaurants);
+    setLoading(false);
+  }, []);
+
+  const handleEdit = (restaurant: Restaurant) => {
+    setEditingRestaurant(restaurant);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Вы уверены, что хотите удалить этот ресторан?')) {
+      setRestaurants(restaurants.filter((r) => r.id !== id));
+    }
+  };
+
+  const handleToggleActive = (id: string) => {
+    setRestaurants(
+      restaurants.map((r) => (r.id === id ? { ...r, is_active: !r.is_active } : r))
+    );
+  };
+
+  if (loading) {
+    return <div className="text-center py-12">Загрузка ресторанов...</div>;
+  }
+
+  return (
+    <div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">🍽️ Управление ресторанами</h1>
+        <button
+          onClick={() => {
+            setEditingRestaurant(null);
+            setShowForm(true);
+          }}
+          className="w-full sm:w-auto bg-primary-500 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm sm:text-base"
+        >
+          + Добавить ресторан
+        </button>
+      </div>
+
+      {/* Restaurants Table - Desktop */}
+      <div className="hidden md:block bg-white rounded-lg shadow-md overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Название
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Телефон
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Статус
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Действия
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {restaurants.map((restaurant) => (
+              <tr key={restaurant.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <span className="text-sm font-medium text-gray-900">{restaurant.name}</span>
+                    {restaurant.is_featured && (
+                      <span className="ml-2 text-yellow-500">⭐</span>
+                    )}
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {restaurant.phone || '—'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <button
+                    onClick={() => handleToggleActive(restaurant.id)}
+                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      restaurant.is_active
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {restaurant.is_active ? 'Активен' : 'Неактивен'}
+                  </button>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <button
+                    onClick={() => handleEdit(restaurant)}
+                    className="text-primary-600 hover:text-primary-900 mr-4"
+                  >
+                    Редактировать
+                  </button>
+                  <button
+                    onClick={() => handleDelete(restaurant.id)}
+                    className="text-red-600 hover:text-red-900"
+                  >
+                    Удалить
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Restaurants Cards - Mobile */}
+      <div className="md:hidden space-y-4">
+        {restaurants.map((restaurant) => (
+          <div key={restaurant.id} className="bg-white rounded-lg shadow-md p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-lg font-semibold text-gray-900">{restaurant.name}</h3>
+                  {restaurant.is_featured && (
+                    <span className="text-yellow-500">⭐</span>
+                  )}
+                </div>
+                {restaurant.phone && (
+                  <p className="text-sm text-gray-600">📞 {restaurant.phone}</p>
+                )}
+              </div>
+              <button
+                onClick={() => handleToggleActive(restaurant.id)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
+                  restaurant.is_active
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                }`}
+              >
+                {restaurant.is_active ? 'Активен' : 'Неактивен'}
+              </button>
+            </div>
+            <div className="flex gap-2 pt-3 border-t border-gray-200">
+              <button
+                onClick={() => handleEdit(restaurant)}
+                className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm"
+              >
+                ✏️ Редактировать
+              </button>
+              <button
+                onClick={() => handleDelete(restaurant.id)}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-colors text-sm"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Restaurant Form Modal */}
+      {showForm && (
+        <RestaurantFormModal
+          restaurant={editingRestaurant}
+          onClose={() => {
+            setShowForm(false);
+            setEditingRestaurant(null);
+          }}
+          onSave={(restaurant) => {
+            if (editingRestaurant) {
+              setRestaurants(
+                restaurants.map((r) => (r.id === restaurant.id ? restaurant : r))
+              );
+            } else {
+              setRestaurants([...restaurants, restaurant]);
+            }
+            setShowForm(false);
+            setEditingRestaurant(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+// Restaurant Form Modal Component
+function RestaurantFormModal({
+  restaurant,
+  onClose,
+  onSave,
+}: {
+  restaurant: Restaurant | null;
+  onClose: () => void;
+  onSave: (restaurant: Restaurant) => void;
+}) {
+  const [formData, setFormData] = useState({
+    name: restaurant?.name || '',
+    description: restaurant?.description || '',
+    phone: restaurant?.phone || '',
+    image_url: restaurant?.image_url || '',
+    is_active: restaurant?.is_active ?? true,
+    is_featured: restaurant?.is_featured ?? false,
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newRestaurant: Restaurant = {
+      id: restaurant?.id || Date.now().toString(),
+      ...formData,
+      working_hours: restaurant?.working_hours || null,
+      telegram_chat_id: restaurant?.telegram_chat_id || null,
+      created_at: restaurant?.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    onSave(newRestaurant);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <div className="p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+              {restaurant ? 'Редактировать ресторан' : 'Добавить ресторан'}
+            </h2>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-2xl flex-shrink-0">
+              ×
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Название *
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Описание
+              </label>
+              <textarea
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                rows={3}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Телефон
+              </label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                URL изображения
+              </label>
+              <input
+                type="url"
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                  className="mr-2 w-4 h-4"
+                />
+                <span className="text-sm text-gray-700">Активен</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  checked={formData.is_featured}
+                  onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                  className="mr-2 w-4 h-4"
+                />
+                <span className="text-sm text-gray-700">Топ ресторан</span>
+              </label>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full sm:flex-1 bg-gray-200 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors text-sm sm:text-base"
+              >
+                Отмена
+              </button>
+              <button
+                type="submit"
+                className="w-full sm:flex-1 bg-primary-500 text-white py-3 rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm sm:text-base"
+              >
+                Сохранить
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+

@@ -1,0 +1,143 @@
+// ============================================
+// Home Page - Главная страница
+// ============================================
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { getRestaurants, getBanners, getCategories } from '@/lib/api';
+import RestaurantCard from '@/components/RestaurantCard';
+import BannerCarousel from '@/components/BannerCarousel';
+import RestaurantCategories from '@/components/RestaurantCategories';
+import { demoRestaurants, demoBanners, restaurantCategories as demoCategories } from '@/lib/demoData';
+
+const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'your_bot_username';
+
+export default function Home() {
+  const [restaurants, setRestaurants] = useState<any[]>([]);
+  const [featuredRestaurants, setFeaturedRestaurants] = useState<any[]>([]);
+  const [banners, setBanners] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        // Загружаем категории из API
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories.length > 0 ? fetchedCategories : demoCategories);
+
+        // В MVP используем демо данные для ресторанов и баннеров
+        setRestaurants(demoRestaurants);
+        setFeaturedRestaurants(demoRestaurants.filter(r => r.is_featured));
+        setBanners(demoBanners);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        // Fallback на демо данные
+        setCategories(demoCategories);
+        setRestaurants(demoRestaurants);
+        setFeaturedRestaurants(demoRestaurants.filter(r => r.is_featured));
+        setBanners(demoBanners);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, []);
+
+  // Фильтрация ресторанов по категории
+  const filteredRestaurants = selectedCategory
+    ? restaurants.filter(r => r.category === selectedCategory)
+    : restaurants;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header - Fixed on scroll */}
+      <header className="bg-white shadow-sm sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">🍽️ Kafeshka</h1>
+              <p className="text-sm text-gray-600">Telegram orqali ovqat yetkazib berish</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/admin"
+                className="px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm"
+              >
+                🔐 Kirish
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section with CTA */}
+      <section className="bg-gradient-to-r from-primary-500 to-primary-600 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h2 className="text-3xl font-bold mb-4">Ovqat buyurtma qiling!</h2>
+          <p className="text-lg">Restoran tanlang va Telegram-bot orqali buyurtma bering</p>
+        </div>
+      </section>
+
+      {/* Top Banners Carousel */}
+      {banners.length > 0 && (
+        <section className="px-4 sm:px-6 lg:px-8 py-8">
+          <BannerCarousel banners={banners} />
+        </section>
+      )}
+
+      {/* Restaurant Categories Carousel */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Restoran kategoriyalari</h2>
+        <RestaurantCategories
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategorySelect={setSelectedCategory}
+        />
+      </section>
+
+      {/* Featured Restaurants (TOP) */}
+      {!selectedCategory && featuredRestaurants.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">⭐ Top restoranlar</h2>
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {featuredRestaurants.map((restaurant) => (
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* All Restaurants or Filtered by Category */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">
+          {selectedCategory
+            ? `${categories.find(c => c.id === selectedCategory)?.name || 'Restoranlar'}`
+            : '📋 Barcha restoranlar'}
+        </h2>
+        {filteredRestaurants.length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            Restoranlar topilmadi
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {filteredRestaurants.map((restaurant) => (
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 text-white py-8 mt-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <p className="text-sm">© 2024 Kafeshka. Barcha huquqlar himoyalangan.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
