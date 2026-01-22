@@ -178,6 +178,7 @@ export default function AdminRestaurantAdminsPage() {
       {showForm && (
         <AdminFormModal
           admin={editingAdmin}
+          restaurants={restaurants}
           onClose={() => {
             setShowForm(false);
             setEditingAdmin(null);
@@ -200,10 +201,12 @@ export default function AdminRestaurantAdminsPage() {
 // Admin Form Modal Component
 function AdminFormModal({
   admin,
+  restaurants,
   onClose,
   onSave,
 }: {
   admin: RestaurantAdmin | null;
+  restaurants: Restaurant[];
   onClose: () => void;
   onSave: (admin: RestaurantAdmin) => void;
 }) {
