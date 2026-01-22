@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { Banner, BannerPosition } from '@/lib/types';
-import { demoBanners } from '@/lib/demoData';
+import { getBanners } from '@/lib/api';
 import ImageUpload from '@/components/ImageUpload';
 
 export default function AdminBannersPage() {
@@ -16,8 +16,17 @@ export default function AdminBannersPage() {
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
 
   useEffect(() => {
-    setBanners(demoBanners);
-    setLoading(false);
+    async function fetchBanners() {
+      try {
+        const data = await getBanners();
+        setBanners(data);
+      } catch (error) {
+        console.error('Error fetching banners:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBanners();
   }, []);
 
   const handleEdit = (banner: Banner) => {

@@ -6,49 +6,29 @@
 
 import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
+import { getOrders } from '@/lib/api';
 
-// Демо данные заказов ресторана
-const demoOrders: Order[] = [
-  {
-    id: '1',
-    restaurant_id: '2',
-    user_id: '1',
-    order_text: 'Филадельфия x2, Калифорния x1',
-    address: 'ул. Ленина, д. 10, кв. 5',
-    latitude: null,
-    longitude: null,
-    status: 'pending',
-    telegram_message_id: null,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    restaurant_id: '2',
-    user_id: '2',
-    order_text: 'Сет "Самурай" x1, Мисо-суп x2',
-    address: 'ул. Мира, д. 25, кв. 12',
-    latitude: null,
-    longitude: null,
-    status: 'accepted',
-    telegram_message_id: null,
-    created_at: new Date(Date.now() - 3600000).toISOString(),
-    updated_at: new Date(Date.now() - 1800000).toISOString(),
-  },
-  {
-    id: '3',
-    restaurant_id: '2',
-    user_id: '3',
-    order_text: 'Нигири с лососем x3',
-    address: 'ул. Пушкина, д. 7',
-    latitude: null,
-    longitude: null,
-    status: 'ready',
-    telegram_message_id: null,
-    created_at: new Date(Date.now() - 7200000).toISOString(),
-    updated_at: new Date(Date.now() - 600000).toISOString(),
-  },
-];
+export default function RestaurantAdminOrdersPage() {
+  // В реальном приложении это будет браться из контекста авторизации
+  const currentRestaurantId = '2'; // TODO: получить из контекста авторизации
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
+
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        const data = await getOrders(currentRestaurantId);
+        setOrders(data);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchOrders();
+  }, [currentRestaurantId]);
+
 
 const statusLabels: Record<OrderStatus, string> = {
   pending: 'В ожидании',

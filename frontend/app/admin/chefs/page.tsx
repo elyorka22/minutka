@@ -5,46 +5,32 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Chef } from '@/lib/types';
-import { demoRestaurants } from '@/lib/demoData';
-
-// Демо данные поваров
-const demoChefs: Chef[] = [
-  {
-    id: '1',
-    restaurant_id: '1',
-    telegram_id: 111222333,
-    telegram_chat_id: 111222333,
-    username: 'chef_pizza',
-    first_name: 'Иван',
-    last_name: 'Поваров',
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    restaurant_id: '2',
-    telegram_id: 444555666,
-    telegram_chat_id: 444555666,
-    username: 'chef_sushi',
-    first_name: 'Мария',
-    last_name: 'Суши',
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+import { Chef, Restaurant } from '@/lib/types';
+import { getChefs, getRestaurants } from '@/lib/api';
 
 export default function AdminChefsPage() {
   const [chefs, setChefs] = useState<Chef[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingChef, setEditingChef] = useState<Chef | null>(null);
 
   useEffect(() => {
-    setChefs(demoChefs);
-    setLoading(false);
+    async function fetchData() {
+      try {
+        const [chefsData, restaurantsData] = await Promise.all([
+          getChefs(),
+          getRestaurants()
+        ]);
+        setChefs(chefsData);
+        setRestaurants(restaurantsData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
   }, []);
 
   const handleEdit = (chef: Chef) => {
@@ -301,7 +287,7 @@ function ChefFormModal({
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="">Выберите ресторан</option>
-                {demoRestaurants.map((restaurant) => (
+                {restaurants.map((restaurant) => (
                   <option key={restaurant.id} value={restaurant.id}>
                     {restaurant.name}
                   </option>

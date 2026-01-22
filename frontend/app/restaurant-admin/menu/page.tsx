@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { MenuItem } from '@/lib/types';
-import { demoMenuItems } from '@/lib/demoData';
+import { getMenuItems } from '@/lib/api';
 import Image from 'next/image';
 
 export default function RestaurantAdminMenuPage() {
@@ -16,12 +16,22 @@ export default function RestaurantAdminMenuPage() {
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
+  // В реальном приложении это будет браться из контекста авторизации
+  const currentRestaurantId = '2'; // TODO: получить из контекста авторизации
+
   useEffect(() => {
-    // В MVP используем демо данные для ресторана с ID '2' (Суши Мастер)
-    const items = demoMenuItems['2'] || [];
-    setMenuItems(items);
-    setLoading(false);
-  }, []);
+    async function fetchMenuItems() {
+      try {
+        const items = await getMenuItems(currentRestaurantId);
+        setMenuItems(items);
+      } catch (error) {
+        console.error('Error fetching menu items:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchMenuItems();
+  }, [currentRestaurantId]);
 
   const categories = Array.from(new Set(menuItems.map((item) => item.category)));
 

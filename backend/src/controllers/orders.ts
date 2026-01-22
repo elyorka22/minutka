@@ -87,6 +87,48 @@ export async function createOrder(req: Request, res: Response) {
 }
 
 /**
+ * GET /api/orders
+ * Получить список заказов
+ * Query params: restaurant_id (optional), status (optional)
+ */
+export async function getOrders(req: Request, res: Response) {
+  try {
+    const { restaurant_id, status } = req.query;
+
+    let query = supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (restaurant_id) {
+      query = query.eq('restaurant_id', restaurant_id);
+    }
+
+    if (status) {
+      query = query.eq('status', status);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    res.json({
+      success: true,
+      data: data as Order[]
+    });
+  } catch (error: any) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch orders',
+      message: error.message
+    });
+  }
+}
+
+/**
  * GET /api/orders/:id
  * Получить заказ по ID с деталями
  */

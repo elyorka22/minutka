@@ -5,44 +5,32 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { RestaurantAdmin } from '@/lib/types';
-import { demoRestaurants } from '@/lib/demoData';
-
-// Демо данные админов ресторанов
-const demoAdmins: RestaurantAdmin[] = [
-  {
-    id: '1',
-    restaurant_id: '1',
-    telegram_id: 111222333,
-    username: 'admin_pizza',
-    first_name: 'Админ',
-    last_name: 'Пиццерии',
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    restaurant_id: '2',
-    telegram_id: 444555666,
-    username: 'admin_sushi',
-    first_name: 'Админ',
-    last_name: 'Суши',
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+import { RestaurantAdmin, Restaurant } from '@/lib/types';
+import { getRestaurantAdmins, getRestaurants } from '@/lib/api';
 
 export default function AdminRestaurantAdminsPage() {
   const [admins, setAdmins] = useState<RestaurantAdmin[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<RestaurantAdmin | null>(null);
 
   useEffect(() => {
-    setAdmins(demoAdmins);
-    setLoading(false);
+    async function fetchData() {
+      try {
+        const [adminsData, restaurantsData] = await Promise.all([
+          getRestaurantAdmins(),
+          getRestaurants()
+        ]);
+        setAdmins(adminsData);
+        setRestaurants(restaurantsData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
   }, []);
 
   const handleEdit = (admin: RestaurantAdmin) => {
@@ -57,7 +45,7 @@ export default function AdminRestaurantAdminsPage() {
   };
 
   const getRestaurantName = (restaurantId: string) => {
-    const restaurant = demoRestaurants.find((r) => r.id === restaurantId);
+    const restaurant = restaurants.find((r) => r.id === restaurantId);
     return restaurant?.name || 'Неизвестный ресторан';
   };
 
@@ -268,7 +256,7 @@ function AdminFormModal({
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="">Выберите ресторан</option>
-                {demoRestaurants.map((restaurant) => (
+                {restaurants.map((restaurant) => (
                   <option key={restaurant.id} value={restaurant.id}>
                     {restaurant.name}
                   </option>

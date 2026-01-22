@@ -3,10 +3,9 @@
 // ============================================
 
 import { notFound } from 'next/navigation';
-import { getRestaurantById, getBanners } from '@/lib/api';
+import { getRestaurantById, getBanners, getMenuItems } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
-import { demoRestaurants, demoBanners, demoMenuItems } from '@/lib/demoData';
 import MenuItem from '@/components/MenuItem';
 import Cart from '@/components/Cart';
 import { MenuCategory, MenuItem as MenuItemType } from '@/lib/types';
@@ -21,18 +20,18 @@ interface PageProps {
 }
 
 export default async function RestaurantPage({ params }: PageProps) {
-  // Используем демо данные напрямую (API недоступен в MVP)
-  const restaurant = demoRestaurants.find(r => r.id === params.id);
-  const recommendedBanners = demoBanners.filter(b => b.position === 'recommended');
+  // Загружаем данные из API
+  const [restaurant, recommendedBanners, menuItems] = await Promise.all([
+    getRestaurantById(params.id).catch(() => null),
+    getBanners('recommended'),
+    getMenuItems(params.id)
+  ]);
 
   if (!restaurant) {
     notFound();
   }
 
-  // Получаем меню для ресторана
-  const menuItems: MenuItemType[] = demoMenuItems[params.id] || [];
-  
-  // Группируем по категориям
+  // Группируем меню по категориям
   const menuByCategory: MenuCategory[] = [];
   if (menuItems.length > 0) {
     menuItems.forEach((item: MenuItemType) => {

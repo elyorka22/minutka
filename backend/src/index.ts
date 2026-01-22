@@ -12,6 +12,8 @@ import bannersRouter from './routes/banners';
 import botSettingsRouter from './routes/botSettings';
 import categoriesRouter from './routes/categories';
 import chefsRouter from './routes/chefs';
+import menuRouter from './routes/menu';
+import restaurantAdminsRouter from './routes/restaurant-admins';
 import uploadRouter from './routes/upload';
 
 // Load environment variables
@@ -40,6 +42,8 @@ app.use('/api/banners', bannersRouter);
 app.use('/api/bot-settings', botSettingsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/chefs', chefsRouter);
+app.use('/api/menu', menuRouter);
+app.use('/api/restaurant-admins', restaurantAdminsRouter);
 app.use('/api/upload', uploadRouter);
 
 // Error handling middleware

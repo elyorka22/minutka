@@ -7,7 +7,6 @@
 import { useState, useEffect } from 'react';
 import { Restaurant } from '@/lib/types';
 import { getRestaurants } from '@/lib/api';
-import { demoRestaurants } from '@/lib/demoData';
 import ImageUpload from '@/components/ImageUpload';
 
 export default function AdminRestaurantsPage() {
@@ -17,9 +16,17 @@ export default function AdminRestaurantsPage() {
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
 
   useEffect(() => {
-    // В MVP используем демо данные
-    setRestaurants(demoRestaurants);
-    setLoading(false);
+    async function fetchRestaurants() {
+      try {
+        const data = await getRestaurants();
+        setRestaurants(data);
+      } catch (error) {
+        console.error('Error fetching restaurants:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchRestaurants();
   }, []);
 
   const handleEdit = (restaurant: Restaurant) => {

@@ -7,33 +7,29 @@
 
 import { useState, useEffect } from 'react';
 import { RestaurantAdmin } from '@/lib/types';
-
-// Демо данные админов ресторана
-const demoAdmins: RestaurantAdmin[] = [
-  {
-    id: '1',
-    restaurant_id: '2',
-    telegram_id: 111222333,
-    username: 'admin_sushi',
-    first_name: 'Админ',
-    last_name: 'Суши',
-    is_active: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+import { getRestaurantAdmins } from '@/lib/api';
 
 export default function RestaurantAdminAdminsPage() {
+  // В реальном приложении это будет браться из контекста авторизации
+  const currentRestaurantId = '2'; // TODO: получить из контекста авторизации
   const [admins, setAdmins] = useState<RestaurantAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<RestaurantAdmin | null>(null);
 
   useEffect(() => {
-    // В MVP используем демо данные
-    setAdmins(demoAdmins);
-    setLoading(false);
-  }, []);
+    async function fetchAdmins() {
+      try {
+        const data = await getRestaurantAdmins(currentRestaurantId);
+        setAdmins(data);
+      } catch (error) {
+        console.error('Error fetching admins:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAdmins();
+  }, [currentRestaurantId]);
 
   const handleEdit = (admin: RestaurantAdmin) => {
     setEditingAdmin(admin);

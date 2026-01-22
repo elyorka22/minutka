@@ -44,21 +44,68 @@ export async function getOrderById(id: string): Promise<Order> {
   return response.data.data;
 }
 
-// Banners API
+// Categories API
 export async function getCategories(): Promise<any[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/categories?active=true`);
-    const data = await response.json();
-    return data.data || [];
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/categories', { params: { active: true } });
+    return response.data.data || [];
   } catch (error) {
     console.error('Error fetching categories:', error);
     return [];
   }
 }
 
+// Banners API
 export async function getBanners(position?: string): Promise<Banner[]> {
   const params = position ? { position } : {};
   const response = await api.get<{ success: boolean; data: Banner[] }>('/api/banners', { params });
   return response.data.data;
+}
+
+// Menu Items API
+export async function getMenuItems(restaurantId: string): Promise<any[]> {
+  try {
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/menu', { params: { restaurant_id: restaurantId } });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching menu items:', error);
+    return [];
+  }
+}
+
+// Restaurant Admins API
+export async function getRestaurantAdmins(restaurantId?: string): Promise<any[]> {
+  try {
+    const params = restaurantId ? { restaurant_id: restaurantId } : {};
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/restaurant-admins', { params });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching restaurant admins:', error);
+    return [];
+  }
+}
+
+// Chefs API
+export async function getChefs(restaurantId?: string): Promise<any[]> {
+  try {
+    const params = restaurantId ? { restaurant_id: restaurantId } : {};
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/chefs', { params });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching chefs:', error);
+    return [];
+  }
+}
+
+// Orders API (for admin panels)
+export async function getOrders(restaurantId?: string): Promise<Order[]> {
+  try {
+    const params = restaurantId ? { restaurant_id: restaurantId } : {};
+    const response = await api.get<{ success: boolean; data: Order[] }>('/api/orders', { params });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    return [];
+  }
 }
 

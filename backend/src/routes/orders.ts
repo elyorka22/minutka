@@ -3,7 +3,7 @@
 // ============================================
 
 import express from 'express';
-import { createOrder, getOrderById, updateOrderStatus } from '../controllers/orders';
+import { createOrder, getOrders, getOrderById, updateOrderStatus } from '../controllers/orders';
 
 const router = express.Router();
 
@@ -12,6 +12,13 @@ const router = express.Router();
  * Создать новый заказ
  */
 router.post('/', createOrder);
+
+/**
+ * GET /api/orders
+ * Получить список заказов
+ * Query params: restaurant_id (optional), status (optional)
+ */
+router.get('/', getOrders);
 
 /**
  * GET /api/orders/:id

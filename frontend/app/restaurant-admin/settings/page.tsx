@@ -6,19 +6,28 @@
 
 import { useState, useEffect } from 'react';
 import { Restaurant } from '@/lib/types';
-import { demoRestaurants } from '@/lib/demoData';
+import { getRestaurantById } from '@/lib/api';
 
 export default function RestaurantAdminSettingsPage() {
+  // В реальном приложении это будет браться из контекста авторизации
+  const currentRestaurantId = '2'; // TODO: получить из контекста авторизации
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    // В MVP используем демо данные для ресторана с ID '2' (Суши Мастер)
-    const rest = demoRestaurants.find((r) => r.id === '2');
-    setRestaurant(rest || null);
-    setLoading(false);
-  }, []);
+    async function fetchRestaurant() {
+      try {
+        const data = await getRestaurantById(currentRestaurantId);
+        setRestaurant(data);
+      } catch (error) {
+        console.error('Error fetching restaurant:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchRestaurant();
+  }, [currentRestaurantId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

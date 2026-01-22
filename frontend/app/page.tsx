@@ -10,7 +10,6 @@ import { getRestaurants, getBanners, getCategories } from '@/lib/api';
 import RestaurantCard from '@/components/RestaurantCard';
 import BannerCarousel from '@/components/BannerCarousel';
 import RestaurantCategories from '@/components/RestaurantCategories';
-import { demoRestaurants, demoBanners, restaurantCategories as demoCategories } from '@/lib/demoData';
 
 const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'your_bot_username';
 
@@ -26,21 +25,24 @@ export default function Home() {
     async function fetchData() {
       setLoading(true);
       try {
-        // Загружаем категории из API
-        const fetchedCategories = await getCategories();
-        setCategories(fetchedCategories.length > 0 ? fetchedCategories : demoCategories);
+        // Загружаем все данные из API
+        const [fetchedCategories, fetchedRestaurants, fetchedBanners] = await Promise.all([
+          getCategories(),
+          getRestaurants(),
+          getBanners('homepage')
+        ]);
 
-        // В MVP используем демо данные для ресторанов и баннеров
-        setRestaurants(demoRestaurants);
-        setFeaturedRestaurants(demoRestaurants.filter(r => r.is_featured));
-        setBanners(demoBanners);
+        setCategories(fetchedCategories);
+        setRestaurants(fetchedRestaurants);
+        setFeaturedRestaurants(fetchedRestaurants.filter(r => r.is_featured));
+        setBanners(fetchedBanners);
       } catch (error) {
         console.error('Error loading data:', error);
-        // Fallback на демо данные
-        setCategories(demoCategories);
-        setRestaurants(demoRestaurants);
-        setFeaturedRestaurants(demoRestaurants.filter(r => r.is_featured));
-        setBanners(demoBanners);
+        // В случае ошибки оставляем пустые массивы
+        setCategories([]);
+        setRestaurants([]);
+        setFeaturedRestaurants([]);
+        setBanners([]);
       } finally {
         setLoading(false);
       }
