@@ -9,7 +9,7 @@ import { restaurantHandler } from './handlers/restaurant';
 import { orderHandler } from './handlers/order';
 import { locationHandler } from './handlers/location';
 import { orderStatusHandler } from './handlers/orderStatus';
-import { botInfoHandler, partnershipHandler, chatIdHandler, closeKeyboardHandler } from './handlers/botInfo';
+import { botInfoHandler, partnershipHandler, chatIdHandler } from './handlers/botInfo';
 import { initBot as initRestaurantNotification } from './services/restaurantNotification';
 import { initBot as initUserNotification } from './services/userNotification';
 import { createMainMenuKeyboard } from './keyboards/mainMenu';
@@ -99,11 +99,6 @@ bot.on('text', async (ctx) => {
   
   if (text === '🆔 Chat ID') {
     await chatIdHandler(ctx);
-    return;
-  }
-  
-  if (text === '❌ Yopish') {
-    await closeKeyboardHandler(ctx);
     return;
   }
   

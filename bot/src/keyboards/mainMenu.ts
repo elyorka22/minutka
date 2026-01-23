@@ -34,9 +34,6 @@ export async function createMainMenuKeyboard() {
       ],
       [
         Markup.button.text('🆔 Chat ID')
-      ],
-      [
-        Markup.button.text('❌ Yopish')
       ]
     ]).resize().oneTime();
   } catch (error) {
@@ -49,9 +46,6 @@ export async function createMainMenuKeyboard() {
       ],
       [
         Markup.button.text('🆔 Chat ID')
-      ],
-      [
-        Markup.button.text('❌ Yopish')
       ]
     ]).resize().oneTime();
   }
