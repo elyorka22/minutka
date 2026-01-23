@@ -167,6 +167,10 @@ CREATE INDEX IF NOT EXISTS idx_chefs_is_active ON chefs(is_active);
 CREATE INDEX IF NOT EXISTS idx_restaurant_admins_restaurant_id ON restaurant_admins(restaurant_id);
 CREATE INDEX IF NOT EXISTS idx_restaurant_admins_telegram_id ON restaurant_admins(telegram_id);
 
+-- Super admins indexes
+CREATE INDEX IF NOT EXISTS idx_super_admins_telegram_id ON super_admins(telegram_id);
+CREATE INDEX IF NOT EXISTS idx_super_admins_is_active ON super_admins(is_active);
+
 -- Order status history indexes
 CREATE INDEX IF NOT EXISTS idx_order_status_history_order_id ON order_status_history(order_id);
 CREATE INDEX IF NOT EXISTS idx_order_status_history_created_at ON order_status_history(created_at DESC);

@@ -32,13 +32,20 @@ export default function ChefDashboard() {
 
   useEffect(() => {
     async function fetchOrders() {
-      if (!user || user.role !== 'chef' || !user.user?.restaurant_id) {
+      if (!user || user.role !== 'chef' || !user.user) {
+        setLoading(false);
+        return;
+      }
+
+      // Получаем restaurant_id из данных повара
+      const restaurantId = (user.user as any).restaurant_id;
+      if (!restaurantId) {
         setLoading(false);
         return;
       }
 
       try {
-        const ordersData = await getOrders(user.user.restaurant_id);
+        const ordersData = await getOrders(restaurantId);
         // Фильтруем только заказы в статусе pending, accepted, ready
         const filteredOrders = ordersData.filter(
           (order) => ['pending', 'accepted', 'ready'].includes(order.status)
