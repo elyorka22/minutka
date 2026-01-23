@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { Restaurant } from '@/lib/types';
-import { getRestaurants } from '@/lib/api';
+import { getRestaurants, createRestaurant, updateRestaurant, deleteRestaurant } from '@/lib/api';
 import ImageUpload from '@/components/ImageUpload';
 
 export default function AdminRestaurantsPage() {
@@ -34,16 +34,65 @@ export default function AdminRestaurantsPage() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Вы уверены, что хотите удалить этот ресторан?')) {
-      setRestaurants(restaurants.filter((r) => r.id !== id));
+      try {
+        await deleteRestaurant(id);
+        setRestaurants(restaurants.filter((r) => r.id !== id));
+      } catch (error) {
+        console.error('Error deleting restaurant:', error);
+        alert('Ошибка при удалении ресторана');
+      }
     }
   };
 
-  const handleToggleActive = (id: string) => {
-    setRestaurants(
-      restaurants.map((r) => (r.id === id ? { ...r, is_active: !r.is_active } : r))
-    );
+  const handleToggleActive = async (id: string) => {
+    const restaurant = restaurants.find((r) => r.id === id);
+    if (!restaurant) return;
+
+    try {
+      const updated = await updateRestaurant(id, {
+        is_active: !restaurant.is_active
+      });
+      setRestaurants(restaurants.map((r) => (r.id === id ? updated : r)));
+    } catch (error) {
+      console.error('Error updating restaurant:', error);
+      alert('Ошибка при обновлении ресторана');
+    }
+  };
+
+  const handleSave = async (restaurant: Restaurant) => {
+    try {
+      if (restaurant.id && restaurant.id !== Date.now().toString()) {
+        // Обновление существующего ресторана
+        const updated = await updateRestaurant(restaurant.id, {
+          name: restaurant.name,
+          description: restaurant.description,
+          phone: restaurant.phone,
+          image_url: restaurant.image_url,
+          is_active: restaurant.is_active,
+          is_featured: restaurant.is_featured,
+        });
+        setRestaurants(restaurants.map((r) => (r.id === restaurant.id ? updated : r)));
+      } else {
+        // Создание нового ресторана
+        const created = await createRestaurant({
+          name: restaurant.name,
+          description: restaurant.description || undefined,
+          phone: restaurant.phone || undefined,
+          image_url: restaurant.image_url || undefined,
+          is_active: restaurant.is_active,
+          is_featured: restaurant.is_featured,
+          admin_telegram_id: (restaurant as any).admin_telegram_id,
+        });
+        setRestaurants([...restaurants, created]);
+      }
+      setShowForm(false);
+      setEditingRestaurant(null);
+    } catch (error) {
+      console.error('Error saving restaurant:', error);
+      alert('Ошибка при сохранении ресторана');
+    }
   };
 
   if (loading) {
@@ -183,17 +232,7 @@ export default function AdminRestaurantsPage() {
             setShowForm(false);
             setEditingRestaurant(null);
           }}
-          onSave={(restaurant) => {
-            if (editingRestaurant) {
-              setRestaurants(
-                restaurants.map((r) => (r.id === restaurant.id ? restaurant : r))
-              );
-            } else {
-              setRestaurants([...restaurants, restaurant]);
-            }
-            setShowForm(false);
-            setEditingRestaurant(null);
-          }}
+          onSave={handleSave}
         />
       )}
     </div>
@@ -217,18 +256,30 @@ function RestaurantFormModal({
     image_url: restaurant?.image_url || '',
     is_active: restaurant?.is_active ?? true,
     is_featured: restaurant?.is_featured ?? false,
+    admin_telegram_id: '', // Поле для Telegram ID админа (только при создании)
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newRestaurant: Restaurant = {
+    const newRestaurant: Restaurant & { admin_telegram_id?: number } = {
       id: restaurant?.id || Date.now().toString(),
-      ...formData,
+      name: formData.name,
+      description: formData.description || null,
+      phone: formData.phone || null,
+      image_url: formData.image_url || null,
+      is_active: formData.is_active,
+      is_featured: formData.is_featured,
       working_hours: restaurant?.working_hours || null,
       telegram_chat_id: restaurant?.telegram_chat_id || null,
       created_at: restaurant?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
+
+    // Добавляем admin_telegram_id только при создании нового ресторана
+    if (!restaurant && formData.admin_telegram_id) {
+      newRestaurant.admin_telegram_id = parseInt(formData.admin_telegram_id);
+    }
+
     onSave(newRestaurant);
   };
 
@@ -290,6 +341,24 @@ function RestaurantFormModal({
               label="Изображение ресторана"
               required={false}
             />
+
+            {!restaurant && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Telegram ID админа ресторана (опционально)
+                </label>
+                <input
+                  type="text"
+                  value={formData.admin_telegram_id}
+                  onChange={(e) => setFormData({ ...formData, admin_telegram_id: e.target.value })}
+                  placeholder="Введите Telegram ID админа"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Если указать Telegram ID, админ будет автоматически создан и сможет войти в панель ресторана
+                </p>
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
               <label className="flex items-center">

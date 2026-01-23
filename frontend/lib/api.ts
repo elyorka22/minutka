@@ -26,6 +26,35 @@ export async function getRestaurantById(id: string): Promise<Restaurant> {
   return response.data.data;
 }
 
+export async function createRestaurant(restaurantData: {
+  name: string;
+  description?: string;
+  phone?: string;
+  image_url?: string;
+  is_active?: boolean;
+  is_featured?: boolean;
+  admin_telegram_id?: number;
+}): Promise<Restaurant> {
+  const response = await api.post<{ success: boolean; data: Restaurant }>('/api/restaurants', restaurantData);
+  return response.data.data;
+}
+
+export async function updateRestaurant(id: string, restaurantData: {
+  name?: string;
+  description?: string;
+  phone?: string;
+  image_url?: string;
+  is_active?: boolean;
+  is_featured?: boolean;
+}): Promise<Restaurant> {
+  const response = await api.patch<{ success: boolean; data: Restaurant }>(`/api/restaurants/${id}`, restaurantData);
+  return response.data.data;
+}
+
+export async function deleteRestaurant(id: string): Promise<void> {
+  await api.delete(`/api/restaurants/${id}`);
+}
+
 // Orders API
 export async function createOrder(orderData: {
   restaurant_id: string;

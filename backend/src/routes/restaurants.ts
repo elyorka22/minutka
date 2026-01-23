@@ -3,7 +3,7 @@
 // ============================================
 
 import express from 'express';
-import { getRestaurants, getRestaurantById } from '../controllers/restaurants';
+import { getRestaurants, getRestaurantById, createRestaurant, updateRestaurant, deleteRestaurant } from '../controllers/restaurants';
 
 const router = express.Router();
 
@@ -15,10 +15,28 @@ const router = express.Router();
 router.get('/', getRestaurants);
 
 /**
+ * POST /api/restaurants
+ * Создать новый ресторан
+ */
+router.post('/', createRestaurant);
+
+/**
  * GET /api/restaurants/:id
  * Получить детали ресторана по ID
  */
 router.get('/:id', getRestaurantById);
+
+/**
+ * PATCH /api/restaurants/:id
+ * Обновить ресторан
+ */
+router.patch('/:id', updateRestaurant);
+
+/**
+ * DELETE /api/restaurants/:id
+ * Удалить ресторан
+ */
+router.delete('/:id', deleteRestaurant);
 
 export default router;
 
