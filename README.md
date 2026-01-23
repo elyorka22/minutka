@@ -24,7 +24,7 @@ MVP платформы доставки еды для города ~100 000 жи
 ## 📁 Архитектура проекта
 
 ```
-kafeshka/
+minutka/
 ├── frontend/          # Next.js 14 (App Router) → Vercel
 ├── backend/           # Express API → Railway
 ├── bot/               # Telegram Bot (Telegraf) → Railway
