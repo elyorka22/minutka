@@ -67,9 +67,9 @@ export default function AdminRestaurantsPage() {
         // Обновление существующего ресторана
         const updated = await updateRestaurant(restaurant.id, {
           name: restaurant.name,
-          description: restaurant.description,
-          phone: restaurant.phone,
-          image_url: restaurant.image_url,
+          description: restaurant.description || undefined,
+          phone: restaurant.phone || undefined,
+          image_url: restaurant.image_url || undefined,
           is_active: restaurant.is_active,
           is_featured: restaurant.is_featured,
         });
