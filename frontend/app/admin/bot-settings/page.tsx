@@ -17,6 +17,7 @@ interface BotSetting {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 export default function BotSettingsPage() {
+  const [welcomeMessage, setWelcomeMessage] = useState('');
   const [botInfoMessage, setBotInfoMessage] = useState('');
   const [partnershipMessage, setPartnershipMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -36,14 +37,17 @@ export default function BotSettingsPage() {
       const settings = data.data || [];
       
       // Находим тексты сообщений
+      const welcomeSetting = settings.find((s: BotSetting) => s.key === 'welcome_message');
       const botInfoSetting = settings.find((s: BotSetting) => s.key === 'bot_info');
       const partnershipSetting = settings.find((s: BotSetting) => s.key === 'partnership');
       
+      setWelcomeMessage(welcomeSetting?.value || '🍽️ *Kafeshka\'ga xush kelibsiz!*\n\nBuyurtma berish uchun restoran tanlang:');
       setBotInfoMessage(botInfoSetting?.value || 'Kafeshka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
       setPartnershipMessage(partnershipSetting?.value || 'Hamkorlik uchun biz bilan bog\'laning: @kafeshka_admin yoki email: info@kafeshka.uz');
     } catch (error) {
       console.error('Error fetching bot settings:', error);
       // Используем значения по умолчанию
+      setWelcomeMessage('🍽️ *Kafeshka\'ga xush kelibsiz!*\n\nBuyurtma berish uchun restoran tanlang:');
       setBotInfoMessage('Kafeshka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
       setPartnershipMessage('Hamkorlik uchun biz bilan bog\'laning: @kafeshka_admin yoki email: info@kafeshka.uz');
     } finally {
@@ -54,8 +58,15 @@ export default function BotSettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Сохраняем оба текста сообщений
-      const [botInfoResponse, partnershipResponse] = await Promise.all([
+      // Сохраняем все тексты сообщений
+      const [welcomeResponse, botInfoResponse, partnershipResponse] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/bot-settings/welcome_message`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ value: welcomeMessage }),
+        }),
         fetch(`${API_BASE_URL}/api/bot-settings/bot_info`, {
           method: 'PATCH',
           headers: {
@@ -72,7 +83,7 @@ export default function BotSettingsPage() {
         }),
       ]);
 
-      if (!botInfoResponse.ok || !partnershipResponse.ok) {
+      if (!welcomeResponse.ok || !botInfoResponse.ok || !partnershipResponse.ok) {
         throw new Error('Failed to save settings');
       }
 
@@ -95,10 +106,32 @@ export default function BotSettingsPage() {
 
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <p className="text-gray-600 mb-6">
-          Измените тексты сообщений, которые пользователи получат при нажатии на кнопки в боте.
+          Измените тексты сообщений бота: welcome сообщение при запуске и сообщения при нажатии на кнопки.
         </p>
 
         <div className="space-y-6">
+          {/* Поле для welcome сообщения */}
+          <div className="border-b border-gray-200 pb-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                👋 Welcome сообщение
+              </h3>
+              <p className="text-sm text-gray-500">
+                Текст, который пользователь получит при запуске бота (команда /start)
+              </p>
+            </div>
+            <div>
+              <textarea
+                value={welcomeMessage}
+                onChange={(e) => setWelcomeMessage(e.target.value)}
+                rows={6}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Введите welcome сообщение..."
+                disabled={loading || saving}
+              />
+            </div>
+          </div>
+
           {/* Поле для текста сообщения "Bot haqida" */}
           <div className="border-b border-gray-200 pb-6">
             <div className="mb-4">

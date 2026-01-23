@@ -7,6 +7,7 @@ import { apiRequest } from '../config/api';
 import { Restaurant } from '../types';
 import { createRestaurantKeyboard } from '../keyboards/restaurants';
 import { createMainMenuKeyboard } from '../keyboards/mainMenu';
+import { supabase } from '../config/supabase';
 
 /**
  * Обработчик команды /start
@@ -14,10 +15,20 @@ import { createMainMenuKeyboard } from '../keyboards/mainMenu';
  */
 export async function startHandler(ctx: Context) {
   try {
+    // Получаем welcome сообщение из БД
+    const { data: welcomeSetting } = await supabase
+      .from('bot_settings')
+      .select('value')
+      .eq('key', 'welcome_message')
+      .single();
+
+    const welcomeMessage = welcomeSetting?.value || 
+      '🍽️ *Kafeshka\'ga xush kelibsiz!*\n\n' +
+      'Buyurtma berish uchun restoran tanlang:';
+
     const mainMenuKeyboard = await createMainMenuKeyboard();
     await ctx.reply(
-      '🍽️ *Kafeshka\'ga xush kelibsiz!*\n\n' +
-      'Buyurtma berish uchun restoran tanlang:',
+      welcomeMessage,
       { 
         parse_mode: 'Markdown',
         ...mainMenuKeyboard
