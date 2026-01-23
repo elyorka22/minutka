@@ -7,11 +7,13 @@
 
 import { useState, useEffect } from 'react';
 import { RestaurantAdmin } from '@/lib/types';
-import { getRestaurantAdmins } from '@/lib/api';
+import { getRestaurantAdmins, createRestaurantAdmin, updateRestaurantAdmin, deleteRestaurantAdmin } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RestaurantAdminAdminsPage() {
-  // В реальном приложении это будет браться из контекста авторизации
-  const currentRestaurantId = '2'; // TODO: получить из контекста авторизации
+  const { user } = useAuth();
+  // Получаем restaurant_id из данных пользователя
+  const currentRestaurantId = (user?.user as any)?.restaurant_id;
   const [admins, setAdmins] = useState<RestaurantAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -36,9 +38,51 @@ export default function RestaurantAdminAdminsPage() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Вы уверены, что хотите удалить этого админа?')) {
-      setAdmins(admins.filter((a) => a.id !== id));
+      try {
+        await deleteRestaurantAdmin(id);
+        setAdmins(admins.filter((a) => a.id !== id));
+      } catch (error) {
+        console.error('Error deleting admin:', error);
+        alert('Ошибка при удалении админа');
+      }
+    }
+  };
+
+  const handleSave = async (admin: RestaurantAdmin) => {
+    if (!currentRestaurantId) {
+      alert('Ошибка: не удалось определить ресторан');
+      return;
+    }
+
+    try {
+      if (admin.id && admin.id !== Date.now().toString()) {
+        // Обновление существующего админа
+        const updated = await updateRestaurantAdmin(admin.id, {
+          username: admin.username,
+          first_name: admin.first_name,
+          last_name: admin.last_name,
+          is_active: admin.is_active,
+        });
+        setAdmins(admins.map((a) => (a.id === admin.id ? updated : a)));
+      } else {
+        // Создание нового админа
+        const created = await createRestaurantAdmin({
+          restaurant_id: currentRestaurantId,
+          telegram_id: admin.telegram_id,
+          username: admin.username,
+          first_name: admin.first_name,
+          last_name: admin.last_name,
+          is_active: admin.is_active,
+        });
+        setAdmins([...admins, created]);
+      }
+      setShowForm(false);
+      setEditingAdmin(null);
+    } catch (error) {
+      console.error('Error saving admin:', error);
+      alert('Ошибка при сохранении админа');
     }
   };
 
@@ -138,15 +182,7 @@ export default function RestaurantAdminAdminsPage() {
             setShowForm(false);
             setEditingAdmin(null);
           }}
-          onSave={(admin) => {
-            if (editingAdmin) {
-              setAdmins(admins.map((a) => (a.id === admin.id ? admin : a)));
-            } else {
-              setAdmins([...admins, admin]);
-            }
-            setShowForm(false);
-            setEditingAdmin(null);
-          }}
+          onSave={handleSave}
         />
       )}
     </div>
@@ -173,9 +209,14 @@ function AdminFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.telegram_id) {
+      alert('Пожалуйста, укажите Telegram ID');
+      return;
+    }
+
     const newAdmin: RestaurantAdmin = {
       id: admin?.id || Date.now().toString(),
-      restaurant_id: '2', // В реальности брать из контекста/сессии
+      restaurant_id: admin?.restaurant_id || '', // Будет установлен в handleSave
       telegram_id: parseInt(formData.telegram_id),
       username: formData.username || null,
       first_name: formData.first_name || null,
