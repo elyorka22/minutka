@@ -41,15 +41,15 @@ export default function BotSettingsPage() {
       const botInfoSetting = settings.find((s: BotSetting) => s.key === 'bot_info');
       const partnershipSetting = settings.find((s: BotSetting) => s.key === 'partnership');
       
-      setWelcomeMessage(welcomeSetting?.value || '🍽️ *Kafeshka\'ga xush kelibsiz!*\n\nBuyurtma berish uchun restoran tanlang:');
-      setBotInfoMessage(botInfoSetting?.value || 'Kafeshka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
-      setPartnershipMessage(partnershipSetting?.value || 'Hamkorlik uchun biz bilan bog\'laning: @kafeshka_admin yoki email: info@kafeshka.uz');
+      setWelcomeMessage(welcomeSetting?.value || '🍽️ *Minutka\'ga xush kelibsiz!*\n\nBuyurtma berish uchun restoran tanlang:');
+      setBotInfoMessage(botInfoSetting?.value || 'Minutka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
+      setPartnershipMessage(partnershipSetting?.value || 'Hamkorlik uchun biz bilan bog\'laning: @minutka_admin yoki email: info@minutka.uz');
     } catch (error) {
       console.error('Error fetching bot settings:', error);
       // Используем значения по умолчанию
-      setWelcomeMessage('🍽️ *Kafeshka\'ga xush kelibsiz!*\n\nBuyurtma berish uchun restoran tanlang:');
-      setBotInfoMessage('Kafeshka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
-      setPartnershipMessage('Hamkorlik uchun biz bilan bog\'laning: @kafeshka_admin yoki email: info@kafeshka.uz');
+      setWelcomeMessage('🍽️ *Minutka\'ga xush kelibsiz!*\n\nBuyurtma berish uchun restoran tanlang:');
+      setBotInfoMessage('Minutka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
+      setPartnershipMessage('Hamkorlik uchun biz bilan bog\'laning: @minutka_admin yoki email: info@minutka.uz');
     } finally {
       setLoading(false);
     }

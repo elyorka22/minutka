@@ -11,7 +11,7 @@
 
 ```bash
 # Клонируйте репозиторий (если нужно)
-cd kafeshka
+cd minutka
 
 # Установите зависимости для каждого модуля
 cd backend && npm install && cd ..

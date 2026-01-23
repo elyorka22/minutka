@@ -1,7 +1,7 @@
 # Структура проекта
 
 ```
-kafeshka/
+minutka/
 ├── frontend/                    # Next.js 14 Frontend
 │   ├── app/
 │   │   ├── layout.tsx          # Root layout

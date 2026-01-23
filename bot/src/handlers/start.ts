@@ -23,7 +23,7 @@ export async function startHandler(ctx: Context) {
       .single();
 
     const welcomeMessage = welcomeSetting?.value || 
-      '🍽️ *Kafeshka\'ga xush kelibsiz!*\n\n' +
+      '🍽️ *Minutka\'ga xush kelibsiz!*\n\n' +
       'Buyurtma berish uchun restoran tanlang:';
 
     const mainMenuKeyboard = await createMainMenuKeyboard();

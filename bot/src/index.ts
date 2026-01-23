@@ -1,5 +1,5 @@
 // ============================================
-// Telegram Bot for Kafeshka
+// Telegram Bot for Minutka
 // ============================================
 
 import { Telegraf, Context } from 'telegraf';

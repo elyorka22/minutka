@@ -1,5 +1,5 @@
 -- ============================================
--- Kafeshka Database Schema
+-- Minutka Database Schema
 -- Supabase PostgreSQL
 -- ============================================
 
@@ -264,8 +264,8 @@ CREATE POLICY "Public can view active categories"
 
 -- Вставляем начальные настройки бота
 INSERT INTO bot_settings (key, value) VALUES
-    ('bot_info', 'Kafeshka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.'),
-    ('partnership', 'Hamkorlik uchun biz bilan bog''laning: @kafeshka_admin yoki email: info@kafeshka.uz'),
+    ('bot_info', 'Minutka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.'),
+    ('partnership', 'Hamkorlik uchun biz bilan bog''laning: @minutka_admin yoki email: info@minutka.uz'),
     ('button_bot_info_text', 'ℹ️ Bot haqida'),
     ('button_partnership_text', '🤝 Hamkorlik')
 ON CONFLICT (key) DO NOTHING;

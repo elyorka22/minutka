@@ -1,7 +1,7 @@
 {
-  "name": "@kafeshka/backend",
+  "name": "@minutka/backend",
   "version": "1.0.0",
-  "description": "Backend API for Kafeshka platform",
+  "description": "Backend API for Minutka platform",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

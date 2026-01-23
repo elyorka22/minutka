@@ -3,7 +3,7 @@ import './globals.css'
 import { CartProvider } from '@/contexts/CartContext'
 
 export const metadata: Metadata = {
-  title: 'Kafeshka - Ovqat yetkazib berish',
+  title: 'Minutka - Ovqat yetkazib berish',
   description: 'Telegram orqali ovqat yetkazib berish platformasi',
 }
 

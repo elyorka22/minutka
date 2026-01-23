@@ -62,7 +62,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">🍽️ Kafeshka</h1>
+              <h1 className="text-2xl font-bold text-gray-900">🍽️ Minutka</h1>
               <p className="text-sm text-gray-600">Telegram orqali ovqat yetkazib berish</p>
             </div>
             <div className="flex items-center gap-3">
@@ -137,7 +137,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-8 mt-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm">© 2024 Kafeshka. Barcha huquqlar himoyalangan.</p>
+          <p className="text-sm">© 2024 Minutka. Barcha huquqlar himoyalangan.</p>
         </div>
       </footer>
     </div>

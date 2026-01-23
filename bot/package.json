@@ -1,7 +1,7 @@
 {
-  "name": "@kafeshka/bot",
+  "name": "@minutka/bot",
   "version": "1.0.0",
-  "description": "Telegram bot for Kafeshka platform",
+  "description": "Telegram bot for Minutka platform",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

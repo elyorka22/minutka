@@ -1,7 +1,7 @@
 {
-  "name": "@kafeshka/shared",
+  "name": "@minutka/shared",
   "version": "1.0.0",
-  "description": "Shared types and utilities for Kafeshka platform",
+  "description": "Shared types and utilities for Minutka platform",
   "main": "index.ts",
   "scripts": {
     "type-check": "tsc --noEmit"

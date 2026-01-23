@@ -1,5 +1,5 @@
 // ============================================
-// Shared Types for Kafeshka Platform
+// Shared Types for Minutka Platform
 // ============================================
 
 // Restaurant types
