@@ -17,16 +17,16 @@ interface BotSetting {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 export default function BotSettingsPage() {
-  const [buttonBotInfoText, setButtonBotInfoText] = useState('');
-  const [buttonPartnershipText, setButtonPartnershipText] = useState('');
+  const [botInfoMessage, setBotInfoMessage] = useState('');
+  const [partnershipMessage, setPartnershipMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchButtonTexts();
+    fetchMessages();
   }, []);
 
-  const fetchButtonTexts = async () => {
+  const fetchMessages = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/bot-settings`);
       if (!response.ok) {
@@ -35,17 +35,17 @@ export default function BotSettingsPage() {
       const data = await response.json();
       const settings = data.data || [];
       
-      // Находим тексты кнопок
-      const botInfoSetting = settings.find((s: BotSetting) => s.key === 'button_bot_info_text');
-      const partnershipSetting = settings.find((s: BotSetting) => s.key === 'button_partnership_text');
+      // Находим тексты сообщений
+      const botInfoSetting = settings.find((s: BotSetting) => s.key === 'bot_info');
+      const partnershipSetting = settings.find((s: BotSetting) => s.key === 'partnership');
       
-      setButtonBotInfoText(botInfoSetting?.value || 'ℹ️ Bot haqida');
-      setButtonPartnershipText(partnershipSetting?.value || '🤝 Hamkorlik');
+      setBotInfoMessage(botInfoSetting?.value || 'Kafeshka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
+      setPartnershipMessage(partnershipSetting?.value || 'Hamkorlik uchun biz bilan bog\'laning: @kafeshka_admin yoki email: info@kafeshka.uz');
     } catch (error) {
       console.error('Error fetching bot settings:', error);
       // Используем значения по умолчанию
-      setButtonBotInfoText('ℹ️ Bot haqida');
-      setButtonPartnershipText('🤝 Hamkorlik');
+      setBotInfoMessage('Kafeshka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
+      setPartnershipMessage('Hamkorlik uchun biz bilan bog\'laning: @kafeshka_admin yoki email: info@kafeshka.uz');
     } finally {
       setLoading(false);
     }
@@ -54,21 +54,21 @@ export default function BotSettingsPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // Сохраняем оба текста кнопок
+      // Сохраняем оба текста сообщений
       const [botInfoResponse, partnershipResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/bot-settings/button_bot_info_text`, {
+        fetch(`${API_BASE_URL}/api/bot-settings/bot_info`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ value: buttonBotInfoText }),
+          body: JSON.stringify({ value: botInfoMessage }),
         }),
-        fetch(`${API_BASE_URL}/api/bot-settings/button_partnership_text`, {
+        fetch(`${API_BASE_URL}/api/bot-settings/partnership`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ value: buttonPartnershipText }),
+          body: JSON.stringify({ value: partnershipMessage }),
         }),
       ]);
 
@@ -95,49 +95,49 @@ export default function BotSettingsPage() {
 
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <p className="text-gray-600 mb-6">
-          Измените тексты кнопок, которые отображаются в главном меню бота.
+          Измените тексты сообщений, которые пользователи получат при нажатии на кнопки в боте.
         </p>
 
         <div className="space-y-6">
-          {/* Поле для текста кнопки "Bot haqida" */}
+          {/* Поле для текста сообщения "Bot haqida" */}
           <div className="border-b border-gray-200 pb-6">
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                ℹ️ Текст кнопки "Bot haqida"
+                ℹ️ Сообщение "Bot haqida"
               </h3>
               <p className="text-sm text-gray-500">
-                Текст, который будет отображаться на кнопке "Bot haqida" в главном меню бота
+                Текст, который пользователь получит при нажатии на кнопку "Bot haqida"
               </p>
             </div>
             <div>
-              <input
-                type="text"
-                value={buttonBotInfoText}
-                onChange={(e) => setButtonBotInfoText(e.target.value)}
+              <textarea
+                value={botInfoMessage}
+                onChange={(e) => setBotInfoMessage(e.target.value)}
+                rows={6}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Введите текст кнопки..."
+                placeholder="Введите текст сообщения..."
                 disabled={loading || saving}
               />
             </div>
           </div>
 
-          {/* Поле для текста кнопки "Hamkorlik" */}
+          {/* Поле для текста сообщения "Hamkorlik" */}
           <div className="border-b border-gray-200 pb-6">
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                🤝 Текст кнопки "Hamkorlik"
+                🤝 Сообщение "Hamkorlik"
               </h3>
               <p className="text-sm text-gray-500">
-                Текст, который будет отображаться на кнопке "Hamkorlik" в главном меню бота
+                Текст, который пользователь получит при нажатии на кнопку "Hamkorlik"
               </p>
             </div>
             <div>
-              <input
-                type="text"
-                value={buttonPartnershipText}
-                onChange={(e) => setButtonPartnershipText(e.target.value)}
+              <textarea
+                value={partnershipMessage}
+                onChange={(e) => setPartnershipMessage(e.target.value)}
+                rows={6}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="Введите текст кнопки..."
+                placeholder="Введите текст сообщения..."
                 disabled={loading || saving}
               />
             </div>
