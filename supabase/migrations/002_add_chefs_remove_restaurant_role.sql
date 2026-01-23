@@ -45,3 +45,4 @@ DROP INDEX IF EXISTS idx_restaurant_admins_telegram_id;
 -- ALTER TABLE restaurants DROP COLUMN IF EXISTS telegram_chat_id;
 
 
+

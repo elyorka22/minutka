@@ -81,4 +81,21 @@ export async function chatIdHandler(ctx: Context) {
   }
 }
 
+/**
+ * Обработчик кнопки "Yopish" (Закрыть клавиатуру)
+ */
+export async function closeKeyboardHandler(ctx: Context) {
+  try {
+    await ctx.reply(
+      '✅ Klaviatura yopildi. Qayta ochish uchun /start buyrug\'ini bosing.',
+      {
+        reply_markup: { remove_keyboard: true }
+      }
+    );
+  } catch (error: any) {
+    console.error('Error in closeKeyboardHandler:', error);
+  }
+}
+
+
 

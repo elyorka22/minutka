@@ -40,3 +40,4 @@ router.delete('/:id', deleteRestaurantAdmin);
 
 export default router;
 
+

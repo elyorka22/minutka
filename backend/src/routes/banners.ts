@@ -17,3 +17,4 @@ router.get('/', getBanners);
 export default router;
 
 
+

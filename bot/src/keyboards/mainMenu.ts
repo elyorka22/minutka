@@ -34,8 +34,11 @@ export async function createMainMenuKeyboard() {
       ],
       [
         Markup.button.text('🆔 Chat ID')
+      ],
+      [
+        Markup.button.text('❌ Yopish')
       ]
-    ]).resize().persistent();
+    ]).resize().oneTime();
   } catch (error) {
     console.error('Error loading button texts from DB, using defaults:', error);
     // В случае ошибки используем значения по умолчанию
@@ -46,8 +49,11 @@ export async function createMainMenuKeyboard() {
       ],
       [
         Markup.button.text('🆔 Chat ID')
+      ],
+      [
+        Markup.button.text('❌ Yopish')
       ]
-    ]).resize().persistent();
+    ]).resize().oneTime();
   }
 }
 

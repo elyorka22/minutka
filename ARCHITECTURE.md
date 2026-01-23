@@ -284,3 +284,4 @@ NEXT_PUBLIC_TELEGRAM_BOT_USERNAME=your_bot_username
 - Rate limiting на API
 
 
+
