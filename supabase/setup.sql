@@ -340,10 +340,6 @@ ON CONFLICT (key) DO NOTHING;
 CREATE INDEX IF NOT EXISTS idx_super_admins_telegram_id ON super_admins(telegram_id);
 CREATE INDEX IF NOT EXISTS idx_super_admins_is_active ON super_admins(is_active);
 
--- Добавляем триггер для updated_at для super_admins
-CREATE TRIGGER update_super_admins_updated_at BEFORE UPDATE ON super_admins
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
 -- Включаем RLS для super_admins
 ALTER TABLE super_admins ENABLE ROW LEVEL SECURITY;
 
