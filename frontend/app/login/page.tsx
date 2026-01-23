@@ -4,9 +4,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
@@ -15,6 +16,23 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { user, login: loginWithAuth } = useAuth();
+
+  // Если пользователь уже авторизован, редиректим
+  useEffect(() => {
+    if (user) {
+      const role = user.role;
+      if (role === 'super_admin') {
+        router.push('/admin');
+      } else if (role === 'chef') {
+        router.push('/chef');
+      } else if (role === 'restaurant_admin') {
+        router.push('/restaurant-admin');
+      } else {
+        router.push('/');
+      }
+    }
+  }, [user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,32 +80,8 @@ export default function LoginPage() {
         throw new Error(data.error || 'Ошибка при входе');
       }
 
-      // Сохраняем данные пользователя в localStorage
-      localStorage.setItem('user', JSON.stringify(data.data));
-      localStorage.setItem('telegram_id', telegramIdNum);
-
-      console.log('User logged in, role:', data.data.role);
-
-      // Редиректим в зависимости от роли
-      const role = data.data.role;
-      if (role === 'super_admin') {
-        console.log('Redirecting to /admin');
-        router.push('/admin');
-        router.refresh();
-      } else if (role === 'chef') {
-        console.log('Redirecting to /chef');
-        router.push('/chef');
-        router.refresh();
-      } else if (role === 'restaurant_admin') {
-        console.log('Redirecting to /restaurant-admin');
-        router.push('/restaurant-admin');
-        router.refresh();
-      } else {
-        // Обычный пользователь - возвращаем на главную
-        console.log('Redirecting to /');
-        router.push('/');
-        router.refresh();
-      }
+      // Используем AuthContext для входа (он сам сохранит данные и сделает редирект)
+      await loginWithAuth(telegramIdNum);
     } catch (err: any) {
       console.error('Login error:', err);
       const errorMessage = err.message || 'Ошибка при входе. Проверьте ваш Telegram ID и подключение к интернету.';
