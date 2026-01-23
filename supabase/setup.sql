@@ -312,6 +312,10 @@ INSERT INTO bot_settings (key, value) VALUES
     ('button_partnership_text', '🤝 Hamkorlik')
 ON CONFLICT (key) DO NOTHING;
 
+-- Note: Добавьте супер-админа вручную через Supabase SQL Editor:
+-- INSERT INTO super_admins (telegram_id, username, first_name, last_name) VALUES
+--     (YOUR_TELEGRAM_ID, 'your_username', 'Your', 'Name');
+
 -- Initial restaurant categories
 INSERT INTO restaurant_categories (name, image_url, display_order) VALUES
     ('Italyan', 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=400&h=400&fit=crop', 1),

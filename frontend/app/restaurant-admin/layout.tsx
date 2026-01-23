@@ -4,9 +4,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 const navigation = [
   { name: 'Дашборд', href: '/restaurant-admin', icon: '📊' },
@@ -18,7 +19,34 @@ const navigation = [
 
 export default function RestaurantAdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, loading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        router.push('/login');
+      } else if (user.role !== 'restaurant_admin') {
+        // Редиректим в зависимости от роли
+        if (user.role === 'super_admin') {
+          router.push('/admin');
+        } else if (user.role === 'chef') {
+          router.push('/chef');
+        } else {
+          router.push('/');
+        }
+      }
+    }
+  }, [user, loading, router]);
+
+  if (loading) {
+    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Загрузка...</div>;
+  }
+
+  if (!user || user.role !== 'restaurant_admin') {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -38,7 +66,12 @@ export default function RestaurantAdminLayout({ children }: { children: React.Re
               </Link>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
-              <span className="text-xs sm:text-sm text-gray-600 hidden sm:inline">Суши Мастер</span>
+              <button
+                onClick={logout}
+                className="text-red-600 hover:text-red-700 text-xs sm:text-sm font-medium"
+              >
+                Выйти
+              </button>
               <Link
                 href="/"
                 className="text-primary-600 hover:text-primary-700 text-xs sm:text-sm font-medium"

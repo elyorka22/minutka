@@ -1,5 +1,5 @@
 // ============================================
-// Admin Panel Layout
+// Chef Panel Layout
 // ============================================
 
 'use client';
@@ -10,30 +10,23 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navigation = [
-  { name: 'Статистика', href: '/admin', icon: '📊' },
-  { name: 'Рестораны', href: '/admin/restaurants', icon: '🍽️' },
-  { name: 'Заказы', href: '/admin/orders', icon: '📦' },
-  { name: 'Пользователи', href: '/admin/users', icon: '👥' },
-  { name: 'Баннеры', href: '/admin/banners', icon: '🖼️' },
-  { name: 'Категории', href: '/admin/categories', icon: '🏷️' },
-  { name: 'Повара', href: '/admin/chefs', icon: '👨‍🍳' },
-  { name: 'Настройки бота', href: '/admin/bot-settings', icon: '🤖' },
+  { name: 'Заказы', href: '/chef', icon: '📦' },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function ChefLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     if (!loading) {
       if (!user) {
         router.push('/login');
-      } else if (user.role !== 'super_admin') {
+      } else if (user.role !== 'chef') {
         // Редиректим в зависимости от роли
-        if (user.role === 'chef') {
-          router.push('/chef');
+        if (user.role === 'super_admin') {
+          router.push('/admin');
         } else if (user.role === 'restaurant_admin') {
           router.push('/restaurant-admin');
         } else {
@@ -47,7 +40,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Загрузка...</div>;
   }
 
-  if (!user || user.role !== 'super_admin') {
+  if (!user || user.role !== 'chef') {
     return null;
   }
 
@@ -64,8 +57,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               >
                 ☰
               </button>
-              <Link href="/admin" className="text-lg sm:text-xl font-bold text-gray-900">
-                🛡️ Супер-админ панель
+              <Link href="/chef" className="text-lg sm:text-xl font-bold text-gray-900">
+                👨‍🍳 Панель повара
               </Link>
             </div>
             <div className="flex items-center gap-4">
