@@ -28,34 +28,70 @@ export default function LoginPage() {
         return;
       }
 
-      // Проверяем пользователя и получаем его роль
-      const response = await fetch(`${API_BASE_URL}/api/auth/me?telegram_id=${telegramId}`);
-      const data = await response.json();
+      const telegramIdNum = telegramId.trim();
+      console.log('Attempting login with Telegram ID:', telegramIdNum);
+      console.log('API URL:', `${API_BASE_URL}/api/auth/me?telegram_id=${telegramIdNum}`);
 
-      if (!response.ok || !data.success) {
+      // Проверяем пользователя и получаем его роль
+      const response = await fetch(`${API_BASE_URL}/api/auth/me?telegram_id=${telegramIdNum}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Response error:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || 'Ошибка при подключении к серверу' };
+        }
+        throw new Error(errorData.error || errorData.message || `Ошибка ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('Response data:', data);
+
+      if (!data.success) {
         throw new Error(data.error || 'Ошибка при входе');
       }
 
       // Сохраняем данные пользователя в localStorage
       localStorage.setItem('user', JSON.stringify(data.data));
-      localStorage.setItem('telegram_id', telegramId);
+      localStorage.setItem('telegram_id', telegramIdNum);
+
+      console.log('User logged in, role:', data.data.role);
 
       // Редиректим в зависимости от роли
       const role = data.data.role;
       if (role === 'super_admin') {
+        console.log('Redirecting to /admin');
         router.push('/admin');
+        router.refresh();
       } else if (role === 'chef') {
+        console.log('Redirecting to /chef');
         router.push('/chef');
+        router.refresh();
       } else if (role === 'restaurant_admin') {
+        console.log('Redirecting to /restaurant-admin');
         router.push('/restaurant-admin');
+        router.refresh();
       } else {
         // Обычный пользователь - возвращаем на главную
+        console.log('Redirecting to /');
         router.push('/');
+        router.refresh();
       }
     } catch (err: any) {
       console.error('Login error:', err);
-      setError(err.message || 'Ошибка при входе. Проверьте ваш Telegram ID.');
-    } finally {
+      const errorMessage = err.message || 'Ошибка при входе. Проверьте ваш Telegram ID и подключение к интернету.';
+      setError(errorMessage);
       setLoading(false);
     }
   };
