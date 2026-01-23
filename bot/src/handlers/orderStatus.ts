@@ -6,6 +6,7 @@ import { Context } from 'telegraf';
 import { apiRequest } from '../config/api';
 import { supabase } from '../config/supabase';
 import { notifyUserAboutOrderStatus } from '../services/userNotification';
+import { notifySuperAdminsAboutOrderStatusChange } from '../services/adminNotification';
 
 /**
  * Обработчик действий повара (chef) с заказом
@@ -105,6 +106,14 @@ export async function orderStatusHandler(
 
     // Уведомляем пользователя об изменении статуса
     await notifyUserAboutOrderStatus(order.user_id, orderId, newStatus);
+
+    // Уведомляем супер-админов об изменении статуса
+    const restaurant: any = await apiRequest(`/api/restaurants/${order.restaurant_id}`);
+    const restaurantName = restaurant?.name || 'Noma\'lum restoran';
+    await notifySuperAdminsAboutOrderStatusChange(orderId, newStatus, {
+      restaurantName,
+      orderText: order.order_text
+    });
   } catch (error: any) {
     console.error('Error in order status handler:', error);
       await ctx.answerCbQuery('Holatni yangilashda xatolik');

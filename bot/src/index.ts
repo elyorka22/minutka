@@ -12,6 +12,7 @@ import { orderStatusHandler } from './handlers/orderStatus';
 import { botInfoHandler, partnershipHandler, chatIdHandler } from './handlers/botInfo';
 import { initBot as initRestaurantNotification } from './services/restaurantNotification';
 import { initBot as initUserNotification } from './services/userNotification';
+import { initBot as initAdminNotification } from './services/adminNotification';
 import { createMainMenuKeyboard } from './keyboards/mainMenu';
 import { supabase } from './config/supabase';
 
@@ -28,6 +29,7 @@ const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 // Initialize notification services
 initRestaurantNotification(bot);
 initUserNotification(bot);
+initAdminNotification(bot);
 
 // Register handlers
 bot.start(async (ctx) => {

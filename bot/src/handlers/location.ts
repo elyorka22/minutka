@@ -6,6 +6,7 @@ import { Context } from 'telegraf';
 import { apiRequest } from '../config/api';
 import { supabase } from '../config/supabase';
 import { sendOrderToRestaurant } from '../services/restaurantNotification';
+import { notifySuperAdminsAboutNewOrder, notifyRestaurantAdminsAboutNewOrder } from '../services/adminNotification';
 
 /**
  * Обработчик геолокации или текстового адреса
@@ -70,7 +71,11 @@ export async function locationHandler(ctx: Context) {
       })
     });
 
-    // Отправляем заказ ресторану
+    // Получаем информацию о ресторане для уведомлений
+    const restaurant: any = await apiRequest(`/api/restaurants/${restaurantId}`);
+    const restaurantName = restaurant?.name || 'Noma\'lum restoran';
+
+    // Отправляем заказ ресторану (повару)
     const messageId = await sendOrderToRestaurant(order.id, restaurantId, {
       orderText,
       address,
@@ -82,6 +87,21 @@ export async function locationHandler(ctx: Context) {
       .from('orders')
       .update({ telegram_message_id: messageId })
       .eq('id', order.id);
+
+    // Уведомляем супер-админов о новом заказе
+    await notifySuperAdminsAboutNewOrder(order.id, {
+      restaurantName,
+      orderText,
+      address,
+      user: ctx.from
+    });
+
+    // Уведомляем админов ресторана о новом заказе
+    await notifyRestaurantAdminsAboutNewOrder(restaurantId, order.id, {
+      orderText,
+      address,
+      user: ctx.from
+    });
 
     // Очищаем сессию
     (ctx as any).session = {};
