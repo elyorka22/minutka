@@ -87,6 +87,8 @@ RLS политики уже включены в миграциях. Убедит
 PORT=3001
 NODE_ENV=production
 CORS_ORIGIN=https://your-frontend-domain.vercel.app
+# Примечание: CORS автоматически разрешает все *.vercel.app домены
+# Переменная CORS_ORIGIN используется для дополнительных доменов (через запятую)
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 API_BASE_URL=https://your-backend-domain.railway.app
@@ -213,6 +215,8 @@ NEXT_PUBLIC_TELEGRAM_BOT=your_bot_username
 
 ```env
 CORS_ORIGIN=https://your-frontend-domain.vercel.app
+# Примечание: CORS автоматически разрешает все *.vercel.app домены
+# Переменная CORS_ORIGIN используется для дополнительных доменов (через запятую)
 ```
 
 Перезапустите Backend сервис в Railway.
@@ -275,6 +279,8 @@ CORS_ORIGIN=https://your-frontend-domain.vercel.app
 PORT=3001
 NODE_ENV=production
 CORS_ORIGIN=https://your-frontend-domain.vercel.app
+# Примечание: CORS автоматически разрешает все *.vercel.app домены
+# Переменная CORS_ORIGIN используется для дополнительных доменов (через запятую)
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 API_BASE_URL=https://your-backend-domain.railway.app

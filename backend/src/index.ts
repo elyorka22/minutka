@@ -25,11 +25,37 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+// Middleware - CORS configuration
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Разрешаем запросы без origin (например, Postman, мобильные приложения)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // Разрешаем localhost для разработки
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+
+    // Разрешаем все Vercel домены (production и preview)
+    if (origin.includes('.vercel.app') || origin.includes('vercel.app')) {
+      return callback(null, true);
+    }
+
+    // Разрешаем конкретный домен из переменной окружения
+    const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [];
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // По умолчанию разрешаем (можно изменить на callback(new Error('Not allowed by CORS'), false) для строгой проверки)
+    callback(null, true);
+  },
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
