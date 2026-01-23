@@ -6,40 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@/lib/types';
-
-// Демо данные пользователей
-const demoUsers: User[] = [
-  {
-    id: '1',
-    telegram_id: 123456789,
-    username: 'user1',
-    first_name: 'Иван',
-    last_name: 'Иванов',
-    phone: '+7 (999) 123-45-67',
-    created_at: new Date(Date.now() - 86400000 * 30).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    telegram_id: 987654321,
-    username: 'user2',
-    first_name: 'Мария',
-    last_name: 'Петрова',
-    phone: '+7 (999) 234-56-78',
-    created_at: new Date(Date.now() - 86400000 * 15).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    telegram_id: 555666777,
-    username: null,
-    first_name: 'Алексей',
-    last_name: 'Сидоров',
-    phone: null,
-    created_at: new Date(Date.now() - 86400000 * 7).toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
+import { getUsers } from '@/lib/api';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -47,8 +14,17 @@ export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    setUsers(demoUsers);
-    setLoading(false);
+    async function fetchUsers() {
+      try {
+        const usersData = await getUsers();
+        setUsers(usersData);
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchUsers();
   }, []);
 
   const filteredUsers = users.filter((user) => {

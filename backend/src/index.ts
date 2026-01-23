@@ -15,6 +15,8 @@ import chefsRouter from './routes/chefs';
 import menuRouter from './routes/menu';
 import restaurantAdminsRouter from './routes/restaurant-admins';
 import uploadRouter from './routes/upload';
+import usersRouter from './routes/users';
+import statsRouter from './routes/stats';
 
 // Load environment variables
 dotenv.config();
@@ -45,6 +47,8 @@ app.use('/api/chefs', chefsRouter);
 app.use('/api/menu', menuRouter);
 app.use('/api/restaurant-admins', restaurantAdminsRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/stats', statsRouter);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

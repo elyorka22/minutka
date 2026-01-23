@@ -109,3 +109,25 @@ export async function getOrders(restaurantId?: string): Promise<Order[]> {
   }
 }
 
+// Users API
+export async function getUsers(): Promise<any[]> {
+  try {
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/users');
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return [];
+  }
+}
+
+// Stats API
+export async function getStats(): Promise<any> {
+  try {
+    const response = await api.get<{ success: boolean; data: any }>('/api/stats');
+    return response.data.data || null;
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    return null;
+  }
+}
+

@@ -5,6 +5,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getStats } from '@/lib/api';
 
 interface Stats {
   totalRestaurants: number;
@@ -22,21 +23,19 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // В MVP используем демо данные
-    // В реальности здесь будет запрос к API
-    setTimeout(() => {
-      setStats({
-        totalRestaurants: 6,
-        activeRestaurants: 6,
-        totalOrders: 124,
-        pendingOrders: 8,
-        totalUsers: 89,
-        totalBanners: 4,
-        todayOrders: 12,
-        todayRevenue: 15600,
-      });
-      setLoading(false);
-    }, 500);
+    async function fetchStats() {
+      try {
+        const statsData = await getStats();
+        if (statsData) {
+          setStats(statsData);
+        }
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStats();
   }, []);
 
   if (loading) {
@@ -106,31 +105,11 @@ export default function AdminDashboard() {
         ))}
       </div>
 
-      {/* Recent Activity */}
+      {/* Recent Activity - можно добавить позже через API */}
       <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
         <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Последние действия</h2>
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <span className="text-2xl">📦</span>
-            <div className="flex-1">
-              <p className="font-medium text-gray-900">Новый заказ #123</p>
-              <p className="text-sm text-gray-600">Ресторан: Суши Мастер • 5 минут назад</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <span className="text-2xl">🍽️</span>
-            <div className="flex-1">
-              <p className="font-medium text-gray-900">Ресторан активирован</p>
-              <p className="text-sm text-gray-600">Пиццерия Италия • 1 час назад</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <span className="text-2xl">👤</span>
-            <div className="flex-1">
-              <p className="font-medium text-gray-900">Новый пользователь</p>
-              <p className="text-sm text-gray-600">Зарегистрирован через Telegram • 2 часа назад</p>
-            </div>
-          </div>
+        <div className="text-center py-8 text-gray-500">
+          Функция в разработке
         </div>
       </div>
     </div>
