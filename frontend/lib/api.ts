@@ -85,6 +85,47 @@ export async function getRestaurantAdmins(restaurantId?: string): Promise<any[]>
   }
 }
 
+export async function createRestaurantAdmin(adminData: {
+  restaurant_id: string;
+  telegram_id: number;
+  username?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  is_active?: boolean;
+}): Promise<any> {
+  try {
+    const response = await api.post<{ success: boolean; data: any }>('/api/restaurant-admins', adminData);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error creating restaurant admin:', error);
+    throw error;
+  }
+}
+
+export async function updateRestaurantAdmin(id: string, adminData: {
+  username?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  is_active?: boolean;
+}): Promise<any> {
+  try {
+    const response = await api.patch<{ success: boolean; data: any }>(`/api/restaurant-admins/${id}`, adminData);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error updating restaurant admin:', error);
+    throw error;
+  }
+}
+
+export async function deleteRestaurantAdmin(id: string): Promise<void> {
+  try {
+    await api.delete(`/api/restaurant-admins/${id}`);
+  } catch (error) {
+    console.error('Error deleting restaurant admin:', error);
+    throw error;
+  }
+}
+
 // Chefs API
 export async function getChefs(restaurantId?: string): Promise<any[]> {
   try {

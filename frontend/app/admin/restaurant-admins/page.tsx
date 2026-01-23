@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { RestaurantAdmin, Restaurant } from '@/lib/types';
-import { getRestaurantAdmins, getRestaurants } from '@/lib/api';
+import { getRestaurantAdmins, getRestaurants, createRestaurantAdmin, updateRestaurantAdmin, deleteRestaurantAdmin } from '@/lib/api';
 
 export default function AdminRestaurantAdminsPage() {
   const [admins, setAdmins] = useState<RestaurantAdmin[]>([]);
@@ -38,9 +38,46 @@ export default function AdminRestaurantAdminsPage() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Вы уверены, что хотите удалить этого админа?')) {
-      setAdmins(admins.filter((a) => a.id !== id));
+      try {
+        await deleteRestaurantAdmin(id);
+        setAdmins(admins.filter((a) => a.id !== id));
+      } catch (error) {
+        console.error('Error deleting admin:', error);
+        alert('Ошибка при удалении админа');
+      }
+    }
+  };
+
+  const handleSave = async (admin: RestaurantAdmin) => {
+    try {
+      if (admin.id && admin.id !== Date.now().toString()) {
+        // Обновление существующего админа
+        const updated = await updateRestaurantAdmin(admin.id, {
+          username: admin.username,
+          first_name: admin.first_name,
+          last_name: admin.last_name,
+          is_active: admin.is_active,
+        });
+        setAdmins(admins.map((a) => (a.id === admin.id ? updated : a)));
+      } else {
+        // Создание нового админа
+        const created = await createRestaurantAdmin({
+          restaurant_id: admin.restaurant_id,
+          telegram_id: admin.telegram_id,
+          username: admin.username,
+          first_name: admin.first_name,
+          last_name: admin.last_name,
+          is_active: admin.is_active,
+        });
+        setAdmins([...admins, created]);
+      }
+      setShowForm(false);
+      setEditingAdmin(null);
+    } catch (error) {
+      console.error('Error saving admin:', error);
+      alert('Ошибка при сохранении админа');
     }
   };
 
@@ -183,15 +220,7 @@ export default function AdminRestaurantAdminsPage() {
             setShowForm(false);
             setEditingAdmin(null);
           }}
-          onSave={(admin) => {
-            if (editingAdmin) {
-              setAdmins(admins.map((a) => (a.id === admin.id ? admin : a)));
-            } else {
-              setAdmins([...admins, admin]);
-            }
-            setShowForm(false);
-            setEditingAdmin(null);
-          }}
+          onSave={handleSave}
         />
       )}
     </div>
