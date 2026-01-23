@@ -87,10 +87,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (telegramId: string) => {
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/me?telegram_id=${telegramId}`);
-      const data = await response.json();
+      console.log('AuthContext: Attempting login with Telegram ID:', telegramId);
+      console.log('AuthContext: API URL:', `${API_BASE_URL}/api/auth/me?telegram_id=${telegramId}`);
+      
+      const response = await fetch(`${API_BASE_URL}/api/auth/me?telegram_id=${telegramId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-      if (!response.ok || !data.success) {
+      console.log('AuthContext: Response status:', response.status);
+      console.log('AuthContext: Response ok:', response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('AuthContext: Response error:', errorText);
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: errorText || 'Ошибка при подключении к серверу' };
+        }
+        throw new Error(errorData.error || errorData.message || `Ошибка ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log('AuthContext: Response data:', data);
+
+      if (!data.success) {
         throw new Error(data.error || 'Ошибка при входе');
       }
 
@@ -98,19 +123,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('user', JSON.stringify(data.data));
       localStorage.setItem('telegram_id', telegramId);
 
+      console.log('AuthContext: User logged in, role:', data.data.role);
+
       // Редиректим в зависимости от роли
       const role = data.data.role;
       if (role === 'super_admin') {
+        console.log('AuthContext: Redirecting to /admin');
         router.push('/admin');
       } else if (role === 'chef') {
+        console.log('AuthContext: Redirecting to /chef');
         router.push('/chef');
       } else if (role === 'restaurant_admin') {
+        console.log('AuthContext: Redirecting to /restaurant-admin');
         router.push('/restaurant-admin');
       } else {
+        console.log('AuthContext: Redirecting to /');
         router.push('/');
       }
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error('AuthContext: Login error:', error);
       throw error;
     } finally {
       setLoading(false);

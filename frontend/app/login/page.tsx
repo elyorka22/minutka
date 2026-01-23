@@ -48,40 +48,12 @@ export default function LoginPage() {
 
       const telegramIdNum = telegramId.trim();
       console.log('Attempting login with Telegram ID:', telegramIdNum);
-      console.log('API URL:', `${API_BASE_URL}/api/auth/me?telegram_id=${telegramIdNum}`);
-
-      // Проверяем пользователя и получаем его роль
-      const response = await fetch(`${API_BASE_URL}/api/auth/me?telegram_id=${telegramIdNum}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Response error:', errorText);
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch {
-          errorData = { error: errorText || 'Ошибка при подключении к серверу' };
-        }
-        throw new Error(errorData.error || errorData.message || `Ошибка ${response.status}: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      console.log('Response data:', data);
-
-      if (!data.success) {
-        throw new Error(data.error || 'Ошибка при входе');
-      }
 
       // Используем AuthContext для входа (он сам сохранит данные и сделает редирект)
       await loginWithAuth(telegramIdNum);
+      
+      // Если дошли сюда, значит вход успешен, но редирект еще не произошел
+      // Это нормально, редирект произойдет через useEffect когда user обновится
     } catch (err: any) {
       console.error('Login error:', err);
       const errorMessage = err.message || 'Ошибка при входе. Проверьте ваш Telegram ID и подключение к интернету.';
