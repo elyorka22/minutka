@@ -93,8 +93,13 @@ export async function sendOrderToChef(
     };
 
     // Отправляем сообщение повару
+    // Преобразуем telegram_chat_id в число, если это BigInt
+    const chatId = typeof chef.telegram_chat_id === 'bigint' 
+      ? Number(chef.telegram_chat_id) 
+      : chef.telegram_chat_id!;
+    
     const messageId = await sendTelegramMessage(
-      chef.telegram_chat_id!,
+      chatId,
       message,
       {
         parse_mode: 'Markdown',
