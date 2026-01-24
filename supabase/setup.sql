@@ -30,13 +30,14 @@ CREATE TABLE IF NOT EXISTS restaurants (
 -- Users table (Telegram users)
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    telegram_id BIGINT UNIQUE NOT NULL,
+    telegram_id BIGINT, -- Может быть NULL для пользователей без Telegram
     username VARCHAR(255),
     first_name VARCHAR(255),
     last_name VARCHAR(255),
     phone VARCHAR(20),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT users_telegram_id_unique UNIQUE NULLS NOT DISTINCT (telegram_id) -- Уникальность только для не-NULL значений
 );
 
 -- Chefs table (повара)
