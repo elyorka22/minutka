@@ -117,6 +117,7 @@ export async function createRestaurant(req: Request, res: Response) {
       .single();
 
     if (restaurantError) {
+      console.error('Error creating restaurant:', restaurantError);
       throw restaurantError;
     }
 
