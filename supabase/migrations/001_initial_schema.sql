@@ -15,6 +15,7 @@ CREATE TABLE restaurants (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     description TEXT,
+    image_url TEXT,
     working_hours JSONB, -- {"monday": "09:00-22:00", "tuesday": "09:00-22:00", ...}
     telegram_chat_id BIGINT, -- Telegram chat ID для отправки заказов
     phone VARCHAR(20),
