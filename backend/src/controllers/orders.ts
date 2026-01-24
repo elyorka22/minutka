@@ -8,7 +8,8 @@ import { Order, OrderStatus } from '../types';
 import {
   sendOrderToChef,
   notifySuperAdminsAboutNewOrder,
-  notifyRestaurantAdminsAboutNewOrder
+  notifyRestaurantAdminsAboutNewOrder,
+  notifyUserAboutOrderStatus
 } from '../services/telegramNotification';
 
 /**
@@ -281,6 +282,13 @@ export async function updateOrderStatus(req: Request, res: Response) {
         changed_by,
         telegram_id: telegram_id || null
       });
+
+    // Уведомляем пользователя об изменении статуса (асинхронно)
+    if (existingOrder.user_id) {
+      notifyUserAboutOrderStatus(existingOrder.user_id, id, status).catch((error) => {
+        console.error('Error notifying user about order status:', error);
+      });
+    }
 
     res.json({
       success: true,
