@@ -207,11 +207,28 @@ function MenuItemFormModal({
   onClose: () => void;
   onSave: (item: MenuItem) => void;
 }) {
+  const [availableCategories, setAvailableCategories] = useState<any[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const categoriesData = await getCategories();
+        setAvailableCategories(categoriesData);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
+    fetchCategories();
+  }, []);
+
   const [formData, setFormData] = useState({
     name: item?.name || '',
     description: item?.description || '',
     price: item?.price?.toString() || '',
-    category: item?.category || categories[0] || '',
+    category: item?.category || '',
     image_url: item?.image_url || '',
     is_available: item?.is_available ?? true,
   });
