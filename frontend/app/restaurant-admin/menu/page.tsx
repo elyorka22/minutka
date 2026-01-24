@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { MenuItem } from '@/lib/types';
-import { getMenuItems } from '@/lib/api';
+import { getMenuItems, getCategories } from '@/lib/api';
 import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
@@ -289,19 +289,32 @@ function MenuItemFormModal({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Категория *
                 </label>
-                <input
-                  type="text"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  required
-                  list="categories"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-                <datalist id="categories">
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat} />
-                  ))}
-                </datalist>
+                {loadingCategories ? (
+                  <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500">
+                    Загрузка категорий...
+                  </div>
+                ) : (
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  >
+                    <option value="">Выберите категорию</option>
+                    {availableCategories
+                      .filter((cat) => cat.is_active)
+                      .map((cat) => (
+                        <option key={cat.id} value={cat.name}>
+                          {cat.name}
+                        </option>
+                      ))}
+                  </select>
+                )}
+                {availableCategories.length === 0 && !loadingCategories && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Категории не найдены. Обратитесь к супер-админу для создания категорий.
+                  </p>
+                )}
               </div>
             </div>
 
