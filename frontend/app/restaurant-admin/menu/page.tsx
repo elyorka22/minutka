@@ -128,7 +128,7 @@ export default function RestaurantAdminMenuPage() {
                   <h3 className="font-semibold text-gray-900">{item.name}</h3>
                   <p className="text-sm text-gray-600 mt-1">{item.category}</p>
                 </div>
-                <span className="text-lg font-bold text-primary-600">{item.price}₽</span>
+                <span className="text-lg font-bold text-primary-600">{item.price} сум</span>
               </div>
               {item.description && (
                 <p className="text-sm text-gray-600 mb-3">{item.description}</p>
@@ -274,7 +274,7 @@ function MenuItemFormModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Цена (₽) *
+                  Цена (сум) *
                 </label>
                 <input
                   type="number"
