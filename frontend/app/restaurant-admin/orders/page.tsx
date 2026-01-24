@@ -35,6 +35,10 @@ export default function RestaurantAdminOrdersPage() {
 
   useEffect(() => {
     async function fetchOrders() {
+      if (!currentRestaurantId) {
+        setLoading(false);
+        return;
+      }
       try {
         const data = await getOrders(currentRestaurantId);
         setOrders(data);
