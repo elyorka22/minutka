@@ -249,7 +249,7 @@ export async function updateOrderStatus(req: Request, res: Response) {
     // Проверка существования заказа
     const { data: existingOrder, error: orderError } = await supabase
       .from('orders')
-      .select('id, status')
+      .select('id, status, user_id')
       .eq('id', id)
       .single();
 
