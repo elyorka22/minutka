@@ -9,16 +9,17 @@ import { MenuItem } from '@/lib/types';
 import { getMenuItems } from '@/lib/api';
 import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RestaurantAdminMenuPage() {
+  const { user } = useAuth();
+  // Получаем restaurant_id из данных пользователя
+  const currentRestaurantId = (user?.user as any)?.restaurant_id;
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-
-  // В реальном приложении это будет браться из контекста авторизации
-  const currentRestaurantId = '2'; // TODO: получить из контекста авторизации
 
   useEffect(() => {
     async function fetchMenuItems() {

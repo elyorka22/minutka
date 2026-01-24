@@ -7,10 +7,12 @@
 import { useState, useEffect } from 'react';
 import { Restaurant } from '@/lib/types';
 import { getRestaurantById } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RestaurantAdminSettingsPage() {
-  // В реальном приложении это будет браться из контекста авторизации
-  const currentRestaurantId = '2'; // TODO: получить из контекста авторизации
+  const { user } = useAuth();
+  // Получаем restaurant_id из данных пользователя
+  const currentRestaurantId = (user?.user as any)?.restaurant_id;
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
