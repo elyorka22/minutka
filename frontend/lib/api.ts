@@ -92,13 +92,61 @@ export async function getBanners(position?: string): Promise<Banner[]> {
 }
 
 // Menu Items API
-export async function getMenuItems(restaurantId: string): Promise<any[]> {
+export async function getMenuItems(restaurantId: string, includeUnavailable: boolean = false): Promise<any[]> {
   try {
-    const response = await api.get<{ success: boolean; data: any[] }>('/api/menu', { params: { restaurant_id: restaurantId } });
+    const params: any = { restaurant_id: restaurantId };
+    if (includeUnavailable) {
+      params.include_unavailable = 'true';
+    }
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/menu', { params });
     return response.data.data || [];
   } catch (error) {
     console.error('Error fetching menu items:', error);
     return [];
+  }
+}
+
+export async function createMenuItem(menuItemData: {
+  restaurant_id: string;
+  name: string;
+  description?: string | null;
+  price: number;
+  category?: string | null;
+  image_url?: string | null;
+  is_available?: boolean;
+}): Promise<any> {
+  try {
+    const response = await api.post<{ success: boolean; data: any }>('/api/menu', menuItemData);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error creating menu item:', error);
+    throw error;
+  }
+}
+
+export async function updateMenuItem(id: string, menuItemData: {
+  name?: string;
+  description?: string | null;
+  price?: number;
+  category?: string | null;
+  image_url?: string | null;
+  is_available?: boolean;
+}): Promise<any> {
+  try {
+    const response = await api.patch<{ success: boolean; data: any }>(`/api/menu/${id}`, menuItemData);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error updating menu item:', error);
+    throw error;
+  }
+}
+
+export async function deleteMenuItem(id: string): Promise<void> {
+  try {
+    await api.delete(`/api/menu/${id}`);
+  } catch (error) {
+    console.error('Error deleting menu item:', error);
+    throw error;
   }
 }
 

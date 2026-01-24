@@ -13,18 +13,23 @@ import { MenuItem } from '../types';
  */
 export async function getMenuItems(req: Request, res: Response) {
   try {
-    const { restaurant_id } = req.query;
+    const { restaurant_id, include_unavailable } = req.query;
 
     if (!restaurant_id) {
       return res.status(400).json({ success: false, error: 'restaurant_id is required' });
     }
 
-    const { data, error } = await supabase
+    let query = supabase
       .from('menu_items')
       .select('*')
-      .eq('restaurant_id', restaurant_id)
-      .eq('is_available', true)
-      .order('category', { ascending: true })
+      .eq('restaurant_id', restaurant_id);
+
+    // Если не запрошены недоступные блюда, фильтруем только доступные
+    if (include_unavailable !== 'true') {
+      query = query.eq('is_available', true);
+    }
+
+    const { data, error } = await query
       .order('name', { ascending: true });
 
     if (error) {
@@ -74,8 +79,8 @@ export async function createMenuItem(req: Request, res: Response) {
   try {
     const { restaurant_id, name, description, price, category, image_url, is_available } = req.body;
 
-    if (!restaurant_id || !name || !price || !category) {
-      return res.status(400).json({ success: false, error: 'Missing required fields: restaurant_id, name, price, category' });
+    if (!restaurant_id || !name || price === undefined) {
+      return res.status(400).json({ success: false, error: 'Missing required fields: restaurant_id, name, price' });
     }
 
     const { data, error } = await supabase
@@ -85,7 +90,7 @@ export async function createMenuItem(req: Request, res: Response) {
         name,
         description: description || null,
         price,
-        category,
+        category: category || null, // Категория опциональна
         image_url: image_url || null,
         is_available: is_available ?? true,
       })

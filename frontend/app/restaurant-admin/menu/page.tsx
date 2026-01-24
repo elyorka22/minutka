@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { MenuItem } from '@/lib/types';
-import { getMenuItems } from '@/lib/api';
+import { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem } from '@/lib/api';
 import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,8 +22,13 @@ export default function RestaurantAdminMenuPage() {
 
   useEffect(() => {
     async function fetchMenuItems() {
+      if (!currentRestaurantId) {
+        setLoading(false);
+        return;
+      }
       try {
-        const items = await getMenuItems(currentRestaurantId);
+        // В админ-панели показываем все блюда, включая недоступные
+        const items = await getMenuItems(currentRestaurantId, true);
         setMenuItems(items);
       } catch (error) {
         console.error('Error fetching menu items:', error);
@@ -39,9 +44,15 @@ export default function RestaurantAdminMenuPage() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Вы уверены, что хотите удалить этот пункт меню?')) {
-      setMenuItems(menuItems.filter((item) => item.id !== id));
+      try {
+        await deleteMenuItem(id);
+        setMenuItems(menuItems.filter((item) => item.id !== id));
+      } catch (error) {
+        console.error('Error deleting menu item:', error);
+        alert('Ошибка при удалении блюда');
+      }
     }
   };
 
@@ -143,14 +154,42 @@ export default function RestaurantAdminMenuPage() {
             setShowForm(false);
             setEditingItem(null);
           }}
-          onSave={(item) => {
-            if (editingItem) {
-              setMenuItems(menuItems.map((i) => (i.id === item.id ? item : i)));
-            } else {
-              setMenuItems([...menuItems, item]);
+          onSave={async (item) => {
+            try {
+              if (editingItem) {
+                // Обновление существующего блюда
+                const updated = await updateMenuItem(item.id, {
+                  name: item.name,
+                  description: item.description,
+                  price: item.price,
+                  category: item.category,
+                  image_url: item.image_url,
+                  is_available: item.is_available,
+                });
+                setMenuItems(menuItems.map((i) => (i.id === item.id ? updated : i)));
+              } else {
+                // Создание нового блюда
+                if (!currentRestaurantId) {
+                  alert('Ошибка: не удалось определить ресторан');
+                  return;
+                }
+                const created = await createMenuItem({
+                  restaurant_id: currentRestaurantId,
+                  name: item.name,
+                  description: item.description,
+                  price: item.price,
+                  category: item.category,
+                  image_url: item.image_url,
+                  is_available: item.is_available,
+                });
+                setMenuItems([...menuItems, created]);
+              }
+              setShowForm(false);
+              setEditingItem(null);
+            } catch (error) {
+              console.error('Error saving menu item:', error);
+              alert('Ошибка при сохранении блюда');
             }
-            setShowForm(false);
-            setEditingItem(null);
           }}
         />
       )}
