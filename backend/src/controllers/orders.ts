@@ -5,6 +5,11 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { Order, OrderStatus } from '../types';
+import {
+  sendOrderToChef,
+  notifySuperAdminsAboutNewOrder,
+  notifyRestaurantAdminsAboutNewOrder
+} from '../services/telegramNotification';
 
 /**
  * POST /api/orders
@@ -71,6 +76,58 @@ export async function createOrder(req: Request, res: Response) {
         status: 'pending',
         changed_by: 'user'
       });
+
+    // Получаем информацию о пользователе и ресторане для уведомлений
+    const [userResult, restaurantResult] = await Promise.all([
+      supabase
+        .from('users')
+        .select('first_name, username')
+        .eq('id', user_id)
+        .single(),
+      supabase
+        .from('restaurants')
+        .select('name')
+        .eq('id', restaurant_id)
+        .single()
+    ]);
+
+    const user = userResult.data;
+    const restaurant = restaurantResult.data;
+    const userName = user?.username ? `@${user.username}` : (user?.first_name || 'Foydalanuvchi');
+
+    // Отправляем уведомления асинхронно (не блокируем ответ)
+    Promise.all([
+      // Отправляем заказ повару
+      sendOrderToChef(data.id, restaurant_id, {
+        orderText: order_text,
+        address,
+        userName
+      }).then((messageId) => {
+        // Сохраняем ID сообщения в БД
+        if (messageId) {
+          return supabase
+            .from('orders')
+            .update({ telegram_message_id: messageId })
+            .eq('id', data.id);
+        }
+      }),
+      // Уведомляем супер-админов
+      notifySuperAdminsAboutNewOrder(data.id, {
+        restaurantName: restaurant?.name || 'Noma\'lum restoran',
+        orderText: order_text,
+        address,
+        userName
+      }),
+      // Уведомляем админов ресторана
+      notifyRestaurantAdminsAboutNewOrder(restaurant_id, data.id, {
+        orderText: order_text,
+        address,
+        userName
+      })
+    ]).catch((error) => {
+      console.error('Error sending notifications:', error);
+      // Не прерываем создание заказа, если уведомления не отправились
+    });
 
     res.status(201).json({
       success: true,
