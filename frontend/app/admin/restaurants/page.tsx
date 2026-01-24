@@ -63,7 +63,10 @@ export default function AdminRestaurantsPage() {
 
   const handleSave = async (restaurant: Restaurant) => {
     try {
-      if (restaurant.id && restaurant.id !== Date.now().toString()) {
+      // Проверяем, редактируем ли мы существующий ресторан
+      const isEditing = editingRestaurant && restaurants.some((r) => r.id === restaurant.id);
+      
+      if (isEditing) {
         // Обновление существующего ресторана
         const updated = await updateRestaurant(restaurant.id, {
           name: restaurant.name,
@@ -262,7 +265,7 @@ function RestaurantFormModal({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const newRestaurant: Restaurant & { admin_telegram_id?: number } = {
-      id: restaurant?.id || Date.now().toString(),
+      id: restaurant?.id || '', // При создании оставляем пустым, сервер сгенерирует UUID
       name: formData.name,
       description: formData.description || null,
       phone: formData.phone || null,
