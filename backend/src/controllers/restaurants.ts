@@ -205,7 +205,7 @@ export async function createRestaurant(req: Request, res: Response) {
 export async function updateRestaurant(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, phone, image_url, is_active, is_featured } = req.body;
+    const { name, description, phone, image_url, is_active, is_featured, working_hours } = req.body;
 
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
@@ -214,6 +214,7 @@ export async function updateRestaurant(req: Request, res: Response) {
     if (image_url !== undefined) updateData.image_url = image_url;
     if (is_active !== undefined) updateData.is_active = is_active;
     if (is_featured !== undefined) updateData.is_featured = is_featured;
+    if (working_hours !== undefined) updateData.working_hours = working_hours;
 
     const { data, error } = await supabase
       .from('restaurants')

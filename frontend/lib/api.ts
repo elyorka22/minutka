@@ -46,6 +46,7 @@ export async function updateRestaurant(id: string, restaurantData: {
   image_url?: string;
   is_active?: boolean;
   is_featured?: boolean;
+  working_hours?: Record<string, string>;
 }): Promise<Restaurant> {
   const response = await api.patch<{ success: boolean; data: Restaurant }>(`/api/restaurants/${id}`, restaurantData);
   return response.data.data;
