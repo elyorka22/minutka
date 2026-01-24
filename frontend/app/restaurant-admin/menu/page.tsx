@@ -74,34 +74,6 @@ export default function RestaurantAdminMenuPage() {
         </button>
       </div>
 
-      {/* Category Filter */}
-      <div className="mb-6">
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={() => setSelectedCategory('all')}
-            className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-              selectedCategory === 'all'
-                ? 'bg-primary-500 text-white'
-                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
-          >
-            Все категории
-          </button>
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                selectedCategory === category
-                  ? 'bg-primary-500 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-      </div>
 
       {/* Menu Items Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -166,7 +138,6 @@ export default function RestaurantAdminMenuPage() {
       {showForm && (
         <MenuItemFormModal
           item={editingItem}
-          categories={categories}
           restaurantId={currentRestaurantId}
           onClose={() => {
             setShowForm(false);
@@ -190,13 +161,11 @@ export default function RestaurantAdminMenuPage() {
 // Menu Item Form Modal Component
 function MenuItemFormModal({
   item,
-  categories,
   restaurantId,
   onClose,
   onSave,
 }: {
   item: MenuItem | null;
-  categories: string[];
   restaurantId: string | undefined;
   onClose: () => void;
   onSave: (item: MenuItem) => void;
