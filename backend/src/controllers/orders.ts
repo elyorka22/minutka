@@ -37,13 +37,13 @@ export async function createOrder(req: Request, res: Response) {
     }
 
     // Проверка существования ресторана
-    const { data: restaurant, error: restaurantError } = await supabase
+    const { data: restaurantCheck, error: restaurantError } = await supabase
       .from('restaurants')
       .select('id, is_active')
       .eq('id', restaurant_id)
       .single();
 
-    if (restaurantError || !restaurant || !restaurant.is_active) {
+    if (restaurantError || !restaurantCheck || !restaurantCheck.is_active) {
       return res.status(404).json({
         success: false,
         error: 'Restaurant not found or inactive'
@@ -93,7 +93,7 @@ export async function createOrder(req: Request, res: Response) {
     ]);
 
     const user = userResult.data;
-    const restaurant = restaurantResult.data;
+    const restaurantInfo = restaurantResult.data;
     const userName = user?.username ? `@${user.username}` : (user?.first_name || 'Foydalanuvchi');
 
     // Отправляем уведомления асинхронно (не блокируем ответ)
@@ -114,7 +114,7 @@ export async function createOrder(req: Request, res: Response) {
       }),
       // Уведомляем супер-админов
       notifySuperAdminsAboutNewOrder(data.id, {
-        restaurantName: restaurant?.name || 'Noma\'lum restoran',
+        restaurantName: restaurantInfo?.name || 'Noma\'lum restoran',
         orderText: order_text,
         address,
         userName

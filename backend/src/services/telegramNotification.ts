@@ -33,11 +33,11 @@ async function sendTelegramMessage(chatId: number, message: string, options?: {
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await response.json() as { description?: string };
     throw new Error(`Telegram API error: ${errorData.description || response.statusText}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as { result: { message_id: number } };
   return data.result.message_id;
 }
 
