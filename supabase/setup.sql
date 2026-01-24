@@ -334,6 +334,12 @@ CREATE POLICY "Public can view active categories"
     ON restaurant_categories FOR SELECT
     USING (is_active = true);
 
+-- Menu items: публичный доступ на чтение доступных блюд
+DROP POLICY IF EXISTS "Public can view available menu items" ON menu_items;
+CREATE POLICY "Public can view available menu items"
+    ON menu_items FOR SELECT
+    USING (is_available = true);
+
 -- ============================================
 -- INITIAL DATA
 -- ============================================
