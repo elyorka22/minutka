@@ -25,7 +25,7 @@ export interface MenuItem {
   name: string;
   description: string | null;
   price: number;
-  category: string;
+  category: string | null; // Категория не используется для блюд ресторана
   image_url: string | null;
   is_available: boolean;
   created_at: string;
