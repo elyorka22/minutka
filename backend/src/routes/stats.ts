@@ -3,7 +3,7 @@
 // ============================================
 
 import express from 'express';
-import { getStats } from '../controllers/stats';
+import { getStats, getRestaurantStats } from '../controllers/stats';
 
 const router = express.Router();
 
@@ -12,6 +12,12 @@ const router = express.Router();
  * Получить статистику для дашборда
  */
 router.get('/', getStats);
+
+/**
+ * GET /api/stats/restaurant/:restaurantId
+ * Получить статистику для конкретного ресторана
+ */
+router.get('/restaurant/:restaurantId', getRestaurantStats);
 
 export default router;
 

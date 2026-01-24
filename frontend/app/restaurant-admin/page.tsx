@@ -5,6 +5,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getRestaurantStats, getOrders } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
+import { Order } from '@/lib/types';
 
 interface RestaurantStats {
   todayOrders: number;
@@ -15,24 +18,58 @@ interface RestaurantStats {
   averageOrderValue: number;
 }
 
+const statusLabels: Record<string, string> = {
+  pending: 'В ожидании',
+  accepted: 'Принят',
+  ready: 'Готов',
+  delivered: 'Доставлен',
+  cancelled: 'Отменен',
+};
+
+const statusColors: Record<string, string> = {
+  pending: 'bg-yellow-100 text-yellow-800',
+  accepted: 'bg-blue-100 text-blue-800',
+  ready: 'bg-green-100 text-green-800',
+  delivered: 'bg-gray-100 text-gray-800',
+  cancelled: 'bg-red-100 text-red-800',
+};
+
 export default function RestaurantAdminDashboard() {
+  const { user } = useAuth();
+  const currentRestaurantId = (user?.user as any)?.restaurant_id;
   const [stats, setStats] = useState<RestaurantStats | null>(null);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // В MVP используем демо данные
-    setTimeout(() => {
-      setStats({
-        todayOrders: 12,
-        todayRevenue: 15600,
-        pendingOrders: 3,
-        totalOrders: 89,
-        totalRevenue: 124500,
-        averageOrderValue: 1400,
-      });
-      setLoading(false);
-    }, 500);
-  }, []);
+    async function fetchData() {
+      if (!currentRestaurantId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const [statsData, ordersData] = await Promise.all([
+          getRestaurantStats(currentRestaurantId),
+          getOrders(currentRestaurantId)
+        ]);
+
+        if (statsData) {
+          setStats(statsData);
+        }
+
+        // Берем последние 5 заказов
+        if (ordersData && Array.isArray(ordersData)) {
+          setRecentOrders(ordersData.slice(0, 5));
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [currentRestaurantId]);
 
   if (loading) {
     return <div className="text-center py-12">Загрузка статистики...</div>;
@@ -104,38 +141,58 @@ export default function RestaurantAdminDashboard() {
       {/* Recent Orders */}
       <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
         <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">Последние заказы</h2>
-        <div className="space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-gray-50 rounded-lg">
-            <div className="flex-1">
-              <p className="font-medium text-gray-900">Заказ #123</p>
-              <p className="text-sm text-gray-600">Филадельфия x2, Калифорния x1</p>
-              <p className="text-xs text-gray-500 mt-1">5 минут назад</p>
-            </div>
-            <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold w-fit">
-              В ожидании
-            </span>
+        {recentOrders.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            Заказов пока нет
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-gray-50 rounded-lg">
-            <div className="flex-1">
-              <p className="font-medium text-gray-900">Заказ #122</p>
-              <p className="text-sm text-gray-600">Сет "Самурай" x1</p>
-              <p className="text-xs text-gray-500 mt-1">15 минут назад</p>
-            </div>
-            <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold w-fit">
-              Принят
-            </span>
+        ) : (
+          <div className="space-y-3">
+            {recentOrders.map((order) => {
+              const orderDate = new Date(order.created_at);
+              const now = new Date();
+              const diffMs = now.getTime() - orderDate.getTime();
+              const diffMins = Math.floor(diffMs / 60000);
+              const diffHours = Math.floor(diffMins / 60);
+              const diffDays = Math.floor(diffHours / 24);
+
+              let timeAgo = '';
+              if (diffMins < 1) {
+                timeAgo = 'только что';
+              } else if (diffMins < 60) {
+                timeAgo = `${diffMins} ${diffMins === 1 ? 'минуту' : diffMins < 5 ? 'минуты' : 'минут'} назад`;
+              } else if (diffHours < 24) {
+                timeAgo = `${diffHours} ${diffHours === 1 ? 'час' : diffHours < 5 ? 'часа' : 'часов'} назад`;
+              } else {
+                timeAgo = `${diffDays} ${diffDays === 1 ? 'день' : 'дня'} назад`;
+              }
+
+              return (
+                <div
+                  key={order.id}
+                  className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-gray-50 rounded-lg"
+                >
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">
+                      Заказ #{order.id.slice(0, 8)}
+                    </p>
+                    <p className="text-sm text-gray-600">{order.order_text || 'Без описания'}</p>
+                    {order.address && (
+                      <p className="text-xs text-gray-500 mt-1">📍 {order.address}</p>
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">{timeAgo}</p>
+                  </div>
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-semibold w-fit ${
+                      statusColors[order.status] || 'bg-gray-100 text-gray-800'
+                    }`}
+                  >
+                    {statusLabels[order.status] || order.status}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-gray-50 rounded-lg">
-            <div className="flex-1">
-              <p className="font-medium text-gray-900">Заказ #121</p>
-              <p className="text-sm text-gray-600">Нигири с лососем x3</p>
-              <p className="text-xs text-gray-500 mt-1">1 час назад</p>
-            </div>
-            <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold w-fit">
-              Готов
-            </span>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

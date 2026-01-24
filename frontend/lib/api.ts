@@ -244,3 +244,13 @@ export async function getStats(): Promise<any> {
   }
 }
 
+export async function getRestaurantStats(restaurantId: string): Promise<any> {
+  try {
+    const response = await api.get<{ success: boolean; data: any }>(`/api/stats/restaurant/${restaurantId}`);
+    return response.data.data || null;
+  } catch (error) {
+    console.error('Error fetching restaurant stats:', error);
+    return null;
+  }
+}
+
