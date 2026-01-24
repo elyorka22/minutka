@@ -167,6 +167,49 @@ export async function getChefs(restaurantId?: string): Promise<any[]> {
   }
 }
 
+export async function createChef(chefData: {
+  restaurant_id: string;
+  telegram_id: number;
+  telegram_chat_id: number;
+  username?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  is_active?: boolean;
+}): Promise<any> {
+  try {
+    const response = await api.post<{ success: boolean; data: any }>('/api/chefs', chefData);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error creating chef:', error);
+    throw error;
+  }
+}
+
+export async function updateChef(id: string, chefData: {
+  telegram_chat_id?: number;
+  username?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  is_active?: boolean;
+}): Promise<any> {
+  try {
+    const response = await api.patch<{ success: boolean; data: any }>(`/api/chefs/${id}`, chefData);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error updating chef:', error);
+    throw error;
+  }
+}
+
+export async function deleteChef(id: string): Promise<void> {
+  try {
+    await api.delete(`/api/chefs/${id}`);
+  } catch (error) {
+    console.error('Error deleting chef:', error);
+    throw error;
+  }
+}
+
 // Orders API (for admin panels)
 export async function getOrders(restaurantId?: string): Promise<Order[]> {
   try {

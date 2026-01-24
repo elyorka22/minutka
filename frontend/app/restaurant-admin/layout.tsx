@@ -13,7 +13,7 @@ const navigation = [
   { name: 'Дашборд', href: '/restaurant-admin', icon: '📊' },
   { name: 'Заказы', href: '/restaurant-admin/orders', icon: '📦' },
   { name: 'Меню', href: '/restaurant-admin/menu', icon: '🍽️' },
-  { name: 'Админы', href: '/restaurant-admin/admins', icon: '👤' },
+  { name: 'Повара', href: '/restaurant-admin/chefs', icon: '👨‍🍳' },
   { name: 'Настройки', href: '/restaurant-admin/settings', icon: '⚙️' },
 ];
 
