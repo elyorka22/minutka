@@ -123,22 +123,31 @@ export async function createRestaurant(req: Request, res: Response) {
     // Если указан admin_telegram_id, создаем админа ресторана
     if (admin_telegram_id) {
       try {
-        const { error: adminError } = await supabase
-          .from('restaurant_admins')
-          .insert({
-            restaurant_id: restaurant.id,
-            telegram_id: BigInt(admin_telegram_id),
-            username: null,
-            first_name: null,
-            last_name: null,
-            is_active: true
-          });
+        // Преобразуем в число, если это строка
+        const telegramId = typeof admin_telegram_id === 'string' 
+          ? parseInt(admin_telegram_id, 10) 
+          : admin_telegram_id;
 
-        if (adminError) {
-          console.error('Error creating restaurant admin:', adminError);
-          // Не прерываем создание ресторана, только логируем ошибку
+        if (isNaN(telegramId)) {
+          console.error('Invalid admin_telegram_id:', admin_telegram_id);
         } else {
-          console.log(`Restaurant admin created for restaurant ${restaurant.id} with telegram_id ${admin_telegram_id}`);
+          const { error: adminError } = await supabase
+            .from('restaurant_admins')
+            .insert({
+              restaurant_id: restaurant.id,
+              telegram_id: telegramId,
+              username: null,
+              first_name: null,
+              last_name: null,
+              is_active: true
+            });
+
+          if (adminError) {
+            console.error('Error creating restaurant admin:', adminError);
+            // Не прерываем создание ресторана, только логируем ошибку
+          } else {
+            console.log(`Restaurant admin created for restaurant ${restaurant.id} with telegram_id ${telegramId}`);
+          }
         }
       } catch (adminErr: any) {
         console.error('Error creating restaurant admin:', adminErr);
