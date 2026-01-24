@@ -173,6 +173,7 @@ export default function RestaurantAdminMenuPage() {
         <MenuItemFormModal
           item={editingItem}
           categories={categories}
+          restaurantId={currentRestaurantId}
           onClose={() => {
             setShowForm(false);
             setEditingItem(null);
@@ -196,11 +197,13 @@ export default function RestaurantAdminMenuPage() {
 function MenuItemFormModal({
   item,
   categories,
+  restaurantId,
   onClose,
   onSave,
 }: {
   item: MenuItem | null;
   categories: string[];
+  restaurantId: string | undefined;
   onClose: () => void;
   onSave: (item: MenuItem) => void;
 }) {
@@ -217,7 +220,7 @@ function MenuItemFormModal({
     e.preventDefault();
     const newItem: MenuItem = {
       id: item?.id || Date.now().toString(),
-      restaurant_id: item?.restaurant_id || currentRestaurantId || '',
+      restaurant_id: item?.restaurant_id || restaurantId || '',
       name: formData.name,
       description: formData.description || null,
       price: parseInt(formData.price),
