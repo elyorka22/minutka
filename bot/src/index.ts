@@ -35,7 +35,7 @@ initAdminNotification(bot);
 bot.start(async (ctx) => {
   await startHandler(ctx);
 });
-bot.command('restaurants', startHandler); // Альтернативная команда для списка ресторанов
+// Команда /restaurants удалена, так как рестораны доступны на сайте
 
 // Callback query handlers (inline keyboard buttons)
 bot.on('callback_query', async (ctx: Context) => {

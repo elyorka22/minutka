@@ -1,17 +1,14 @@
 // ============================================
-// Start Handler - Показывает список ресторанов
+// Start Handler - Показывает приветствие
 // ============================================
 
 import { Context } from 'telegraf';
-import { apiRequest } from '../config/api';
-import { Restaurant } from '../types';
-import { createRestaurantKeyboard } from '../keyboards/restaurants';
 import { createMainMenuKeyboard } from '../keyboards/mainMenu';
 import { supabase } from '../config/supabase';
 
 /**
  * Обработчик команды /start
- * Показывает приветствие и список ресторанов
+ * Показывает приветствие и главное меню
  */
 export async function startHandler(ctx: Context) {
   try {
@@ -24,7 +21,7 @@ export async function startHandler(ctx: Context) {
 
     const welcomeMessage = welcomeSetting?.value || 
       '🍽️ *Minutka\'ga xush kelibsiz!*\n\n' +
-      'Buyurtma berish uchun restoran tanlang:';
+      'Buyurtma berish uchun veb-saytimizga kiring: https://minutka.vercel.app';
 
     const mainMenuKeyboard = await createMainMenuKeyboard();
     await ctx.reply(
@@ -34,29 +31,9 @@ export async function startHandler(ctx: Context) {
         ...mainMenuKeyboard
       }
     );
-
-    // Получаем список ресторанов из API
-    const restaurants = await apiRequest<Restaurant[]>('/api/restaurants');
-
-    if (!restaurants || restaurants.length === 0) {
-      await ctx.reply('Afsuski, hozircha mavjud restoranlar yo\'q.');
-      return;
-    }
-
-    // Создаем клавиатуру с ресторанами
-    const keyboard = createRestaurantKeyboard(restaurants);
-
-    await ctx.reply(
-      '📋 *Mavjud restoranlar:*\n\n' +
-      restaurants.map((r, i) => `${i + 1}. ${r.name}`).join('\n'),
-      {
-        parse_mode: 'Markdown',
-        reply_markup: keyboard
-      }
-    );
   } catch (error: any) {
     console.error('Error in start handler:', error);
-      await ctx.reply('Restoranlarni yuklashda xatolik yuz berdi. Keyinroq urinib ko\'ring.');
+    await ctx.reply('Xatolik yuz berdi. Keyinroq urinib ko\'ring.');
   }
 }
 
