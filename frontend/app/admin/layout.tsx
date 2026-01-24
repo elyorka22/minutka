@@ -57,27 +57,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <header className="bg-white shadow-sm border-b">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0 flex-1">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="text-gray-500 hover:text-gray-700 mr-4"
+                className="text-gray-500 hover:text-gray-700 mr-2 sm:mr-4 flex-shrink-0"
               >
                 ☰
               </button>
-              <Link href="/admin" className="text-lg sm:text-xl font-bold text-gray-900">
+              <Link href="/admin" className="text-sm sm:text-lg md:text-xl font-bold text-gray-900 truncate">
                 🛡️ Супер-админ панель
               </Link>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
               <button
                 onClick={logout}
-                className="text-red-600 hover:text-red-700 text-sm font-medium"
+                className="text-red-600 hover:text-red-700 text-xs sm:text-sm font-medium"
               >
                 Выйти
               </button>
               <Link
                 href="/"
-                className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                className="text-primary-600 hover:text-primary-700 text-xs sm:text-sm font-medium hidden sm:inline"
               >
                 ← На сайт
               </Link>
