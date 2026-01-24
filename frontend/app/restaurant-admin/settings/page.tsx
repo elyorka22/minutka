@@ -19,6 +19,10 @@ export default function RestaurantAdminSettingsPage() {
 
   useEffect(() => {
     async function fetchRestaurant() {
+      if (!currentRestaurantId) {
+        setLoading(false);
+        return;
+      }
       try {
         const data = await getRestaurantById(currentRestaurantId);
         setRestaurant(data);

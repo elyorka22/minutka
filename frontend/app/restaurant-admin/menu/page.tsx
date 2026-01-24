@@ -217,7 +217,7 @@ function MenuItemFormModal({
     e.preventDefault();
     const newItem: MenuItem = {
       id: item?.id || Date.now().toString(),
-      restaurant_id: item?.restaurant_id || '2',
+      restaurant_id: item?.restaurant_id || currentRestaurantId || '',
       name: formData.name,
       description: formData.description || null,
       price: parseInt(formData.price),
