@@ -79,15 +79,22 @@ export default function AdminRestaurantsPage() {
         setRestaurants(restaurants.map((r) => (r.id === restaurant.id ? updated : r)));
       } else {
         // Создание нового ресторана
-        const created = await createRestaurant({
+        const adminTelegramId = (restaurant as any).admin_telegram_id;
+        const restaurantData: any = {
           name: restaurant.name,
           description: restaurant.description || undefined,
           phone: restaurant.phone || undefined,
           image_url: restaurant.image_url || undefined,
           is_active: restaurant.is_active,
           is_featured: restaurant.is_featured,
-          admin_telegram_id: (restaurant as any).admin_telegram_id,
-        });
+        };
+        
+        // Добавляем admin_telegram_id только если он указан и не пустой
+        if (adminTelegramId && adminTelegramId !== '' && !isNaN(Number(adminTelegramId))) {
+          restaurantData.admin_telegram_id = Number(adminTelegramId);
+        }
+        
+        const created = await createRestaurant(restaurantData);
         setRestaurants([...restaurants, created]);
       }
       setShowForm(false);

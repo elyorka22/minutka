@@ -133,7 +133,7 @@ export async function createRestaurant(req: Request, res: Response) {
     }
 
     // Если указан admin_telegram_id, создаем админа ресторана
-    if (admin_telegram_id) {
+    if (admin_telegram_id && admin_telegram_id !== '' && admin_telegram_id !== null && admin_telegram_id !== undefined) {
       try {
         // Преобразуем в число, если это строка
         let telegramId: number;
