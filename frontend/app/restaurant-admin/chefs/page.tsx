@@ -64,7 +64,7 @@ export default function RestaurantAdminChefsPage() {
       if (chef.id && chefs.some((c) => c.id === chef.id)) {
         // Обновление существующего повара
         const updated = await updateChef(chef.id, {
-          telegram_chat_id: chef.telegram_chat_id,
+          telegram_chat_id: chef.telegram_chat_id ?? undefined,
           username: chef.username,
           first_name: chef.first_name,
           last_name: chef.last_name,
