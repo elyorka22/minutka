@@ -67,14 +67,19 @@ export async function chatIdHandler(ctx: Context) {
       return;
     }
 
-    let message = `🆔 *Sizning Chat ID:*\n\n`;
-    message += `Chat ID: \`${chatId}\`\n`;
-    
-    if (userId) {
-      message += `User ID: \`${userId}\``;
-    }
+    // Отправляем информационное сообщение
+    await ctx.reply('🆔 *Sizning Chat ID:*\n\nQuyidagi ID ni nusxalash uchun bosing va tanlang.', { 
+      parse_mode: 'Markdown' 
+    });
 
-    await ctx.reply(message, { parse_mode: 'Markdown' });
+    // Отправляем ID отдельным сообщением для удобного копирования
+    // Используем обычный текст без форматирования, чтобы ID было легко скопировать
+    await ctx.reply(`${chatId}`);
+
+    // Если User ID отличается от Chat ID, отправляем его тоже
+    if (userId && userId !== chatId) {
+      await ctx.reply(`User ID: ${userId}`);
+    }
   } catch (error: any) {
     console.error('Error in chatIdHandler:', error);
     await ctx.reply('Xatolik yuz berdi. Keyinroq urinib ko\'ring.');
