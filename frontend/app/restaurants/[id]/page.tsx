@@ -31,17 +31,36 @@ export default async function RestaurantPage({ params }: PageProps) {
     notFound();
   }
 
-  // Группируем меню по категориям
+  // Группируем меню по категориям (если категории есть) или показываем все блюда
   const menuByCategory: MenuCategory[] = [];
   if (menuItems.length > 0) {
-    menuItems.forEach((item: MenuItemType) => {
-      const category = menuByCategory.find(c => c.name === item.category);
-      if (category) {
-        category.items.push(item);
-      } else {
-        menuByCategory.push({ name: item.category, items: [item] });
-      }
-    });
+    // Если у всех блюд категория null, просто показываем все в одной группе
+    const hasCategories = menuItems.some(item => item.category !== null);
+    
+    if (!hasCategories) {
+      // Все блюда без категорий - показываем в одной группе "Меню"
+      menuByCategory.push({ name: 'Меню', items: menuItems });
+    } else {
+      // Группируем по категориям, игнорируя блюда с null категорией
+      menuItems.forEach((item: MenuItemType) => {
+        if (item.category === null) {
+          // Блюда без категории добавляем в группу "Меню"
+          const defaultCategory = menuByCategory.find(c => c.name === 'Меню');
+          if (defaultCategory) {
+            defaultCategory.items.push(item);
+          } else {
+            menuByCategory.push({ name: 'Меню', items: [item] });
+          }
+        } else {
+          const category = menuByCategory.find(c => c.name === item.category);
+          if (category) {
+            category.items.push(item);
+          } else {
+            menuByCategory.push({ name: item.category, items: [item] });
+          }
+        }
+      });
+    }
   }
 
     return (
