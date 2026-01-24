@@ -73,3 +73,122 @@ export async function getUserById(req: Request, res: Response) {
   }
 }
 
+/**
+ * GET /api/users?telegram_id=...
+ * Получить пользователя по Telegram ID
+ */
+export async function getUserByTelegramId(req: Request, res: Response) {
+  try {
+    const { telegram_id } = req.query;
+
+    if (!telegram_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'telegram_id is required'
+      });
+    }
+
+    const telegramId = BigInt(telegram_id as string);
+
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('telegram_id', telegramId);
+
+    if (error) {
+      throw error;
+    }
+
+    res.json({
+      success: true,
+      data: data as User[]
+    });
+  } catch (error: any) {
+    console.error('Error fetching user by telegram_id:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch user',
+      message: error.message
+    });
+  }
+}
+
+/**
+ * POST /api/users
+ * Создать нового пользователя
+ */
+export async function createUser(req: Request, res: Response) {
+  try {
+    const { telegram_id, username, first_name, last_name, phone } = req.body;
+
+    // Если указан telegram_id, проверяем существование
+    if (telegram_id) {
+      const telegramId = BigInt(telegram_id);
+      const { data: existing } = await supabase
+        .from('users')
+        .select('*')
+        .eq('telegram_id', telegramId)
+        .maybeSingle();
+
+      if (existing) {
+        // Пользователь уже существует, возвращаем его
+        return res.json({
+          success: true,
+          data: existing as User
+        });
+      }
+
+      // Создаем нового пользователя с telegram_id
+      const { data, error } = await supabase
+        .from('users')
+        .insert({
+          telegram_id: telegramId,
+          username: username || null,
+          first_name: first_name || null,
+          last_name: last_name || null,
+          phone: phone || null
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      res.status(201).json({
+        success: true,
+        data: data as User
+      });
+    } else {
+      // Создаем пользователя без telegram_id (временный пользователь)
+      const { data, error } = await supabase
+        .from('users')
+        .insert({
+          telegram_id: null,
+          username: username || null,
+          first_name: first_name || null,
+          last_name: last_name || null,
+          phone: phone || null
+        })
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      res.status(201).json({
+        success: true,
+        data: data as User
+      });
+    }
+  } catch (error: any) {
+    console.error('Error creating user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create user',
+      message: error.message
+    });
+  }
+}
+

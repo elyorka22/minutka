@@ -7,6 +7,7 @@
 import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import Image from 'next/image';
+import { createOrder } from '@/lib/api';
 
 interface CartProps {
   restaurantId: string;
@@ -22,19 +23,21 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
+  const [chatId, setChatId] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalPrice = getTotalPrice();
   const totalItems = getTotalItems();
 
-  // Формирование текста заказа для Telegram
+  // Формирование текста заказа
   const formatOrderText = () => {
     let orderText = `🍽️ "${restaurantName}" restoranidan buyurtma\n\n`;
     
     items.forEach((cartItem) => {
-      orderText += `${cartItem.item.name} x${cartItem.quantity} - ${cartItem.item.price * cartItem.quantity}₽\n`;
+      orderText += `${cartItem.item.name} x${cartItem.quantity} - ${cartItem.item.price * cartItem.quantity} сум\n`;
     });
     
-    orderText += `\n💰 Jami: ${totalPrice}₽\n`;
+    orderText += `\n💰 Jami: ${totalPrice} сум\n`;
     
     if (name) {
       orderText += `\n👤 Ism: ${name}\n`;
@@ -55,8 +58,8 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
     return orderText;
   };
 
-  // Отправка заказа в Telegram
-  const handleSubmit = (e: React.FormEvent) => {
+  // Отправка заказа через API
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (items.length === 0) {
@@ -64,19 +67,88 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
       return;
     }
 
-    const orderText = formatOrderText();
-    const encodedText = encodeURIComponent(orderText);
-    const telegramUrl = `https://t.me/${telegramBotUsername}?start=restaurant_${restaurantId}&text=${encodedText}`;
-    
-    window.open(telegramUrl, '_blank');
-    
-    // Очищаем корзину после отправки
-    clearCart();
-    setIsOpen(false);
-    setAddress('');
-    setPhone('');
-    setName('');
-    setNotes('');
+    setIsSubmitting(true);
+
+    try {
+      const orderText = formatOrderText();
+      
+      // Создаем или получаем пользователя по telegram_id
+      let userId: string;
+      
+      if (chatId) {
+        // Если указан Chat ID, создаем или находим пользователя
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+        
+        // Сначала проверяем, существует ли пользователь
+        const checkUserResponse = await fetch(`${API_BASE_URL}/api/users?telegram_id=${chatId}`);
+        const checkUserData = await checkUserResponse.json();
+        
+        if (checkUserData.success && checkUserData.data && checkUserData.data.length > 0) {
+          userId = checkUserData.data[0].id;
+        } else {
+          // Создаем нового пользователя
+          const createUserResponse = await fetch(`${API_BASE_URL}/api/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              telegram_id: parseInt(chatId, 10),
+              first_name: name || null,
+              phone: phone || null
+            })
+          });
+          const createUserData = await createUserResponse.json();
+          
+          if (!createUserData.success) {
+            throw new Error(createUserData.error || 'Failed to create user');
+          }
+          
+          userId = createUserData.data.id;
+        }
+      } else {
+        // Если Chat ID не указан, создаем временного пользователя без telegram_id
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+        const createUserResponse = await fetch(`${API_BASE_URL}/api/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            first_name: name || null,
+            phone: phone || null
+          })
+        });
+        const createUserData = await createUserResponse.json();
+        
+        if (!createUserData.success) {
+          throw new Error(createUserData.error || 'Failed to create user');
+        }
+        
+        userId = createUserData.data.id;
+      }
+
+      // Создаем заказ
+      await createOrder({
+        restaurant_id: restaurantId,
+        user_id: userId,
+        order_text: orderText,
+        address: address || undefined
+      });
+
+      // Успешно оформлен заказ
+      alert('Buyurtma muvaffaqiyatli qabul qilindi!');
+      
+      // Очищаем корзину после отправки
+      clearCart();
+      setIsOpen(false);
+      setAddress('');
+      setPhone('');
+      setName('');
+      setNotes('');
+      setChatId('');
+    } catch (error: any) {
+      console.error('Error creating order:', error);
+      alert('Buyurtma yuborishda xatolik yuz berdi: ' + (error.message || 'Noma\'lum xatolik'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Кнопка корзины
@@ -183,7 +255,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                         </button>
                       </div>
                       <span className="text-lg font-bold text-primary-600 w-20 text-right">
-                        {cartItem.item.price * cartItem.quantity}₽
+                        {cartItem.item.price * cartItem.quantity} сум
                       </span>
                       <button
                         onClick={() => removeItem(cartItem.item.id)}
@@ -201,7 +273,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between items-center">
                       <span className="text-xl font-semibold text-gray-900">Jami:</span>
-                  <span className="text-2xl font-bold text-primary-600">{totalPrice}₽</span>
+                  <span className="text-2xl font-bold text-primary-600">{totalPrice} сум</span>
                 </div>
               </div>
 
@@ -266,11 +338,29 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                   />
                 </div>
 
+                <div>
+                  <label htmlFor="chatId" className="block text-sm font-medium text-gray-700 mb-1">
+                        Chat ID (ixtiyoriy)
+                  </label>
+                  <input
+                    type="text"
+                    id="chatId"
+                    value={chatId}
+                    onChange={(e) => setChatId(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Telegram Chat ID (xabarlar olish uchun)"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Chat ID ni bot orqali bilib olishingiz mumkin: /start va "🆔 Chat ID" tugmasini bosing
+                  </p>
+                </div>
+
                 <button
                   type="submit"
-                  className="w-full bg-primary-500 text-white py-4 rounded-lg font-semibold text-lg hover:bg-primary-600 transition-colors"
+                  disabled={isSubmitting}
+                  className="w-full bg-primary-500 text-white py-4 rounded-lg font-semibold text-lg hover:bg-primary-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                      📱 Telegramda buyurtma berish
+                  {isSubmitting ? 'Yuborilmoqda...' : '✅ Buyurtma berish'}
                 </button>
               </form>
             </>

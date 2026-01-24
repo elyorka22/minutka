@@ -3,15 +3,26 @@
 // ============================================
 
 import express from 'express';
-import { getUsers, getUserById } from '../controllers/users';
+import { getUsers, getUserById, getUserByTelegramId, createUser } from '../controllers/users';
 
 const router = express.Router();
 
 /**
- * GET /api/users
- * Получить список пользователей
+ * POST /api/users
+ * Создать нового пользователя
  */
-router.get('/', getUsers);
+router.post('/', createUser);
+
+/**
+ * GET /api/users
+ * Получить список пользователей или пользователя по telegram_id
+ */
+router.get('/', (req, res, next) => {
+  if (req.query.telegram_id) {
+    return getUserByTelegramId(req, res);
+  }
+  return getUsers(req, res);
+});
 
 /**
  * GET /api/users/:id
