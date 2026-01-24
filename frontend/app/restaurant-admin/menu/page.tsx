@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { MenuItem } from '@/lib/types';
-import { getMenuItems, getCategories } from '@/lib/api';
+import { getMenuItems } from '@/lib/api';
 import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
@@ -19,7 +19,6 @@ export default function RestaurantAdminMenuPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
     async function fetchMenuItems() {
@@ -34,8 +33,6 @@ export default function RestaurantAdminMenuPage() {
     }
     fetchMenuItems();
   }, [currentRestaurantId]);
-
-  const categories = Array.from(new Set(menuItems.map((item) => item.category)));
 
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
@@ -56,9 +53,7 @@ export default function RestaurantAdminMenuPage() {
     );
   };
 
-  const filteredItems = selectedCategory === 'all'
-    ? menuItems
-    : menuItems.filter((item) => item.category === selectedCategory);
+  const filteredItems = menuItems;
 
   if (loading) {
     return <div className="text-center py-12">Загрузка меню...</div>;
@@ -126,7 +121,6 @@ export default function RestaurantAdminMenuPage() {
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900">{item.name}</h3>
-                  <p className="text-sm text-gray-600 mt-1">{item.category}</p>
                 </div>
                 <span className="text-lg font-bold text-primary-600">{item.price} сум</span>
               </div>
@@ -207,28 +201,10 @@ function MenuItemFormModal({
   onClose: () => void;
   onSave: (item: MenuItem) => void;
 }) {
-  const [availableCategories, setAvailableCategories] = useState<any[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(true);
-
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const categoriesData = await getCategories();
-        setAvailableCategories(categoriesData);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      } finally {
-        setLoadingCategories(false);
-      }
-    }
-    fetchCategories();
-  }, []);
-
   const [formData, setFormData] = useState({
     name: item?.name || '',
     description: item?.description || '',
     price: item?.price?.toString() || '',
-    category: item?.category || '',
     image_url: item?.image_url || '',
     is_available: item?.is_available ?? true,
   });
@@ -241,7 +217,7 @@ function MenuItemFormModal({
       name: formData.name,
       description: formData.description || null,
       price: parseInt(formData.price),
-      category: formData.category,
+      category: null, // Категория не используется для блюд ресторана
       image_url: formData.image_url || null,
       is_available: formData.is_available,
       created_at: item?.created_at || new Date().toISOString(),
@@ -301,37 +277,6 @@ function MenuItemFormModal({
                   min="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Категория *
-                </label>
-                {loadingCategories ? (
-                  <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-500">
-                    Загрузка категорий...
-                  </div>
-                ) : (
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  >
-                    <option value="">Выберите категорию</option>
-                    {availableCategories
-                      .filter((cat) => cat.is_active)
-                      .map((cat) => (
-                        <option key={cat.id} value={cat.name}>
-                          {cat.name}
-                        </option>
-                      ))}
-                  </select>
-                )}
-                {availableCategories.length === 0 && !loadingCategories && (
-                  <p className="mt-1 text-xs text-gray-500">
-                    Категории не найдены. Обратитесь к супер-админу для создания категорий.
-                  </p>
-                )}
               </div>
             </div>
 
