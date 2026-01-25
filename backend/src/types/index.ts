@@ -105,6 +105,19 @@ export interface RestaurantAdmin {
   updated_at: string;
 }
 
+// Super admin types (супер-админы)
+export interface SuperAdmin {
+  id: string;
+  telegram_id: number;
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  password: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // Menu item types
 export interface MenuItem {
   id: string;

@@ -205,6 +205,59 @@ export async function deleteRestaurantAdmin(id: string): Promise<void> {
   }
 }
 
+// Super Admins API
+export async function getSuperAdmins(): Promise<any[]> {
+  try {
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/super-admins');
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching super admins:', error);
+    return [];
+  }
+}
+
+export async function createSuperAdmin(adminData: {
+  telegram_id: number;
+  username?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  password: string;
+  is_active?: boolean;
+}): Promise<any> {
+  try {
+    const response = await api.post<{ success: boolean; data: any }>('/api/super-admins', adminData);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error creating super admin:', error);
+    throw error;
+  }
+}
+
+export async function updateSuperAdmin(id: string, adminData: {
+  username?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  password?: string;
+  is_active?: boolean;
+}): Promise<any> {
+  try {
+    const response = await api.patch<{ success: boolean; data: any }>(`/api/super-admins/${id}`, adminData);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error updating super admin:', error);
+    throw error;
+  }
+}
+
+export async function deleteSuperAdmin(id: string): Promise<void> {
+  try {
+    await api.delete(`/api/super-admins/${id}`);
+  } catch (error) {
+    console.error('Error deleting super admin:', error);
+    throw error;
+  }
+}
+
 // Chefs API
 export async function getChefs(restaurantId?: string): Promise<any[]> {
   try {
