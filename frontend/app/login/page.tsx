@@ -11,8 +11,10 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
+type UserRole = 'mijoz' | 'xodim';
+
 export default function LoginPage() {
-  const [userType, setUserType] = useState<'mijoz' | 'xodim'>('mijoz');
+  const [role, setRole] = useState<UserRole>('mijoz');
   const [telegramId, setTelegramId] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -48,8 +50,8 @@ export default function LoginPage() {
         return;
       }
 
-      // Если выбран сотрудник, проверяем пароль
-      if (userType === 'xodim') {
+      // Если выбрана роль сотрудника, проверяем пароль
+      if (role === 'xodim') {
         if (!password || !password.trim()) {
           setError('Введите пароль');
           setLoading(false);
@@ -58,18 +60,16 @@ export default function LoginPage() {
       }
 
       const telegramIdNum = telegramId.trim();
-      const passwordValue = userType === 'xodim' ? password.trim() : undefined;
+      console.log('Attempting login with Telegram ID:', telegramIdNum, 'Role:', role);
 
-      console.log('Attempting login with Telegram ID:', telegramIdNum, 'Type:', userType);
-
-      // Используем AuthContext для входа (он сам сохранит данные и сделает редирект)
-      await loginWithAuth(telegramIdNum, passwordValue);
+      // Используем AuthContext для входа с паролем (если сотрудник)
+      await loginWithAuth(telegramIdNum, role === 'xodim' ? password : undefined);
       
       // Если дошли сюда, значит вход успешен, но редирект еще не произошел
       // Это нормально, редирект произойдет через useEffect когда user обновится
     } catch (err: any) {
       console.error('Login error:', err);
-      const errorMessage = err.message || 'Ошибка при входе. Проверьте ваш Telegram ID и подключение к интернету.';
+      const errorMessage = err.message || 'Ошибка при входе. Проверьте ваш Telegram ID, пароль (если сотрудник) и подключение к интернету.';
       setError(errorMessage);
       setLoading(false);
     }
@@ -85,15 +85,15 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
-            <label htmlFor="user_type" className="block text-sm font-medium text-gray-700 mb-2">
-              Тип пользователя
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+              Роль
             </label>
             <select
-              id="user_type"
-              value={userType}
+              id="role"
+              value={role}
               onChange={(e) => {
-                setUserType(e.target.value as 'mijoz' | 'xodim');
-                setPassword('');
+                setRole(e.target.value as UserRole);
+                setPassword(''); // Очищаем пароль при смене роли
                 setError('');
               }}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -123,7 +123,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {userType === 'xodim' && (
+          {role === 'xodim' && (
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 Parol (Пароль) *
@@ -135,11 +135,11 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Введите пароль"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                required={userType === 'xodim'}
+                required={role === 'xodim'}
                 disabled={loading}
               />
               <p className="mt-2 text-sm text-gray-500">
-                Для сотрудников требуется пароль. Пароль выдается администратором.
+                Пароль выдается администратором при создании аккаунта
               </p>
             </div>
           )}

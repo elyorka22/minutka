@@ -5,7 +5,6 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { Chef } from '../types';
-import bcrypt from 'bcrypt';
 
 /**
  * GET /api/chefs
@@ -108,15 +107,12 @@ export async function createChef(req: Request, res: Response) {
       });
     }
 
-    if (!password || password.trim().length === 0) {
+    if (!password) {
       return res.status(400).json({
         success: false,
-        error: 'Password is required for chef'
+        error: 'Password is required for chefs'
       });
     }
-
-    // Хешируем пароль
-    const hashedPassword = await bcrypt.hash(password.trim(), 10);
 
     // Проверка существования ресторана
     const { data: restaurant, error: restaurantError } = await supabase
@@ -158,7 +154,7 @@ export async function createChef(req: Request, res: Response) {
         first_name: first_name || null,
         last_name: last_name || null,
         is_active,
-        password: hashedPassword
+        password: password // Сохраняем пароль
       })
       .select()
       .single();

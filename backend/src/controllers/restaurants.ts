@@ -5,7 +5,6 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { Restaurant } from '../types';
-import bcrypt from 'bcrypt';
 
 /**
  * GET /api/restaurants
@@ -152,10 +151,6 @@ export async function createRestaurant(req: Request, res: Response) {
         } else {
           console.log(`Creating restaurant admin for restaurant ${restaurant.id} with telegram_id ${telegramId}`);
           
-          // Генерируем случайный пароль для нового админа (можно будет изменить)
-          const defaultPassword = Math.random().toString(36).slice(-8); // Генерируем случайный пароль
-          const hashedPassword = await bcrypt.hash(defaultPassword, 10);
-
           const { data: adminData, error: adminError } = await supabase
             .from('restaurant_admins')
             .insert({
@@ -164,8 +159,7 @@ export async function createRestaurant(req: Request, res: Response) {
               username: null,
               first_name: null,
               last_name: null,
-              is_active: true,
-              password: hashedPassword
+              is_active: true
             })
             .select()
             .single();

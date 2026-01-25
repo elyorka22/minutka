@@ -77,7 +77,7 @@ export default function RestaurantAdminChefsPage() {
           alert('Пожалуйста, укажите Telegram Chat ID для получения уведомлений');
           return;
         }
-        const created = await createChef({
+        const chefData: any = {
           restaurant_id: currentRestaurantId,
           telegram_id: chef.telegram_id,
           telegram_chat_id: chef.telegram_chat_id,
@@ -85,7 +85,12 @@ export default function RestaurantAdminChefsPage() {
           first_name: chef.first_name,
           last_name: chef.last_name,
           is_active: chef.is_active,
-        });
+        };
+        // Добавляем пароль если он есть
+        if ((chef as any).password) {
+          chefData.password = (chef as any).password;
+        }
+        const created = await createChef(chefData);
         setChefs([...chefs, created]);
       }
       setShowForm(false);
@@ -241,8 +246,11 @@ function ChefFormModal({
       is_active: formData.is_active,
       created_at: chef?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      password: !chef ? formData.password : undefined, // Пароль только при создании
     };
+    // Добавляем пароль только при создании нового повара
+    if (!chef && formData.password) {
+      (newChef as any).password = formData.password;
+    }
     onSave(newChef as Chef);
   };
 
@@ -344,6 +352,25 @@ function ChefFormModal({
                 <span className="text-sm text-gray-700">Активен</span>
               </label>
             </div>
+
+            {!chef && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Parol (Пароль) *
+                </label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required={!chef}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Введите пароль для повара"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Пароль будет использоваться для входа в систему
+                </p>
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button

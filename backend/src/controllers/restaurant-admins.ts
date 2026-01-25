@@ -5,7 +5,6 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { RestaurantAdmin } from '../types';
-import bcrypt from 'bcrypt';
 
 /**
  * GET /api/restaurant-admins
@@ -78,12 +77,9 @@ export async function createRestaurantAdmin(req: Request, res: Response) {
       return res.status(400).json({ success: false, error: 'Missing required fields: restaurant_id, telegram_id' });
     }
 
-    if (!password || password.trim().length === 0) {
-      return res.status(400).json({ success: false, error: 'Password is required for restaurant admin' });
+    if (!password) {
+      return res.status(400).json({ success: false, error: 'Password is required for restaurant admins' });
     }
-
-    // Хешируем пароль
-    const hashedPassword = await bcrypt.hash(password.trim(), 10);
 
     const { data, error } = await supabase
       .from('restaurant_admins')
@@ -94,7 +90,7 @@ export async function createRestaurantAdmin(req: Request, res: Response) {
         first_name: first_name || null,
         last_name: last_name || null,
         is_active: is_active ?? true,
-        password: hashedPassword,
+        password: password, // Сохраняем пароль
       })
       .select()
       .single();

@@ -63,20 +63,19 @@ export default function AdminRestaurantAdminsPage() {
         setAdmins(admins.map((a) => (a.id === admin.id ? updated : a)));
       } else {
         // Создание нового админа
-        const adminWithPassword = admin as RestaurantAdmin & { password?: string };
-        if (!adminWithPassword.password) {
-          alert('Пожалуйста, укажите пароль для нового админа');
-          return;
-        }
-        const created = await createRestaurantAdmin({
+        const adminData: any = {
           restaurant_id: admin.restaurant_id,
           telegram_id: admin.telegram_id,
           username: admin.username,
           first_name: admin.first_name,
           last_name: admin.last_name,
           is_active: admin.is_active,
-          password: adminWithPassword.password,
-        });
+        };
+        // Добавляем пароль если он есть
+        if ((admin as any).password) {
+          adminData.password = (admin as any).password;
+        }
+        const created = await createRestaurantAdmin(adminData);
         setAdmins([...admins, created]);
       }
       setShowForm(false);
@@ -270,8 +269,11 @@ function AdminFormModal({
       is_active: true,
       created_at: admin?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      password: !admin ? formData.password : undefined, // Пароль только при создании
     };
+    // Добавляем пароль только при создании нового админа
+    if (!admin && formData.password) {
+      (newAdmin as any).password = formData.password;
+    }
     onSave(newAdmin as RestaurantAdmin);
   };
 
@@ -359,6 +361,25 @@ function AdminFormModal({
                 />
               </div>
             </div>
+
+            {!admin && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Parol (Пароль) *
+                </label>
+                <input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required={!admin}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Введите пароль для админа"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Пароль будет использоваться для входа в систему
+                </p>
+              </div>
+            )}
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button

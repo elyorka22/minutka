@@ -19,7 +19,6 @@ import usersRouter from './routes/users';
 import statsRouter from './routes/stats';
 import authRouter from './routes/auth';
 import cleanupRouter from './routes/cleanup';
-import superAdminsRouter from './routes/super-admins';
 
 // Load environment variables
 dotenv.config();
@@ -80,7 +79,6 @@ app.use('/api/users', usersRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/cleanup', cleanupRouter);
-app.use('/api/super-admins', superAdminsRouter);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
