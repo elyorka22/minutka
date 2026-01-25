@@ -42,7 +42,7 @@ export default function AdminRestaurantsPage() {
         setRestaurants(restaurants.filter((r) => r.id !== id));
       } catch (error) {
         console.error('Error deleting restaurant:', error);
-        alert('Ошибка при удалении ресторана');
+        alert(handleApiError(error));
       }
     }
   };
@@ -58,7 +58,7 @@ export default function AdminRestaurantsPage() {
       setRestaurants(restaurants.map((r) => (r.id === id ? updated : r)));
     } catch (error) {
       console.error('Error updating restaurant:', error);
-      alert('Ошибка при обновлении ресторана');
+      alert(handleApiError(error));
     }
   };
 
@@ -114,7 +114,7 @@ export default function AdminRestaurantsPage() {
       setEditingRestaurant(null);
     } catch (error) {
       console.error('Error saving restaurant:', error);
-      alert('Ошибка при сохранении ресторана');
+      alert(handleApiError(error));
     }
   };
 
