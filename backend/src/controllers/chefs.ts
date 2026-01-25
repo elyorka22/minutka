@@ -5,6 +5,7 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { Chef } from '../types';
+import bcrypt from 'bcrypt';
 
 /**
  * GET /api/chefs
@@ -97,7 +98,7 @@ export async function getChefById(req: Request, res: Response) {
  */
 export async function createChef(req: Request, res: Response) {
   try {
-    const { restaurant_id, telegram_id, telegram_chat_id, username, first_name, last_name, is_active = true } = req.body;
+    const { restaurant_id, telegram_id, telegram_chat_id, username, first_name, last_name, is_active = true, password } = req.body;
 
     // Валидация
     if (!restaurant_id || !telegram_id || !telegram_chat_id) {
@@ -106,6 +107,16 @@ export async function createChef(req: Request, res: Response) {
         error: 'Missing required fields: restaurant_id, telegram_id, telegram_chat_id'
       });
     }
+
+    if (!password || password.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password is required for chef'
+      });
+    }
+
+    // Хешируем пароль
+    const hashedPassword = await bcrypt.hash(password.trim(), 10);
 
     // Проверка существования ресторана
     const { data: restaurant, error: restaurantError } = await supabase
@@ -146,7 +157,8 @@ export async function createChef(req: Request, res: Response) {
         username: username || null,
         first_name: first_name || null,
         last_name: last_name || null,
-        is_active
+        is_active,
+        password: hashedPassword
       })
       .select()
       .single();

@@ -16,12 +16,12 @@ interface User {
 }
 
 interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  login: (telegramId: string) => Promise<void>;
-  logout: () => void;
-  refreshUser: () => Promise<void>;
-}
+      user: User | null;
+      loading: boolean;
+      login: (telegramId: string, password?: string) => Promise<void>;
+      logout: () => void;
+      refreshUser: () => Promise<void>;
+    }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -84,18 +84,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const login = async (telegramId: string) => {
-    setLoading(true);
-    try {
-      console.log('AuthContext: Attempting login with Telegram ID:', telegramId);
-      console.log('AuthContext: API URL:', `${API_BASE_URL}/api/auth/me?telegram_id=${telegramId}`);
-      
-      const response = await fetch(`${API_BASE_URL}/api/auth/me?telegram_id=${telegramId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const login = async (telegramId: string, password?: string) => {
+        setLoading(true);
+        try {
+          console.log('AuthContext: Attempting login with Telegram ID:', telegramId, 'Password:', password ? '***' : 'none');
+
+          const url = new URL(`${API_BASE_URL}/api/auth/me`);
+          url.searchParams.append('telegram_id', telegramId);
+          if (password) {
+            url.searchParams.append('password', password);
+          }
+
+          const response = await fetch(url.toString(), {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
 
       console.log('AuthContext: Response status:', response.status);
       console.log('AuthContext: Response ok:', response.ok);

@@ -170,6 +170,7 @@ export async function createRestaurantAdmin(adminData: {
   first_name?: string | null;
   last_name?: string | null;
   is_active?: boolean;
+  password: string;
 }): Promise<any> {
   try {
     const response = await api.post<{ success: boolean; data: any }>('/api/restaurant-admins', adminData);
@@ -224,6 +225,7 @@ export async function createChef(chefData: {
   first_name?: string | null;
   last_name?: string | null;
   is_active?: boolean;
+  password: string;
 }): Promise<any> {
   try {
     const response = await api.post<{ success: boolean; data: any }>('/api/chefs', chefData);

@@ -12,7 +12,9 @@ import { useAuth } from '@/contexts/AuthContext';
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 export default function LoginPage() {
+  const [userType, setUserType] = useState<'mijoz' | 'xodim'>('mijoz');
   const [telegramId, setTelegramId] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -46,11 +48,22 @@ export default function LoginPage() {
         return;
       }
 
+      // Если выбран сотрудник, проверяем пароль
+      if (userType === 'xodim') {
+        if (!password || !password.trim()) {
+          setError('Введите пароль');
+          setLoading(false);
+          return;
+        }
+      }
+
       const telegramIdNum = telegramId.trim();
-      console.log('Attempting login with Telegram ID:', telegramIdNum);
+      const passwordValue = userType === 'xodim' ? password.trim() : undefined;
+
+      console.log('Attempting login with Telegram ID:', telegramIdNum, 'Type:', userType);
 
       // Используем AuthContext для входа (он сам сохранит данные и сделает редирект)
-      await loginWithAuth(telegramIdNum);
+      await loginWithAuth(telegramIdNum, passwordValue);
       
       // Если дошли сюда, значит вход успешен, но редирект еще не произошел
       // Это нормально, редирект произойдет через useEffect когда user обновится
@@ -72,6 +85,26 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
+            <label htmlFor="user_type" className="block text-sm font-medium text-gray-700 mb-2">
+              Тип пользователя
+            </label>
+            <select
+              id="user_type"
+              value={userType}
+              onChange={(e) => {
+                setUserType(e.target.value as 'mijoz' | 'xodim');
+                setPassword('');
+                setError('');
+              }}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              disabled={loading}
+            >
+              <option value="mijoz">Mijoz (Клиент)</option>
+              <option value="xodim">Xodim (Сотрудник)</option>
+            </select>
+          </div>
+
+          <div>
             <label htmlFor="telegram_id" className="block text-sm font-medium text-gray-700 mb-2">
               Telegram ID
             </label>
@@ -89,6 +122,27 @@ export default function LoginPage() {
               Ваш Telegram ID можно узнать в боте, нажав кнопку "🆔 Chat ID"
             </p>
           </div>
+
+          {userType === 'xodim' && (
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Parol (Пароль) *
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Введите пароль"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                required={userType === 'xodim'}
+                disabled={loading}
+              />
+              <p className="mt-2 text-sm text-gray-500">
+                Для сотрудников требуется пароль. Пароль выдается администратором.
+              </p>
+            </div>
+          )}
 
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">

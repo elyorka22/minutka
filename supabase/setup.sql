@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS chefs (
     username VARCHAR(255),
     first_name VARCHAR(255),
     last_name VARCHAR(255),
+    password VARCHAR(255), -- Хешированный пароль для входа
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -63,6 +64,7 @@ CREATE TABLE IF NOT EXISTS restaurant_admins (
     username VARCHAR(255),
     first_name VARCHAR(255),
     last_name VARCHAR(255),
+    password VARCHAR(255), -- Хешированный пароль для входа
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -76,6 +78,7 @@ CREATE TABLE IF NOT EXISTS super_admins (
     username VARCHAR(255),
     first_name VARCHAR(255),
     last_name VARCHAR(255),
+    password VARCHAR(255), -- Хешированный пароль для входа
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

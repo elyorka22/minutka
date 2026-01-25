@@ -63,6 +63,11 @@ export default function AdminRestaurantAdminsPage() {
         setAdmins(admins.map((a) => (a.id === admin.id ? updated : a)));
       } else {
         // Создание нового админа
+        const adminWithPassword = admin as RestaurantAdmin & { password?: string };
+        if (!adminWithPassword.password) {
+          alert('Пожалуйста, укажите пароль для нового админа');
+          return;
+        }
         const created = await createRestaurantAdmin({
           restaurant_id: admin.restaurant_id,
           telegram_id: admin.telegram_id,
@@ -70,6 +75,7 @@ export default function AdminRestaurantAdminsPage() {
           first_name: admin.first_name,
           last_name: admin.last_name,
           is_active: admin.is_active,
+          password: adminWithPassword.password,
         });
         setAdmins([...admins, created]);
       }
@@ -245,11 +251,16 @@ function AdminFormModal({
     username: admin?.username || '',
     first_name: admin?.first_name || '',
     last_name: admin?.last_name || '',
+    password: '', // Пароль только при создании
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newAdmin: RestaurantAdmin = {
+    if (!admin && !formData.password) {
+      alert('Пожалуйста, укажите пароль для нового админа');
+      return;
+    }
+    const newAdmin: RestaurantAdmin & { password?: string } = {
       id: admin?.id || Date.now().toString(),
       restaurant_id: formData.restaurant_id,
       telegram_id: parseInt(formData.telegram_id),
@@ -259,8 +270,9 @@ function AdminFormModal({
       is_active: true,
       created_at: admin?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      password: !admin ? formData.password : undefined, // Пароль только при создании
     };
-    onSave(newAdmin);
+    onSave(newAdmin as RestaurantAdmin);
   };
 
   return (

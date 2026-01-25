@@ -212,6 +212,7 @@ function ChefFormModal({
     first_name: chef?.first_name || '',
     last_name: chef?.last_name || '',
     is_active: chef?.is_active ?? true,
+    password: '', // Пароль только при создании
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -224,8 +225,12 @@ function ChefFormModal({
       alert('Пожалуйста, укажите Telegram Chat ID для получения уведомлений');
       return;
     }
+    if (!chef && !formData.password) {
+      alert('Пожалуйста, укажите пароль для нового повара');
+      return;
+    }
 
-    const newChef: Chef = {
+    const newChef: Chef & { password?: string } = {
       id: chef?.id || '',
       restaurant_id: chef?.restaurant_id || '',
       telegram_id: parseInt(formData.telegram_id),
@@ -236,8 +241,9 @@ function ChefFormModal({
       is_active: formData.is_active,
       created_at: chef?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      password: !chef ? formData.password : undefined, // Пароль только при создании
     };
-    onSave(newChef);
+    onSave(newChef as Chef);
   };
 
   return (
