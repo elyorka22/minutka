@@ -5,6 +5,7 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { RestaurantAdmin } from '../types';
+import { hashPassword, isHashed } from '../utils/password';
 
 /**
  * GET /api/restaurant-admins
@@ -81,6 +82,9 @@ export async function createRestaurantAdmin(req: Request, res: Response) {
       return res.status(400).json({ success: false, error: 'Password is required for restaurant admins' });
     }
 
+    // Хешируем пароль
+    const hashedPassword = await hashPassword(password);
+
     const { data, error } = await supabase
       .from('restaurant_admins')
       .insert({
@@ -91,7 +95,7 @@ export async function createRestaurantAdmin(req: Request, res: Response) {
         last_name: last_name || null,
         phone: phone || null,
         is_active: is_active ?? true,
-        password: password, // Сохраняем пароль
+        password: hashedPassword,
       })
       .select()
       .single();
@@ -114,7 +118,7 @@ export async function createRestaurantAdmin(req: Request, res: Response) {
 export async function updateRestaurantAdmin(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { username, first_name, last_name, phone, is_active } = req.body;
+    const { username, first_name, last_name, phone, is_active, password } = req.body;
 
     const updateData: any = {};
     if (username !== undefined) updateData.username = username;
@@ -122,6 +126,10 @@ export async function updateRestaurantAdmin(req: Request, res: Response) {
     if (last_name !== undefined) updateData.last_name = last_name;
     if (phone !== undefined) updateData.phone = phone;
     if (is_active !== undefined) updateData.is_active = is_active;
+    if (password !== undefined && password !== '') {
+      // Хешируем пароль только если он еще не хеширован
+      updateData.password = isHashed(password) ? password : await hashPassword(password);
+    }
 
     const { data, error } = await supabase
       .from('restaurant_admins')

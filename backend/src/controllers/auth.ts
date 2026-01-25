@@ -4,6 +4,7 @@
 
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
+import { comparePassword, isHashed } from '../utils/password';
 
 /**
  * POST /api/auth/login
@@ -51,7 +52,12 @@ export async function loginStaff(req: Request, res: Response) {
 
     if (superAdminResult.data && !superAdminResult.error) {
       // Проверяем пароль для супер-админа
-      if (superAdminResult.data.password === password) {
+      const storedPassword = superAdminResult.data.password;
+      const passwordMatches = isHashed(storedPassword)
+        ? await comparePassword(password, storedPassword)
+        : storedPassword === password; // Для обратной совместимости со старыми паролями
+      
+      if (passwordMatches) {
         role = 'super_admin';
         userData = superAdminResult.data;
       } else {
@@ -62,7 +68,12 @@ export async function loginStaff(req: Request, res: Response) {
       }
     } else if (chefResult.data && !chefResult.error) {
       // Проверяем пароль для повара
-      if (chefResult.data.password === password) {
+      const storedPassword = chefResult.data.password;
+      const passwordMatches = isHashed(storedPassword)
+        ? await comparePassword(password, storedPassword)
+        : storedPassword === password; // Для обратной совместимости со старыми паролями
+      
+      if (passwordMatches) {
         role = 'chef';
         userData = chefResult.data;
       } else {
@@ -73,7 +84,12 @@ export async function loginStaff(req: Request, res: Response) {
       }
     } else if (restaurantAdminResult.data && !restaurantAdminResult.error) {
       // Проверяем пароль для админа ресторана
-      if (restaurantAdminResult.data.password === password) {
+      const storedPassword = restaurantAdminResult.data.password;
+      const passwordMatches = isHashed(storedPassword)
+        ? await comparePassword(password, storedPassword)
+        : storedPassword === password; // Для обратной совместимости со старыми паролями
+      
+      if (passwordMatches) {
         role = 'restaurant_admin';
         userData = restaurantAdminResult.data;
       } else {

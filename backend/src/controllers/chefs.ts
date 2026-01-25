@@ -143,6 +143,9 @@ export async function createChef(req: Request, res: Response) {
       });
     }
 
+    // Хешируем пароль
+    const hashedPassword = await hashPassword(password);
+
     // Создание повара
     const { data, error } = await supabase
       .from('chefs')
@@ -154,7 +157,7 @@ export async function createChef(req: Request, res: Response) {
         first_name: first_name || null,
         last_name: last_name || null,
         is_active,
-        password: password // Сохраняем пароль
+        password: hashedPassword
       })
       .select()
       .single();
@@ -184,7 +187,7 @@ export async function createChef(req: Request, res: Response) {
 export async function updateChef(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { telegram_chat_id, username, first_name, last_name, is_active } = req.body;
+    const { telegram_chat_id, username, first_name, last_name, is_active, password } = req.body;
 
     // Проверка существования
     const { data: existing, error: existingError } = await supabase
@@ -207,6 +210,10 @@ export async function updateChef(req: Request, res: Response) {
     if (first_name !== undefined) updateData.first_name = first_name;
     if (last_name !== undefined) updateData.last_name = last_name;
     if (is_active !== undefined) updateData.is_active = is_active;
+    if (password !== undefined && password !== '') {
+      // Хешируем пароль только если он еще не хеширован
+      updateData.password = isHashed(password) ? password : await hashPassword(password);
+    }
 
     const { data, error } = await supabase
       .from('chefs')

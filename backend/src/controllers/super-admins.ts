@@ -5,6 +5,7 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { SuperAdmin } from '../types';
+import { hashPassword, isHashed } from '../utils/password';
 
 /**
  * GET /api/super-admins
@@ -82,6 +83,9 @@ export async function createSuperAdmin(req: Request, res: Response) {
       });
     }
 
+    // Хешируем пароль
+    const hashedPassword = await hashPassword(password);
+
     // Создание супер-админа
     const { data, error } = await supabase
       .from('super_admins')
@@ -90,7 +94,7 @@ export async function createSuperAdmin(req: Request, res: Response) {
         username: username || null,
         first_name: first_name || null,
         last_name: last_name || null,
-        password: password,
+        password: hashedPassword,
         is_active: is_active ?? true,
       })
       .select()
@@ -132,7 +136,10 @@ export async function updateSuperAdmin(req: Request, res: Response) {
     if (username !== undefined) updateData.username = username;
     if (first_name !== undefined) updateData.first_name = first_name;
     if (last_name !== undefined) updateData.last_name = last_name;
-    if (password !== undefined) updateData.password = password;
+    if (password !== undefined) {
+      // Хешируем пароль только если он еще не хеширован
+      updateData.password = isHashed(password) ? password : await hashPassword(password);
+    }
     if (is_active !== undefined) updateData.is_active = is_active;
 
     const { data, error } = await supabase

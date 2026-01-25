@@ -168,6 +168,9 @@ export async function createRestaurant(req: Request, res: Response) {
         } else {
           console.log(`Creating restaurant admin for restaurant ${restaurant.id} with telegram_id ${telegramId}`);
           
+          // Хешируем пароль если он указан
+          const hashedPassword = admin_password ? await hashPassword(admin_password) : null;
+
           const { data: adminData, error: adminError } = await supabase
             .from('restaurant_admins')
             .insert({
@@ -177,7 +180,7 @@ export async function createRestaurant(req: Request, res: Response) {
               first_name: null,
               last_name: null,
               phone: admin_phone || null,
-              password: admin_password || null,
+              password: hashedPassword,
               is_active: true
             })
             .select()
