@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { Restaurant } from '@/lib/types';
-import { getRestaurants, createRestaurant, updateRestaurant, deleteRestaurant } from '@/lib/api';
+import { getRestaurants, createRestaurant, updateRestaurant, deleteRestaurant, getRestaurantAdmins, updateRestaurantAdmin } from '@/lib/api';
 import ImageUpload from '@/components/ImageUpload';
 
 export default function AdminRestaurantsPage() {
@@ -29,7 +29,7 @@ export default function AdminRestaurantsPage() {
     fetchRestaurants();
   }, []);
 
-  const handleEdit = (restaurant: Restaurant) => {
+  const handleEdit = async (restaurant: Restaurant) => {
     setEditingRestaurant(restaurant);
     setShowForm(true);
   };
@@ -300,9 +300,36 @@ function RestaurantFormModal({
     is_active: restaurant?.is_active ?? true,
     is_featured: restaurant?.is_featured ?? false,
     admin_telegram_id: '', // Поле для Telegram ID админа (только при создании)
-    admin_phone: '', // Поле для телефона админа (только при создании)
-    admin_password: '', // Поле для пароля админа (только при создании)
+    admin_phone: '', // Поле для телефона админа
+    admin_password: '', // Поле для пароля админа
   });
+  
+  const [loadingAdmin, setLoadingAdmin] = useState(false);
+
+  // Загружаем данные админа при редактировании
+  useEffect(() => {
+    async function loadAdminData() {
+      if (restaurant?.id) {
+        setLoadingAdmin(true);
+        try {
+          const admins = await getRestaurantAdmins(restaurant.id);
+          if (admins && admins.length > 0) {
+            const admin = admins[0];
+            setFormData(prev => ({
+              ...prev,
+              admin_phone: admin.phone || '',
+              admin_password: '', // Не показываем текущий пароль
+            }));
+          }
+        } catch (error) {
+          console.error('Error loading admin data:', error);
+        } finally {
+          setLoadingAdmin(false);
+        }
+      }
+    }
+    loadAdminData();
+  }, [restaurant?.id]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -329,6 +356,14 @@ function RestaurantFormModal({
         (newRestaurant as any).admin_phone = formData.admin_phone;
       }
       if (formData.admin_password) {
+        (newRestaurant as any).admin_password = formData.admin_password;
+      }
+    } else {
+      // При редактировании передаем данные админа
+      if (formData.admin_phone !== undefined) {
+        (newRestaurant as any).admin_phone = formData.admin_phone;
+      }
+      if (formData.admin_password !== undefined) {
         (newRestaurant as any).admin_password = formData.admin_password;
       }
     }
@@ -396,22 +431,66 @@ function RestaurantFormModal({
             />
 
             {!restaurant && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Telegram ID админа ресторана (опционально)
+                </label>
+                <input
+                  type="text"
+                  value={formData.admin_telegram_id}
+                  onChange={(e) => setFormData({ ...formData, admin_telegram_id: e.target.value })}
+                  placeholder="Введите Telegram ID админа"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Если указать Telegram ID, админ будет автоматически создан и сможет войти в панель ресторана
+                </p>
+              </div>
+            )}
+
+            {restaurant && (
               <>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Telegram ID админа ресторана (опционально)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.admin_telegram_id}
-                    onChange={(e) => setFormData({ ...formData, admin_telegram_id: e.target.value })}
-                    placeholder="Введите Telegram ID админа"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    Если указать Telegram ID, админ будет автоматически создан и сможет войти в панель ресторана
-                  </p>
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Данные админа ресторана</h3>
+                  {loadingAdmin ? (
+                    <p className="text-sm text-gray-500">Загрузка данных админа...</p>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Телефон админа ресторана
+                        </label>
+                        <input
+                          type="tel"
+                          value={formData.admin_phone}
+                          onChange={(e) => setFormData({ ...formData, admin_phone: e.target.value })}
+                          placeholder="Введите телефон админа"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div className="mt-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Новый пароль админа (оставьте пустым, чтобы не менять)
+                        </label>
+                        <input
+                          type="password"
+                          value={formData.admin_password}
+                          onChange={(e) => setFormData({ ...formData, admin_password: e.target.value })}
+                          placeholder="Введите новый пароль или оставьте пустым"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        />
+                        <p className="mt-1 text-xs text-gray-500">
+                          Оставьте пустым, чтобы не менять текущий пароль
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
+              </>
+            )}
+
+            {!restaurant && (
+              <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Телефон админа ресторана (опционально)
