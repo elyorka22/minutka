@@ -271,13 +271,12 @@ function AdminFormModal({
       return;
     }
 
-    const newAdmin: SuperAdmin & { password?: string } = {
+    const newAdmin: Omit<SuperAdmin, 'password'> & { password?: string } = {
       id: admin?.id || Date.now().toString(),
       telegram_id: parseInt(formData.telegram_id),
       username: formData.username || null,
       first_name: formData.first_name || null,
       last_name: formData.last_name || null,
-      password: null as string | null, // Не передаем в объект, передадим отдельно
       is_active: formData.is_active,
       created_at: admin?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
