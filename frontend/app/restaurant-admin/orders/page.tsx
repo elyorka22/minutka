@@ -9,6 +9,8 @@ import { Order, OrderStatus } from '@/lib/types';
 import { getOrders } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+
 const statusLabels: Record<OrderStatus, string> = {
   pending: 'В ожидании',
   accepted: 'Принят',
@@ -53,15 +55,29 @@ export default function RestaurantAdminOrdersPage() {
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     try {
-      // TODO: Вызвать API для обновления статуса
-      // await updateOrderStatus(orderId, newStatus);
-      setOrders(
-        orders.map((order) =>
-          order.id === orderId ? { ...order, status: newStatus, updated_at: new Date().toISOString() } : order
-        )
-      );
+      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update order status');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setOrders(
+          orders.map((order) =>
+            order.id === orderId ? { ...order, status: newStatus, updated_at: new Date().toISOString() } : order
+          )
+        );
+      }
     } catch (error) {
       console.error('Error updating order status:', error);
+      alert('Ошибка при обновлении статуса заказа');
     }
   };
 
@@ -114,10 +130,20 @@ export default function RestaurantAdminOrdersPage() {
                 </p>
               </div>
               <div className="w-full sm:w-auto sm:ml-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2 sm:hidden">
+                  Изменить статус:
+                </label>
                 <select
                   value={order.status}
                   onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                  className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500"
+                  className="w-full sm:w-auto px-4 py-2.5 pr-8 border-2 border-primary-500 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 focus:border-primary-600 cursor-pointer appearance-none"
+                  style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                    backgroundPosition: 'right 0.75rem center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '1.5em 1.5em',
+                    paddingRight: '2.75rem'
+                  }}
                 >
                   {Object.entries(statusLabels).map(([value, label]) => (
                     <option key={value} value={value}>
