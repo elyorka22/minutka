@@ -14,6 +14,37 @@ const api = axios.create({
   },
 });
 
+// Функция для получения telegram_id из localStorage
+function getTelegramId(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('telegram_id');
+}
+
+// Interceptor для добавления telegram_id к запросам
+api.interceptors.request.use((config) => {
+  const telegramId = getTelegramId();
+  if (telegramId) {
+    // Добавляем telegram_id в query параметры для GET запросов
+    if (config.method === 'get' || config.method === 'GET') {
+      config.params = {
+        ...config.params,
+        telegram_id: telegramId,
+      };
+    } else {
+      // Для POST/PATCH/DELETE добавляем в body
+      if (config.data && typeof config.data === 'object') {
+        config.data = {
+          ...config.data,
+          telegram_id: telegramId,
+        };
+      } else if (!config.data) {
+        config.data = { telegram_id: telegramId };
+      }
+    }
+  }
+  return config;
+});
+
 // Restaurants API
 export async function getRestaurants(featured?: boolean): Promise<Restaurant[]> {
   const params = featured ? { featured: 'true' } : {};

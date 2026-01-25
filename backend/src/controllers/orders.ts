@@ -24,8 +24,9 @@ import { AuthenticatedRequest } from '../middleware/auth';
  *   latitude?: number,
  *   longitude?: number
  * }
+ * Публичный доступ (для клиентов)
  */
-export async function createOrder(req: Request, res: Response) {
+export async function createOrder(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id, user_id, order_text, address, latitude, longitude } = req.body;
 

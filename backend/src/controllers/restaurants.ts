@@ -11,8 +11,9 @@ import { AuthenticatedRequest } from '../middleware/auth';
 /**
  * GET /api/restaurants
  * Получить список активных ресторанов
+ * Публичный доступ
  */
-export async function getRestaurants(req: Request, res: Response) {
+export async function getRestaurants(req: AuthenticatedRequest, res: Response) {
   try {
     const { featured } = req.query;
 
@@ -68,8 +69,9 @@ export async function getRestaurants(req: Request, res: Response) {
 /**
  * GET /api/restaurants/:id
  * Получить детали ресторана по ID
+ * Публичный доступ
  */
-export async function getRestaurantById(req: Request, res: Response) {
+export async function getRestaurantById(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
 

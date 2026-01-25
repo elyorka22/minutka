@@ -11,8 +11,9 @@ import { AuthenticatedRequest } from '../middleware/auth';
  * GET /api/menu
  * Получить меню ресторана
  * Query params: restaurant_id (required)
+ * Публичный доступ
  */
-export async function getMenuItems(req: Request, res: Response) {
+export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id, include_unavailable } = req.query;
 
@@ -47,8 +48,9 @@ export async function getMenuItems(req: Request, res: Response) {
 /**
  * GET /api/menu/:id
  * Получить блюдо по ID
+ * Публичный доступ
  */
-export async function getMenuItemById(req: Request, res: Response) {
+export async function getMenuItemById(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
 
