@@ -3,7 +3,7 @@
 // ============================================
 
 import express from 'express';
-import { getCurrentUser, loginStaff } from '../controllers/auth';
+import { getCurrentUser, loginStaff, changePassword } from '../controllers/auth';
 
 const router = express.Router();
 
@@ -21,6 +21,13 @@ router.post('/login', loginStaff);
  * Для клиентов (mijoz) - без пароля
  */
 router.get('/me', getCurrentUser);
+
+/**
+ * POST /api/auth/change-password
+ * Изменить пароль сотрудника
+ * Body: { telegram_id: string, old_password: string, new_password: string }
+ */
+router.post('/change-password', changePassword);
 
 export default router;
 

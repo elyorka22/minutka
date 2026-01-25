@@ -4,7 +4,8 @@
 
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
-import { comparePassword, isHashed } from '../utils/password';
+import { comparePassword, isHashed, hashPassword } from '../utils/password';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 /**
  * POST /api/auth/login

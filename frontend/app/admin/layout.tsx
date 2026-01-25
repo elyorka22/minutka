@@ -20,6 +20,7 @@ const navigation = [
   { name: 'Повара', href: '/admin/chefs', icon: '👨‍🍳' },
   { name: 'Супер-админы', href: '/admin/super-admins', icon: '🛡️' },
   { name: 'Настройки бота', href: '/admin/bot-settings', icon: '🤖' },
+  { name: 'Изменить пароль', href: '/admin/change-password', icon: '🔐' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

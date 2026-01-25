@@ -306,6 +306,22 @@ export async function updateChef(id: string, chefData: {
   }
 }
 
+export async function changePassword(data: {
+  telegram_id: string;
+  old_password: string;
+  new_password: string;
+}): Promise<void> {
+  try {
+    const response = await api.post<{ success: boolean; message?: string; error?: string }>('/api/auth/change-password', data);
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to change password');
+    }
+  } catch (error) {
+    console.error('Error changing password:', error);
+    throw error;
+  }
+}
+
 export async function deleteChef(id: string): Promise<void> {
   try {
     await api.delete(`/api/chefs/${id}`);
