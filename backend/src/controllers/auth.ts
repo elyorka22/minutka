@@ -241,3 +241,139 @@ export async function getCurrentUser(req: Request, res: Response) {
   }
 }
 
+/**
+ * POST /api/auth/change-password
+ * Изменить пароль сотрудника
+ * Body: { telegram_id: string, old_password: string, new_password: string }
+ */
+export async function changePassword(req: Request, res: Response) {
+  try {
+    const { telegram_id, old_password, new_password } = req.body;
+
+    if (!telegram_id || !old_password || !new_password) {
+      return res.status(400).json({
+        success: false,
+        error: 'telegram_id, old_password, and new_password are required'
+      });
+    }
+
+    if (new_password.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be at least 6 characters long'
+      });
+    }
+
+    const telegramId = BigInt(telegram_id as string);
+
+    // Проверяем все роли сотрудников параллельно
+    const [superAdminResult, chefResult, restaurantAdminResult] = await Promise.all([
+      supabase
+        .from('super_admins')
+        .select('*')
+        .eq('telegram_id', telegramId)
+        .eq('is_active', true)
+        .maybeSingle(),
+      supabase
+        .from('chefs')
+        .select('*')
+        .eq('telegram_id', telegramId)
+        .eq('is_active', true)
+        .maybeSingle(),
+      supabase
+        .from('restaurant_admins')
+        .select('*')
+        .eq('telegram_id', telegramId)
+        .eq('is_active', true)
+        .maybeSingle(),
+    ]);
+
+    // Определяем роль и проверяем старый пароль
+    let userData: any = null;
+    let tableName: string = '';
+    let userId: string = '';
+
+    if (superAdminResult.data && !superAdminResult.error) {
+      const storedPassword = superAdminResult.data.password;
+      const passwordMatches = isHashed(storedPassword)
+        ? await comparePassword(old_password, storedPassword)
+        : storedPassword === old_password;
+      
+      if (!passwordMatches) {
+        return res.status(401).json({
+          success: false,
+          error: 'Неверный текущий пароль'
+        });
+      }
+      
+      userData = superAdminResult.data;
+      tableName = 'super_admins';
+      userId = superAdminResult.data.id;
+    } else if (chefResult.data && !chefResult.error) {
+      const storedPassword = chefResult.data.password;
+      const passwordMatches = isHashed(storedPassword)
+        ? await comparePassword(old_password, storedPassword)
+        : storedPassword === old_password;
+      
+      if (!passwordMatches) {
+        return res.status(401).json({
+          success: false,
+          error: 'Неверный текущий пароль'
+        });
+      }
+      
+      userData = chefResult.data;
+      tableName = 'chefs';
+      userId = chefResult.data.id;
+    } else if (restaurantAdminResult.data && !restaurantAdminResult.error) {
+      const storedPassword = restaurantAdminResult.data.password;
+      const passwordMatches = isHashed(storedPassword)
+        ? await comparePassword(old_password, storedPassword)
+        : storedPassword === old_password;
+      
+      if (!passwordMatches) {
+        return res.status(401).json({
+          success: false,
+          error: 'Неверный текущий пароль'
+        });
+      }
+      
+      userData = restaurantAdminResult.data;
+      tableName = 'restaurant_admins';
+      userId = restaurantAdminResult.data.id;
+    } else {
+      return res.status(404).json({
+        success: false,
+        error: 'Сотрудник с таким Telegram ID не найден'
+      });
+    }
+
+    // Хешируем новый пароль
+    const hashedNewPassword = await hashPassword(new_password);
+
+    // Обновляем пароль
+    const { data, error } = await supabase
+      .from(tableName)
+      .update({ password: hashedNewPassword })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    res.json({
+      success: true,
+      message: 'Пароль успешно изменен'
+    });
+  } catch (error: any) {
+    console.error('Error changing password:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to change password',
+      message: error.message
+    });
+  }
+}
+
