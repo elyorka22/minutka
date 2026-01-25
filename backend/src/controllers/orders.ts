@@ -151,7 +151,7 @@ export async function createOrder(req: Request, res: Response) {
  */
 export async function getOrders(req: Request, res: Response) {
   try {
-    const { restaurant_id, status } = req.query;
+    const { restaurant_id, status, archived } = req.query;
 
     let query = supabase
       .from('orders')
@@ -164,6 +164,15 @@ export async function getOrders(req: Request, res: Response) {
 
     if (status) {
       query = query.eq('status', status);
+    }
+
+    // Фильтрация по архиву
+    // Если archived=true, показываем только архивные заказы
+    // Если archived=false или не указан, показываем только активные (не архивные)
+    if (archived === 'true') {
+      query = query.not('archived_at', 'is', null);
+    } else {
+      query = query.is('archived_at', null);
     }
 
     const { data, error } = await query;

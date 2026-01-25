@@ -53,6 +53,7 @@ export interface Order {
   longitude: number | null;
   status: OrderStatus;
   telegram_message_id: number | null;
+  archived_at: string | null; // Дата архивации (устанавливается автоматически при статусе "delivered")
   created_at: string;
   updated_at: string;
 }
