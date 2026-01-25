@@ -26,15 +26,32 @@ export async function getRestaurants(req: Request, res: Response) {
       query = query.eq('is_featured', true);
     }
 
-    const { data, error } = await query;
+    const { data: restaurants, error } = await query;
 
     if (error) {
       throw error;
     }
 
+    // Получаем админов для каждого ресторана
+    const restaurantsWithAdmins = await Promise.all(
+      (restaurants || []).map(async (restaurant: any) => {
+        const { data: admins } = await supabase
+          .from('restaurant_admins')
+          .select('telegram_id, phone, password')
+          .eq('restaurant_id', restaurant.id)
+          .eq('is_active', true)
+          .limit(1);
+        
+        return {
+          ...restaurant,
+          admin: admins && admins.length > 0 ? admins[0] : null
+        };
+      })
+    );
+
     res.json({
       success: true,
-      data: data as Restaurant[]
+      data: restaurantsWithAdmins as any[]
     });
   } catch (error: any) {
     console.error('Error fetching restaurants:', error);
@@ -92,7 +109,7 @@ export async function getRestaurantById(req: Request, res: Response) {
  */
 export async function createRestaurant(req: Request, res: Response) {
   try {
-    const { name, description, phone, image_url, is_active, is_featured, admin_telegram_id } = req.body;
+    const { name, description, phone, image_url, is_active, is_featured, admin_telegram_id, admin_phone, admin_password } = req.body;
 
     console.log('Creating restaurant with data:', {
       name,
@@ -159,6 +176,8 @@ export async function createRestaurant(req: Request, res: Response) {
               username: null,
               first_name: null,
               last_name: null,
+              phone: admin_phone || null,
+              password: admin_password || null,
               is_active: true
             })
             .select()

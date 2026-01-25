@@ -80,6 +80,8 @@ export default function AdminRestaurantsPage() {
       } else {
         // Создание нового ресторана
         const adminTelegramId = (restaurant as any).admin_telegram_id;
+        const adminPhone = (restaurant as any).admin_phone;
+        const adminPassword = (restaurant as any).admin_password;
         const restaurantData: any = {
           name: restaurant.name,
           description: restaurant.description || undefined,
@@ -92,6 +94,16 @@ export default function AdminRestaurantsPage() {
         // Добавляем admin_telegram_id только если он указан и не пустой
         if (adminTelegramId && adminTelegramId !== '' && !isNaN(Number(adminTelegramId))) {
           restaurantData.admin_telegram_id = Number(adminTelegramId);
+        }
+        
+        // Добавляем admin_phone если указан
+        if (adminPhone && adminPhone !== '') {
+          restaurantData.admin_phone = adminPhone;
+        }
+        
+        // Добавляем admin_password если указан
+        if (adminPassword && adminPassword !== '') {
+          restaurantData.admin_password = adminPassword;
         }
         
         const created = await createRestaurant(restaurantData);
@@ -133,7 +145,10 @@ export default function AdminRestaurantsPage() {
                 Название
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Телефон
+                Телефон ресторана
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Админ (телефон/пароль)
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Статус
@@ -156,6 +171,18 @@ export default function AdminRestaurantsPage() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {restaurant.phone || '—'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {(restaurant as any).admin ? (
+                    <div>
+                      <div>📞 {(restaurant as any).admin.phone || '—'}</div>
+                      <div className="text-xs text-gray-400 mt-1">
+                        🔑 {(restaurant as any).admin.password ? '***' : '—'}
+                      </div>
+                    </div>
+                  ) : (
+                    '—'
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <button
@@ -202,7 +229,13 @@ export default function AdminRestaurantsPage() {
                   )}
                 </div>
                 {restaurant.phone && (
-                  <p className="text-sm text-gray-600">📞 {restaurant.phone}</p>
+                  <p className="text-sm text-gray-600">📞 Ресторан: {restaurant.phone}</p>
+                )}
+                {(restaurant as any).admin && (
+                  <div className="text-sm text-gray-600 mt-1">
+                    <p>👤 Админ: 📞 {(restaurant as any).admin.phone || '—'}</p>
+                    <p className="text-xs text-gray-500">🔑 Пароль: {(restaurant as any).admin.password ? '***' : '—'}</p>
+                  </div>
                 )}
               </div>
               <button
@@ -267,6 +300,8 @@ function RestaurantFormModal({
     is_active: restaurant?.is_active ?? true,
     is_featured: restaurant?.is_featured ?? false,
     admin_telegram_id: '', // Поле для Telegram ID админа (только при создании)
+    admin_phone: '', // Поле для телефона админа (только при создании)
+    admin_password: '', // Поле для пароля админа (только при создании)
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -285,9 +320,17 @@ function RestaurantFormModal({
       updated_at: new Date().toISOString(),
     };
 
-    // Добавляем admin_telegram_id только при создании нового ресторана
-    if (!restaurant && formData.admin_telegram_id) {
-      newRestaurant.admin_telegram_id = parseInt(formData.admin_telegram_id);
+    // Добавляем admin_telegram_id, admin_phone, admin_password только при создании нового ресторана
+    if (!restaurant) {
+      if (formData.admin_telegram_id) {
+        (newRestaurant as any).admin_telegram_id = parseInt(formData.admin_telegram_id);
+      }
+      if (formData.admin_phone) {
+        (newRestaurant as any).admin_phone = formData.admin_phone;
+      }
+      if (formData.admin_password) {
+        (newRestaurant as any).admin_password = formData.admin_password;
+      }
     }
 
     onSave(newRestaurant);
@@ -353,21 +396,50 @@ function RestaurantFormModal({
             />
 
             {!restaurant && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Telegram ID админа ресторана (опционально)
-                </label>
-                <input
-                  type="text"
-                  value={formData.admin_telegram_id}
-                  onChange={(e) => setFormData({ ...formData, admin_telegram_id: e.target.value })}
-                  placeholder="Введите Telegram ID админа"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Если указать Telegram ID, админ будет автоматически создан и сможет войти в панель ресторана
-                </p>
-              </div>
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Telegram ID админа ресторана (опционально)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.admin_telegram_id}
+                    onChange={(e) => setFormData({ ...formData, admin_telegram_id: e.target.value })}
+                    placeholder="Введите Telegram ID админа"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Если указать Telegram ID, админ будет автоматически создан и сможет войти в панель ресторана
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Телефон админа ресторана (опционально)
+                  </label>
+                  <input
+                    type="tel"
+                    value={formData.admin_phone}
+                    onChange={(e) => setFormData({ ...formData, admin_phone: e.target.value })}
+                    placeholder="Введите телефон админа"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Пароль админа ресторана (опционально)
+                  </label>
+                  <input
+                    type="password"
+                    value={formData.admin_password}
+                    onChange={(e) => setFormData({ ...formData, admin_password: e.target.value })}
+                    placeholder="Введите пароль для админа"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Пароль будет использоваться для входа в систему
+                  </p>
+                </div>
+              </>
             )}
 
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">

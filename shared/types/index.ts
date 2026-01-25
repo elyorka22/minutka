@@ -101,6 +101,8 @@ export interface RestaurantAdmin {
   username: string | null;
   first_name: string | null;
   last_name: string | null;
+  phone: string | null;
+  password: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS restaurant_admins (
     username VARCHAR(255),
     first_name VARCHAR(255),
     last_name VARCHAR(255),
+    phone VARCHAR(255), -- Телефон админа
     password VARCHAR(255), -- Пароль для входа
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
