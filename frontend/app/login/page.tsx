@@ -80,13 +80,13 @@ export default function LoginPage() {
       <div className="max-w-md w-full bg-white rounded-lg shadow-md p-8">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">🍽️ Minutka</h1>
-          <p className="text-gray-600">Вход в систему</p>
+          <p className="text-gray-600">Tizimga kirish</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-              Роль
+              Rol
             </label>
             <select
               id="role"
@@ -99,8 +99,8 @@ export default function LoginPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               disabled={loading}
             >
-              <option value="mijoz">Mijoz (Клиент)</option>
-              <option value="xodim">Xodim (Сотрудник)</option>
+              <option value="mijoz">Mijoz</option>
+              <option value="xodim">Xodim</option>
             </select>
           </div>
 
@@ -113,33 +113,33 @@ export default function LoginPage() {
               id="telegram_id"
               value={telegramId}
               onChange={(e) => setTelegramId(e.target.value)}
-              placeholder="Введите ваш Telegram ID"
+              placeholder="Telegram ID ni kiriting"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               required
               disabled={loading}
             />
             <p className="mt-2 text-sm text-gray-500">
-              Ваш Telegram ID можно узнать в боте, нажав кнопку "🆔 Chat ID"
+              Telegram ID ni botda "🆔 Chat ID" tugmasini bosib bilib olishingiz mumkin
             </p>
           </div>
 
           {role === 'xodim' && (
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Parol (Пароль) *
+                Parol *
               </label>
               <input
                 type="password"
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Введите пароль"
+                placeholder="Parolni kiriting"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 required={role === 'xodim'}
                 disabled={loading}
               />
               <p className="mt-2 text-sm text-gray-500">
-                Пароль выдается администратором при создании аккаунта
+                Parol hisob yaratilganda administrator tomonidan beriladi
               </p>
             </div>
           )}
@@ -155,13 +155,13 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
-            {loading ? 'Вход...' : 'Войти'}
+            {loading ? 'Kirilmoqda...' : 'Kirish'}
           </button>
         </form>
 
         <div className="mt-6 text-center">
           <Link href="/" className="text-sm text-primary-500 hover:text-primary-600">
-            ← Вернуться на главную
+            ← Bosh sahifaga qaytish
           </Link>
         </div>
       </div>
