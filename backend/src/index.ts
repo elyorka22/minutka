@@ -18,6 +18,7 @@ import uploadRouter from './routes/upload';
 import usersRouter from './routes/users';
 import statsRouter from './routes/stats';
 import authRouter from './routes/auth';
+import cleanupRouter from './routes/cleanup';
 
 // Load environment variables
 dotenv.config();
@@ -77,6 +78,7 @@ app.use('/api/upload', uploadRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/cleanup', cleanupRouter);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

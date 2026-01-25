@@ -260,9 +260,15 @@ export async function deleteChef(id: string): Promise<void> {
 }
 
 // Orders API (for admin panels)
-export async function getOrders(restaurantId?: string): Promise<Order[]> {
+export async function getOrders(restaurantId?: string, archived: boolean = false): Promise<Order[]> {
   try {
-    const params = restaurantId ? { restaurant_id: restaurantId } : {};
+    const params: any = {};
+    if (restaurantId) {
+      params.restaurant_id = restaurantId;
+    }
+    if (archived) {
+      params.archived = 'true';
+    }
     const response = await api.get<{ success: boolean; data: Order[] }>('/api/orders', { params });
     return response.data.data || [];
   } catch (error) {
