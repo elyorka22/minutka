@@ -99,7 +99,7 @@ export async function createChef(req: Request, res: Response) {
   try {
     const { restaurant_id, telegram_id, telegram_chat_id, username, first_name, last_name, is_active = true, password } = req.body;
 
-    // Валидация
+    // Валидация обязательных полей
     if (!restaurant_id || !telegram_id || !telegram_chat_id) {
       return res.status(400).json({
         success: false,
@@ -111,6 +111,56 @@ export async function createChef(req: Request, res: Response) {
       return res.status(400).json({
         success: false,
         error: 'Password is required for chefs'
+      });
+    }
+
+    // Валидация форматов
+    if (!validateUuid(restaurant_id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid restaurant_id format'
+      });
+    }
+
+    if (!validateTelegramId(telegram_id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid telegram_id format'
+      });
+    }
+
+    if (!validateTelegramId(telegram_chat_id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid telegram_chat_id format'
+      });
+    }
+
+    if (!validatePassword(password)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Password must be at least 6 characters long'
+      });
+    }
+
+    if (username !== undefined && username !== null && !validateString(username, 1, 100)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Username must be between 1 and 100 characters'
+      });
+    }
+
+    if (first_name !== undefined && first_name !== null && !validateString(first_name, 1, 100)) {
+      return res.status(400).json({
+        success: false,
+        error: 'First name must be between 1 and 100 characters'
+      });
+    }
+
+    if (last_name !== undefined && last_name !== null && !validateString(last_name, 1, 100)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Last name must be between 1 and 100 characters'
       });
     }
 

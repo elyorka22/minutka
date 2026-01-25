@@ -7,6 +7,7 @@ import { supabase } from '../config/supabase';
 import { Restaurant } from '../types';
 import { hashPassword } from '../utils/password';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { validateString, validatePhone, validateUrl, validateTelegramId } from '../utils/validation';
 
 /**
  * GET /api/restaurants
@@ -134,10 +135,46 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
       admin_telegram_id_type: typeof admin_telegram_id
     });
 
-    if (!name) {
+    // Валидация данных
+    if (!name || !validateString(name, 1, 255)) {
       return res.status(400).json({
         success: false,
-        error: 'Name is required'
+        error: 'Name is required and must be between 1 and 255 characters'
+      });
+    }
+
+    if (description && !validateString(description, 0, 2000)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Description must be less than 2000 characters'
+      });
+    }
+
+    if (phone && !validatePhone(phone)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid phone number format'
+      });
+    }
+
+    if (image_url && !validateUrl(image_url)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid image URL format'
+      });
+    }
+
+    if (admin_telegram_id && !validateTelegramId(admin_telegram_id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid admin Telegram ID format'
+      });
+    }
+
+    if (admin_phone && !validatePhone(admin_phone)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid admin phone number format'
       });
     }
 
@@ -241,6 +278,43 @@ export async function updateRestaurant(req: AuthenticatedRequest, res: Response)
   try {
     const { id } = req.params;
     const { name, description, phone, image_url, is_active, is_featured, working_hours } = req.body;
+
+    // Валидация ID
+    if (!id || !validateString(id, 1, 100)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid restaurant ID format'
+      });
+    }
+
+    // Валидация полей если они переданы
+    if (name !== undefined && !validateString(name, 1, 255)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Name must be between 1 and 255 characters'
+      });
+    }
+
+    if (description !== undefined && description !== null && !validateString(description, 0, 2000)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Description must be less than 2000 characters'
+      });
+    }
+
+    if (phone !== undefined && phone !== null && !validatePhone(phone)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid phone number format'
+      });
+    }
+
+    if (image_url !== undefined && image_url !== null && !validateUrl(image_url)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid image URL format'
+      });
+    }
 
     // Проверка прав доступа
     if (!req.user) {

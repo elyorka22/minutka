@@ -10,6 +10,7 @@ import { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem } from '@/
 import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
+import { handleApiError } from '@/lib/errorHandler';
 
 export default function RestaurantAdminMenuPage() {
   const { user } = useAuth();
@@ -51,7 +52,7 @@ export default function RestaurantAdminMenuPage() {
         setMenuItems(menuItems.filter((item) => item.id !== id));
       } catch (error) {
         console.error('Error deleting menu item:', error);
-        alert('Ошибка при удалении блюда');
+        alert(handleApiError(error));
       }
     }
   };

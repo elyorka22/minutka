@@ -6,6 +6,7 @@ import { Response } from 'express';
 import { supabase } from '../config/supabase';
 import { MenuItem } from '../types';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { validatePrice, validateString, validateUrl, validateUuid } from '../utils/validation';
 
 /**
  * GET /api/menu
@@ -83,8 +84,34 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id, name, description, price, category, image_url, is_available } = req.body;
 
+    // Валидация обязательных полей
     if (!restaurant_id || !name || price === undefined) {
       return res.status(400).json({ success: false, error: 'Missing required fields: restaurant_id, name, price' });
+    }
+
+    // Валидация типов и значений
+    if (!validateUuid(restaurant_id)) {
+      return res.status(400).json({ success: false, error: 'Invalid restaurant_id format' });
+    }
+
+    if (!validateString(name, 1, 255)) {
+      return res.status(400).json({ success: false, error: 'Name must be between 1 and 255 characters' });
+    }
+
+    if (!validatePrice(price)) {
+      return res.status(400).json({ success: false, error: 'Price must be a positive number' });
+    }
+
+    if (description && !validateString(description, 0, 2000)) {
+      return res.status(400).json({ success: false, error: 'Description must be less than 2000 characters' });
+    }
+
+    if (category && !validateString(category, 1, 100)) {
+      return res.status(400).json({ success: false, error: 'Category must be between 1 and 100 characters' });
+    }
+
+    if (image_url && !validateUrl(image_url)) {
+      return res.status(400).json({ success: false, error: 'Invalid image URL format' });
     }
 
     // Проверка прав доступа
@@ -148,6 +175,32 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
     const { name, description, price, category, image_url, is_available } = req.body;
+
+    // Валидация ID
+    if (!validateUuid(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid menu item ID format' });
+    }
+
+    // Валидация полей если они переданы
+    if (name !== undefined && !validateString(name, 1, 255)) {
+      return res.status(400).json({ success: false, error: 'Name must be between 1 and 255 characters' });
+    }
+
+    if (description !== undefined && description !== null && !validateString(description, 0, 2000)) {
+      return res.status(400).json({ success: false, error: 'Description must be less than 2000 characters' });
+    }
+
+    if (price !== undefined && !validatePrice(price)) {
+      return res.status(400).json({ success: false, error: 'Price must be a positive number' });
+    }
+
+    if (category !== undefined && category !== null && !validateString(category, 1, 100)) {
+      return res.status(400).json({ success: false, error: 'Category must be between 1 and 100 characters' });
+    }
+
+    if (image_url !== undefined && image_url !== null && !validateUrl(image_url)) {
+      return res.status(400).json({ success: false, error: 'Invalid image URL format' });
+    }
 
     // Проверка прав доступа
     if (!req.user) {

@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { comparePassword, isHashed, hashPassword } from '../utils/password';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { validateTelegramId, validatePassword } from '../utils/validation';
 
 /**
  * POST /api/auth/login
@@ -250,6 +251,7 @@ export async function changePassword(req: Request, res: Response) {
   try {
     const { telegram_id, old_password, new_password } = req.body;
 
+    // Валидация обязательных полей
     if (!telegram_id || !old_password || !new_password) {
       return res.status(400).json({
         success: false,
@@ -257,10 +259,25 @@ export async function changePassword(req: Request, res: Response) {
       });
     }
 
-    if (new_password.length < 6) {
+    // Валидация форматов
+    if (!validateTelegramId(telegram_id)) {
       return res.status(400).json({
         success: false,
-        error: 'New password must be at least 6 characters long'
+        error: 'Invalid telegram_id format'
+      });
+    }
+
+    if (!validatePassword(old_password, 1)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid old password format'
+      });
+    }
+
+    if (!validatePassword(new_password, 6)) {
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be at least 6 characters long and less than 255 characters'
       });
     }
 

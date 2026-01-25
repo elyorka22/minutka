@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { RestaurantAdmin } from '../types';
 import { hashPassword, isHashed } from '../utils/password';
+import { validateTelegramId, validatePassword, validateString, validateUuid, validatePhone } from '../utils/validation';
 
 /**
  * GET /api/restaurant-admins
@@ -74,12 +75,42 @@ export async function createRestaurantAdmin(req: Request, res: Response) {
   try {
     const { restaurant_id, telegram_id, username, first_name, last_name, phone, is_active, password } = req.body;
 
+    // Валидация обязательных полей
     if (!restaurant_id || !telegram_id) {
       return res.status(400).json({ success: false, error: 'Missing required fields: restaurant_id, telegram_id' });
     }
 
     if (!password) {
       return res.status(400).json({ success: false, error: 'Password is required for restaurant admins' });
+    }
+
+    // Валидация форматов
+    if (!validateUuid(restaurant_id)) {
+      return res.status(400).json({ success: false, error: 'Invalid restaurant_id format' });
+    }
+
+    if (!validateTelegramId(telegram_id)) {
+      return res.status(400).json({ success: false, error: 'Invalid telegram_id format' });
+    }
+
+    if (!validatePassword(password)) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters long' });
+    }
+
+    if (phone !== undefined && phone !== null && !validatePhone(phone)) {
+      return res.status(400).json({ success: false, error: 'Invalid phone number format' });
+    }
+
+    if (username !== undefined && username !== null && !validateString(username, 1, 100)) {
+      return res.status(400).json({ success: false, error: 'Username must be between 1 and 100 characters' });
+    }
+
+    if (first_name !== undefined && first_name !== null && !validateString(first_name, 1, 100)) {
+      return res.status(400).json({ success: false, error: 'First name must be between 1 and 100 characters' });
+    }
+
+    if (last_name !== undefined && last_name !== null && !validateString(last_name, 1, 100)) {
+      return res.status(400).json({ success: false, error: 'Last name must be between 1 and 100 characters' });
     }
 
     // Хешируем пароль

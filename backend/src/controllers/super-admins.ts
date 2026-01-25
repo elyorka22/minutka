@@ -6,6 +6,7 @@ import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { SuperAdmin } from '../types';
 import { hashPassword, isHashed } from '../utils/password';
+import { validateTelegramId, validatePassword, validateString } from '../utils/validation';
 
 /**
  * GET /api/super-admins
@@ -65,8 +66,30 @@ export async function createSuperAdmin(req: Request, res: Response) {
   try {
     const { telegram_id, username, first_name, last_name, password, is_active } = req.body;
 
+    // Валидация обязательных полей
     if (!telegram_id || !password) {
       return res.status(400).json({ success: false, error: 'Missing required fields: telegram_id, password' });
+    }
+
+    // Валидация форматов
+    if (!validateTelegramId(telegram_id)) {
+      return res.status(400).json({ success: false, error: 'Invalid telegram_id format' });
+    }
+
+    if (!validatePassword(password)) {
+      return res.status(400).json({ success: false, error: 'Password must be at least 6 characters long' });
+    }
+
+    if (username !== undefined && username !== null && !validateString(username, 1, 100)) {
+      return res.status(400).json({ success: false, error: 'Username must be between 1 and 100 characters' });
+    }
+
+    if (first_name !== undefined && first_name !== null && !validateString(first_name, 1, 100)) {
+      return res.status(400).json({ success: false, error: 'First name must be between 1 and 100 characters' });
+    }
+
+    if (last_name !== undefined && last_name !== null && !validateString(last_name, 1, 100)) {
+      return res.status(400).json({ success: false, error: 'Last name must be between 1 and 100 characters' });
     }
 
     // Проверка на дубликат

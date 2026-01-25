@@ -12,6 +12,7 @@ import {
   notifyUserAboutOrderStatus
 } from '../services/telegramNotification';
 import { AuthenticatedRequest } from '../middleware/auth';
+import { validateUuid, validateString, validateCoordinate } from '../utils/validation';
 
 /**
  * POST /api/orders
@@ -30,11 +31,54 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id, user_id, order_text, address, latitude, longitude } = req.body;
 
-    // Валидация
+    // Валидация обязательных полей
     if (!restaurant_id || !user_id || !order_text) {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields: restaurant_id, user_id, order_text'
+      });
+    }
+
+    // Валидация форматов
+    if (!validateUuid(restaurant_id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid restaurant_id format'
+      });
+    }
+
+    if (!validateUuid(user_id)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid user_id format'
+      });
+    }
+
+    if (!validateString(order_text, 1, 5000)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Order text must be between 1 and 5000 characters'
+      });
+    }
+
+    if (address !== undefined && address !== null && !validateString(address, 0, 500)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Address must be less than 500 characters'
+      });
+    }
+
+    if (latitude !== undefined && latitude !== null && !validateCoordinate(latitude)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid latitude value (must be between -180 and 180)'
+      });
+    }
+
+    if (longitude !== undefined && longitude !== null && !validateCoordinate(longitude)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid longitude value (must be between -180 and 180)'
       });
     }
 
