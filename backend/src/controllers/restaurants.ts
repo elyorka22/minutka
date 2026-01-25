@@ -2,9 +2,11 @@
 // Restaurants Controller
 // ============================================
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { supabase } from '../config/supabase';
 import { Restaurant } from '../types';
+import { hashPassword } from '../utils/password';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 /**
  * GET /api/restaurants
