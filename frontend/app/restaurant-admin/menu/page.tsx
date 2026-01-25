@@ -189,7 +189,7 @@ export default function RestaurantAdminMenuPage() {
               setEditingItem(null);
             } catch (error) {
               console.error('Error saving menu item:', error);
-              alert('Ошибка при сохранении блюда');
+              alert(handleApiError(error));
             }
           }}
         />
