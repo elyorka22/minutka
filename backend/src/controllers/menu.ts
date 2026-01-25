@@ -2,9 +2,10 @@
 // Menu Items Controller
 // ============================================
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { supabase } from '../config/supabase';
 import { MenuItem } from '../types';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 /**
  * GET /api/menu
@@ -74,13 +75,41 @@ export async function getMenuItemById(req: Request, res: Response) {
 /**
  * POST /api/menu
  * Создать новое блюдо
+ * Админ ресторана может создавать блюда только для своего ресторана
  */
-export async function createMenuItem(req: Request, res: Response) {
+export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id, name, description, price, category, image_url, is_available } = req.body;
 
     if (!restaurant_id || !name || price === undefined) {
       return res.status(400).json({ success: false, error: 'Missing required fields: restaurant_id, name, price' });
+    }
+
+    // Проверка прав доступа
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    // Супер-админы могут создавать блюда для любых ресторанов
+    if (req.user.role !== 'super_admin') {
+      // Админы ресторана могут создавать блюда только для своего ресторана
+      if (req.user.role === 'restaurant_admin' && req.user.restaurant_id !== restaurant_id) {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: You can only create menu items for your own restaurant'
+        });
+      }
+      
+      // Повары не могут создавать блюда
+      if (req.user.role === 'chef') {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: Chefs cannot create menu items'
+        });
+      }
     }
 
     const { data, error } = await supabase
@@ -111,11 +140,53 @@ export async function createMenuItem(req: Request, res: Response) {
 /**
  * PATCH /api/menu/:id
  * Обновить блюдо
+ * Админ ресторана может обновлять блюда только своего ресторана
  */
-export async function updateMenuItem(req: Request, res: Response) {
+export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
     const { name, description, price, category, image_url, is_available } = req.body;
+
+    // Проверка прав доступа
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    // Получаем информацию о блюде для проверки restaurant_id
+    const { data: menuItem, error: menuItemError } = await supabase
+      .from('menu_items')
+      .select('restaurant_id')
+      .eq('id', id)
+      .single();
+
+    if (menuItemError || !menuItem) {
+      return res.status(404).json({
+        success: false,
+        error: 'Menu item not found'
+      });
+    }
+
+    // Супер-админы могут обновлять блюда любых ресторанов
+    if (req.user.role !== 'super_admin') {
+      // Админы ресторана могут обновлять блюда только своего ресторана
+      if (req.user.role === 'restaurant_admin' && req.user.restaurant_id !== menuItem.restaurant_id) {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: You can only update menu items of your own restaurant'
+        });
+      }
+      
+      // Повары не могут обновлять блюда
+      if (req.user.role === 'chef') {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: Chefs cannot update menu items'
+        });
+      }
+    }
 
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
@@ -146,10 +217,52 @@ export async function updateMenuItem(req: Request, res: Response) {
 /**
  * DELETE /api/menu/:id
  * Удалить блюдо
+ * Админ ресторана может удалять блюда только своего ресторана
  */
-export async function deleteMenuItem(req: Request, res: Response) {
+export async function deleteMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
+
+    // Проверка прав доступа
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    // Получаем информацию о блюде для проверки restaurant_id
+    const { data: menuItem, error: menuItemError } = await supabase
+      .from('menu_items')
+      .select('restaurant_id')
+      .eq('id', id)
+      .single();
+
+    if (menuItemError || !menuItem) {
+      return res.status(404).json({
+        success: false,
+        error: 'Menu item not found'
+      });
+    }
+
+    // Супер-админы могут удалять блюда любых ресторанов
+    if (req.user.role !== 'super_admin') {
+      // Админы ресторана могут удалять блюда только своего ресторана
+      if (req.user.role === 'restaurant_admin' && req.user.restaurant_id !== menuItem.restaurant_id) {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: You can only delete menu items of your own restaurant'
+        });
+      }
+      
+      // Повары не могут удалять блюда
+      if (req.user.role === 'chef') {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: Chefs cannot delete menu items'
+        });
+      }
+    }
 
     const { error } = await supabase
       .from('menu_items')

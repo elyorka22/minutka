@@ -2,7 +2,7 @@
 // Orders Controller
 // ============================================
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { supabase } from '../config/supabase';
 import { Order, OrderStatus } from '../types';
 import {
@@ -11,6 +11,7 @@ import {
   notifyRestaurantAdminsAboutNewOrder,
   notifyUserAboutOrderStatus
 } from '../services/telegramNotification';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 /**
  * POST /api/orders
@@ -148,18 +149,42 @@ export async function createOrder(req: Request, res: Response) {
  * GET /api/orders
  * Получить список заказов
  * Query params: restaurant_id (optional), status (optional)
+ * Админ ресторана видит только заказы своего ресторана
  */
-export async function getOrders(req: Request, res: Response) {
+export async function getOrders(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id, status, archived } = req.query;
+
+    // Проверка прав доступа
+    if (req.user) {
+      // Админы ресторана и повары видят только заказы своего ресторана
+      if (req.user.role === 'restaurant_admin' || req.user.role === 'chef') {
+        // Если указан restaurant_id в запросе, проверяем что он совпадает с рестораном пользователя
+        if (restaurant_id && restaurant_id !== req.user.restaurant_id) {
+          return res.status(403).json({
+            success: false,
+            error: 'Forbidden: You can only view orders of your own restaurant'
+          });
+        }
+        // Принудительно устанавливаем restaurant_id для админов ресторана и поваров
+        const effectiveRestaurantId = restaurant_id || req.user.restaurant_id;
+        // Используем effectiveRestaurantId дальше в запросе
+      }
+    }
+
+    // Определяем restaurant_id для фильтрации
+    let effectiveRestaurantId = restaurant_id as string | undefined;
+    if (req.user && (req.user.role === 'restaurant_admin' || req.user.role === 'chef')) {
+      effectiveRestaurantId = req.user.restaurant_id;
+    }
 
     let query = supabase
       .from('orders')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (restaurant_id) {
-      query = query.eq('restaurant_id', restaurant_id);
+    if (effectiveRestaurantId) {
+      query = query.eq('restaurant_id', effectiveRestaurantId);
     }
 
     if (status) {
@@ -242,7 +267,7 @@ export async function getOrderById(req: Request, res: Response) {
  * Обновить статус заказа
  * Body: { status: OrderStatus, changed_by?: string, telegram_id?: number }
  */
-export async function updateOrderStatus(req: Request, res: Response) {
+export async function updateOrderStatus(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
     const { status, changed_by = 'restaurant', telegram_id } = req.body;
@@ -259,7 +284,7 @@ export async function updateOrderStatus(req: Request, res: Response) {
     // Проверка существования заказа
     const { data: existingOrder, error: orderError } = await supabase
       .from('orders')
-      .select('id, status, user_id')
+      .select('id, status, user_id, restaurant_id')
       .eq('id', id)
       .single();
 
@@ -268,6 +293,21 @@ export async function updateOrderStatus(req: Request, res: Response) {
         success: false,
         error: 'Order not found'
       });
+    }
+
+    // Проверка прав доступа
+    if (req.user) {
+      // Супер-админы могут обновлять статусы любых заказов
+      if (req.user.role !== 'super_admin') {
+        // Админы ресторана и повары могут обновлять только заказы своего ресторана
+        if ((req.user.role === 'restaurant_admin' || req.user.role === 'chef') 
+            && req.user.restaurant_id !== existingOrder.restaurant_id) {
+          return res.status(403).json({
+            success: false,
+            error: 'Forbidden: You can only update orders of your own restaurant'
+          });
+        }
+      }
     }
 
     // Обновление статуса

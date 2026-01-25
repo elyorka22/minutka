@@ -106,8 +106,16 @@ export async function getRestaurantById(req: Request, res: Response) {
  * POST /api/restaurants
  * Создать новый ресторан
  * Body: { name, description, phone, image_url, is_active, is_featured, admin_telegram_id? }
+ * Только для супер-админов
  */
-export async function createRestaurant(req: Request, res: Response) {
+export async function createRestaurant(req: AuthenticatedRequest, res: Response) {
+  // Проверка прав доступа
+  if (!req.user || req.user.role !== 'super_admin') {
+    return res.status(403).json({
+      success: false,
+      error: 'Forbidden: Only super admins can create restaurants'
+    });
+  }
   try {
     const { name, description, phone, image_url, is_active, is_featured, admin_telegram_id, admin_phone, admin_password } = req.body;
 
@@ -223,11 +231,39 @@ export async function createRestaurant(req: Request, res: Response) {
 /**
  * PATCH /api/restaurants/:id
  * Обновить ресторан
+ * Админ ресторана может обновлять только свой ресторан
  */
-export async function updateRestaurant(req: Request, res: Response) {
+export async function updateRestaurant(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
     const { name, description, phone, image_url, is_active, is_featured, working_hours } = req.body;
+
+    // Проверка прав доступа
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    // Супер-админы могут обновлять любые рестораны
+    if (req.user.role !== 'super_admin') {
+      // Админы ресторана могут обновлять только свой ресторан
+      if (req.user.role === 'restaurant_admin' && req.user.restaurant_id !== id) {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: You can only update your own restaurant'
+        });
+      }
+      
+      // Повары не могут обновлять рестораны
+      if (req.user.role === 'chef') {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: Chefs cannot update restaurants'
+        });
+      }
+    }
 
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
@@ -266,8 +302,16 @@ export async function updateRestaurant(req: Request, res: Response) {
 /**
  * DELETE /api/restaurants/:id
  * Удалить ресторан
+ * Только для супер-админов
  */
-export async function deleteRestaurant(req: Request, res: Response) {
+export async function deleteRestaurant(req: AuthenticatedRequest, res: Response) {
+  // Проверка прав доступа
+  if (!req.user || req.user.role !== 'super_admin') {
+    return res.status(403).json({
+      success: false,
+      error: 'Forbidden: Only super admins can delete restaurants'
+    });
+  }
   try {
     const { id } = req.params;
 
