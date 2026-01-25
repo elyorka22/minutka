@@ -169,6 +169,7 @@ export async function createRestaurantAdmin(adminData: {
   username?: string | null;
   first_name?: string | null;
   last_name?: string | null;
+  phone?: string | null;
   is_active?: boolean;
   password: string;
 }): Promise<any> {
@@ -185,6 +186,7 @@ export async function updateRestaurantAdmin(id: string, adminData: {
   username?: string | null;
   first_name?: string | null;
   last_name?: string | null;
+  phone?: string | null;
   is_active?: boolean;
 }): Promise<any> {
   try {

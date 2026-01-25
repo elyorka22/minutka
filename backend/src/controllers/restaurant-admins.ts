@@ -71,7 +71,7 @@ export async function getRestaurantAdminById(req: Request, res: Response) {
  */
 export async function createRestaurantAdmin(req: Request, res: Response) {
   try {
-    const { restaurant_id, telegram_id, username, first_name, last_name, is_active, password } = req.body;
+    const { restaurant_id, telegram_id, username, first_name, last_name, phone, is_active, password } = req.body;
 
     if (!restaurant_id || !telegram_id) {
       return res.status(400).json({ success: false, error: 'Missing required fields: restaurant_id, telegram_id' });
@@ -89,6 +89,7 @@ export async function createRestaurantAdmin(req: Request, res: Response) {
         username: username || null,
         first_name: first_name || null,
         last_name: last_name || null,
+        phone: phone || null,
         is_active: is_active ?? true,
         password: password, // Сохраняем пароль
       })
@@ -113,12 +114,13 @@ export async function createRestaurantAdmin(req: Request, res: Response) {
 export async function updateRestaurantAdmin(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { username, first_name, last_name, is_active } = req.body;
+    const { username, first_name, last_name, phone, is_active } = req.body;
 
     const updateData: any = {};
     if (username !== undefined) updateData.username = username;
     if (first_name !== undefined) updateData.first_name = first_name;
     if (last_name !== undefined) updateData.last_name = last_name;
+    if (phone !== undefined) updateData.phone = phone;
     if (is_active !== undefined) updateData.is_active = is_active;
 
     const { data, error } = await supabase

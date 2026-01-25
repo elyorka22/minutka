@@ -58,6 +58,7 @@ export default function AdminRestaurantAdminsPage() {
           username: admin.username,
           first_name: admin.first_name,
           last_name: admin.last_name,
+          phone: admin.phone,
           is_active: admin.is_active,
         });
         setAdmins(admins.map((a) => (a.id === admin.id ? updated : a)));
@@ -71,6 +72,10 @@ export default function AdminRestaurantAdminsPage() {
           last_name: admin.last_name,
           is_active: admin.is_active,
         };
+        // Добавляем phone если он есть
+        if (admin.phone) {
+          adminData.phone = admin.phone;
+        }
         // Добавляем пароль если он есть
         if ((admin as any).password) {
           adminData.password = (admin as any).password;
@@ -250,6 +255,7 @@ function AdminFormModal({
     username: admin?.username || '',
     first_name: admin?.first_name || '',
     last_name: admin?.last_name || '',
+    phone: admin?.phone || '',
     password: '', // Пароль только при создании
   });
 
@@ -259,7 +265,7 @@ function AdminFormModal({
       alert('Пожалуйста, укажите пароль для нового админа');
       return;
     }
-    const newAdmin: RestaurantAdmin & { password?: string } = {
+    const newAdmin: Omit<RestaurantAdmin, 'phone' | 'password'> & { phone?: string; password?: string } = {
       id: admin?.id || Date.now().toString(),
       restaurant_id: formData.restaurant_id,
       telegram_id: parseInt(formData.telegram_id),
@@ -270,6 +276,10 @@ function AdminFormModal({
       created_at: admin?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
+    // Добавляем phone и password если они указаны
+    if (formData.phone) {
+      (newAdmin as any).phone = formData.phone;
+    }
     // Добавляем пароль только при создании нового админа
     if (!admin && formData.password) {
       (newAdmin as any).password = formData.password;
@@ -360,6 +370,19 @@ function AdminFormModal({
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Телефон админа
+              </label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Введите телефон админа"
+              />
             </div>
 
             {!admin && (
