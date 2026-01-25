@@ -45,7 +45,7 @@ export default function LoginPage() {
 
     try {
       if (!telegramId || !telegramId.trim()) {
-        setError('Введите ваш Telegram ID');
+        setError('Telegram ID ni kiriting');
         setLoading(false);
         return;
       }
@@ -53,7 +53,7 @@ export default function LoginPage() {
       // Если выбрана роль сотрудника, проверяем пароль
       if (role === 'xodim') {
         if (!password || !password.trim()) {
-          setError('Введите пароль');
+          setError('Parolni kiriting');
           setLoading(false);
           return;
         }
@@ -69,7 +69,7 @@ export default function LoginPage() {
       // Это нормально, редирект произойдет через useEffect когда user обновится
     } catch (err: any) {
       console.error('Login error:', err);
-      const errorMessage = err.message || 'Ошибка при входе. Проверьте ваш Telegram ID, пароль (если сотрудник) и подключение к интернету.';
+      const errorMessage = err.message || 'Kirishda xatolik. Telegram ID, parol (agar xodim bo\'lsangiz) va internet ulanishini tekshiring.';
       setError(errorMessage);
       setLoading(false);
     }
