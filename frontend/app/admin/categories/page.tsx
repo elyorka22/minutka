@@ -190,13 +190,52 @@ export default function CategoriesPage() {
           c.name?.toLowerCase() === 'hammasi' ||
           c.id === 'all'
         ) ? (
-          <p className="text-sm text-green-700 font-semibold">
-            ✅ Категория "Все" найдена! Загрузите изображение для неё, чтобы оно отображалось на главной странице.
-          </p>
+          <div>
+            <p className="text-sm text-green-700 font-semibold mb-2">
+              ✅ Категория "Все" найдена! Загрузите изображение для неё, чтобы оно отображалось на главной странице.
+            </p>
+            {(() => {
+              const allCat = categories.find(c => 
+                c.name === 'Все' || 
+                c.name === 'Hammasi' || 
+                c.name?.toLowerCase() === 'все' ||
+                c.name?.toLowerCase() === 'hammasi' ||
+                c.id === 'all'
+              );
+              if (allCat && (!allCat.image_url || allCat.image_url.trim() === '')) {
+                return (
+                  <button
+                    onClick={() => handleEdit(allCat)}
+                    className="text-sm text-blue-700 underline hover:text-blue-900"
+                  >
+                    ✏️ Редактировать категорию "Все" и загрузить изображение
+                  </button>
+                );
+              }
+              return null;
+            })()}
+          </div>
         ) : (
-          <p className="text-sm text-orange-700">
-            ⚠️ Категория "Все" не найдена. Создайте категорию с названием "Hammasi" или "Все".
-          </p>
+          <div>
+            <p className="text-sm text-orange-700 mb-2">
+              ⚠️ Категория "Все" не найдена. Создайте категорию с названием "Hammasi" или "Все".
+            </p>
+            <button
+              onClick={() => {
+                setShowAddForm(true);
+                setEditing(null);
+                setFormData({
+                  name: 'Hammasi',
+                  image_url: '',
+                  display_order: -1, // Первая в списке
+                  is_active: true,
+                });
+              }}
+              className="text-sm px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors"
+            >
+              + Создать категорию "Hammasi"
+            </button>
+          </div>
         )}
       </div>
 
