@@ -32,6 +32,34 @@ body {
   }
 }
 
+/* Глобальные стили для полей ввода - обеспечивают видимость текста */
+@layer base {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="url"],
+  input[type="date"],
+  input[type="time"],
+  input[type="datetime-local"],
+  textarea,
+  select {
+    @apply text-gray-900 bg-white;
+  }
+  
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-gray-400;
+  }
+  
+  input:disabled,
+  textarea:disabled,
+  select:disabled {
+    @apply text-gray-500 bg-gray-50;
+  }
+}
+
 /* Toast animations */
 @keyframes slide-in {
   from {
