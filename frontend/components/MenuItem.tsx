@@ -73,7 +73,7 @@ export default function MenuItem({ item }: MenuItemProps) {
           <div className="flex justify-between items-start mb-2">
             <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
             <span className="text-lg font-bold text-primary-600">
-              {item.price}₽
+              {item.price} сум
             </span>
           </div>
           {item.description && (

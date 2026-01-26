@@ -236,7 +236,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                     )}
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{cartItem.item.name}</h3>
-                      <p className="text-sm text-gray-600">{cartItem.item.price}₽ × {cartItem.quantity}</p>
+                      <p className="text-sm text-gray-600">{cartItem.item.price} сум × {cartItem.quantity}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2">
