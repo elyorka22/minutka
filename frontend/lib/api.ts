@@ -46,10 +46,13 @@ api.interceptors.request.use((config) => {
 });
 
 // Restaurants API
-export async function getRestaurants(featured?: boolean): Promise<Restaurant[]> {
-  const params = featured ? { featured: 'true' } : {};
-  const response = await api.get<{ success: boolean; data: Restaurant[] }>('/api/restaurants', { params });
-  return response.data.data;
+export async function getRestaurants(featured?: boolean, page?: number, limit?: number): Promise<{ data: Restaurant[]; pagination?: any }> {
+  const params: any = {};
+  if (featured) params.featured = 'true';
+  if (page) params.page = page.toString();
+  if (limit) params.limit = limit.toString();
+  const response = await api.get<{ success: boolean; data: Restaurant[]; pagination?: any }>('/api/restaurants', { params });
+  return { data: response.data.data, pagination: response.data.pagination };
 }
 
 export async function getRestaurantById(id: string): Promise<Restaurant> {
@@ -363,7 +366,7 @@ export async function deleteChef(id: string): Promise<void> {
 }
 
 // Orders API (for admin panels)
-export async function getOrders(restaurantId?: string, archived: boolean = false): Promise<Order[]> {
+export async function getOrders(restaurantId?: string, archived: boolean = false, page?: number, limit?: number): Promise<{ data: Order[]; pagination?: any }> {
   try {
     const params: any = {};
     if (restaurantId) {
@@ -372,22 +375,27 @@ export async function getOrders(restaurantId?: string, archived: boolean = false
     if (archived) {
       params.archived = 'true';
     }
-    const response = await api.get<{ success: boolean; data: Order[] }>('/api/orders', { params });
-    return response.data.data || [];
+    if (page) params.page = page.toString();
+    if (limit) params.limit = limit.toString();
+    const response = await api.get<{ success: boolean; data: Order[]; pagination?: any }>('/api/orders', { params });
+    return { data: response.data.data || [], pagination: response.data.pagination };
   } catch (error) {
     console.error('Error fetching orders:', error);
-    return [];
+    return { data: [], pagination: undefined };
   }
 }
 
 // Users API
-export async function getUsers(): Promise<any[]> {
+export async function getUsers(page?: number, limit?: number): Promise<{ data: any[]; pagination?: any }> {
   try {
-    const response = await api.get<{ success: boolean; data: any[] }>('/api/users');
-    return response.data.data || [];
+    const params: any = {};
+    if (page) params.page = page.toString();
+    if (limit) params.limit = limit.toString();
+    const response = await api.get<{ success: boolean; data: any[]; pagination?: any }>('/api/users', { params });
+    return { data: response.data.data || [], pagination: response.data.pagination };
   } catch (error) {
     console.error('Error fetching users:', error);
-    return [];
+    return { data: [], pagination: undefined };
   }
 }
 

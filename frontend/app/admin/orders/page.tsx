@@ -31,12 +31,17 @@ export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<any>(null);
+  const pageSize = 20;
 
   useEffect(() => {
     async function fetchOrders() {
       try {
-        const data = await getOrders();
-        setOrders(data);
+        setLoading(true);
+        const result = await getOrders(undefined, false, currentPage, pageSize);
+        setOrders(result.data);
+        setPagination(result.pagination);
       } catch (error) {
         console.error('Error fetching orders:', error);
       } finally {
@@ -44,7 +49,7 @@ export default function AdminOrdersPage() {
       }
     }
     fetchOrders();
-  }, []);
+  }, [currentPage]);
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     try {

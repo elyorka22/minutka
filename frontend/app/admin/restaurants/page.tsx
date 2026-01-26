@@ -15,12 +15,17 @@ export default function AdminRestaurantsPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingRestaurant, setEditingRestaurant] = useState<Restaurant | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<any>(null);
+  const pageSize = 20;
 
   useEffect(() => {
     async function fetchRestaurants() {
       try {
-        const data = await getRestaurants();
-        setRestaurants(data);
+        setLoading(true);
+        const result = await getRestaurants(undefined, currentPage, pageSize);
+        setRestaurants(result.data);
+        setPagination(result.pagination);
       } catch (error) {
         console.error('Error fetching restaurants:', error);
       } finally {
@@ -28,7 +33,7 @@ export default function AdminRestaurantsPage() {
       }
     }
     fetchRestaurants();
-  }, []);
+  }, [currentPage]);
 
   const handleEdit = async (restaurant: Restaurant) => {
     setEditingRestaurant(restaurant);

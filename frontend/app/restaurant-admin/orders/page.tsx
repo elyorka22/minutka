@@ -9,6 +9,7 @@ import { Order, OrderStatus } from '@/lib/types';
 import { getOrders } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { handleApiError } from '@/lib/errorHandler';
+import Pagination from '@/components/Pagination';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
@@ -35,6 +36,9 @@ export default function RestaurantAdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<any>(null);
+  const pageSize = 20;
 
   useEffect(() => {
     async function fetchOrders() {
@@ -43,8 +47,10 @@ export default function RestaurantAdminOrdersPage() {
         return;
       }
       try {
-        const data = await getOrders(currentRestaurantId);
-        setOrders(data);
+        setLoading(true);
+        const result = await getOrders(currentRestaurantId, false, currentPage, pageSize);
+        setOrders(result.data);
+        setPagination(result.pagination);
       } catch (error) {
         console.error('Error fetching orders:', error);
       } finally {
@@ -52,7 +58,7 @@ export default function RestaurantAdminOrdersPage() {
       }
     }
     fetchOrders();
-  }, [currentRestaurantId]);
+  }, [currentRestaurantId, currentPage]);
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     try {

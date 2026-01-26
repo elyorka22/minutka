@@ -16,14 +16,37 @@ import { validateString, validatePhone, validateUrl, validateTelegramId } from '
  */
 export async function getRestaurants(req: AuthenticatedRequest, res: Response) {
   try {
-    const { featured } = req.query;
+    const { featured, page, limit } = req.query;
 
+    // Параметры пагинации
+    const pageNum = parseInt(page as string) || 1;
+    const limitNum = parseInt(limit as string) || 20;
+    const offset = (pageNum - 1) * limitNum;
+
+    // Запрос для получения общего количества
+    let countQuery = supabase
+      .from('restaurants')
+      .select('*', { count: 'exact', head: true })
+      .eq('is_active', true);
+
+    if (featured === 'true') {
+      countQuery = countQuery.eq('is_featured', true);
+    }
+
+    const { count, error: countError } = await countQuery;
+
+    if (countError) {
+      throw countError;
+    }
+
+    // Запрос для получения данных с пагинацией
     let query = supabase
       .from('restaurants')
       .select('*')
       .eq('is_active', true)
       .order('is_featured', { ascending: false })
-      .order('name', { ascending: true });
+      .order('name', { ascending: true })
+      .range(offset, offset + limitNum - 1);
 
     // Если запрашивают только топовые рестораны
     if (featured === 'true') {
@@ -53,9 +76,19 @@ export async function getRestaurants(req: AuthenticatedRequest, res: Response) {
       })
     );
 
+    const totalPages = Math.ceil((count || 0) / limitNum);
+
     res.json({
       success: true,
-      data: restaurantsWithAdmins as any[]
+      data: restaurantsWithAdmins as any[],
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: count || 0,
+        totalPages,
+        hasNext: pageNum < totalPages,
+        hasPrev: pageNum > 1
+      }
     });
   } catch (error: any) {
     console.error('Error fetching restaurants:', error);

@@ -12,12 +12,17 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<any>(null);
+  const pageSize = 20;
 
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const usersData = await getUsers();
-        setUsers(usersData);
+        setLoading(true);
+        const result = await getUsers(currentPage, pageSize);
+        setUsers(result.data);
+        setPagination(result.pagination);
       } catch (error) {
         console.error('Error fetching users:', error);
       } finally {
@@ -25,7 +30,7 @@ export default function AdminUsersPage() {
       }
     }
     fetchUsers();
-  }, []);
+  }, [currentPage]);
 
   const filteredUsers = users.filter((user) => {
     const query = searchQuery.toLowerCase();

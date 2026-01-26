@@ -198,7 +198,12 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
  */
 export async function getOrders(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, status, archived } = req.query;
+    const { restaurant_id, status, archived, page, limit } = req.query;
+
+    // Параметры пагинации
+    const pageNum = parseInt(page as string) || 1;
+    const limitNum = parseInt(limit as string) || 20;
+    const offset = (pageNum - 1) * limitNum;
 
     // Проверка прав доступа
     if (req.user) {
@@ -223,10 +228,38 @@ export async function getOrders(req: AuthenticatedRequest, res: Response) {
       effectiveRestaurantId = req.user.restaurant_id;
     }
 
+    // Запрос для получения общего количества (для пагинации)
+    let countQuery = supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true });
+
+    if (effectiveRestaurantId) {
+      countQuery = countQuery.eq('restaurant_id', effectiveRestaurantId);
+    }
+
+    if (status) {
+      countQuery = countQuery.eq('status', status);
+    }
+
+    // Фильтрация по архиву
+    if (archived === 'true') {
+      countQuery = countQuery.not('archived_at', 'is', null);
+    } else {
+      countQuery = countQuery.is('archived_at', null);
+    }
+
+    const { count, error: countError } = await countQuery;
+
+    if (countError) {
+      throw countError;
+    }
+
+    // Запрос для получения данных с пагинацией
     let query = supabase
       .from('orders')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limitNum - 1);
 
     if (effectiveRestaurantId) {
       query = query.eq('restaurant_id', effectiveRestaurantId);
@@ -237,8 +270,6 @@ export async function getOrders(req: AuthenticatedRequest, res: Response) {
     }
 
     // Фильтрация по архиву
-    // Если archived=true, показываем только архивные заказы
-    // Если archived=false или не указан, показываем только активные (не архивные)
     if (archived === 'true') {
       query = query.not('archived_at', 'is', null);
     } else {
@@ -251,9 +282,19 @@ export async function getOrders(req: AuthenticatedRequest, res: Response) {
       throw error;
     }
 
+    const totalPages = Math.ceil((count || 0) / limitNum);
+
     res.json({
       success: true,
-      data: data as Order[]
+      data: data as Order[],
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: count || 0,
+        totalPages,
+        hasNext: pageNum < totalPages,
+        hasPrev: pageNum > 1
+      }
     });
   } catch (error: any) {
     console.error('Error fetching orders:', error);

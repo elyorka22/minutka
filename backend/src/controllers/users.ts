@@ -12,18 +12,46 @@ import { User } from '../types';
  */
 export async function getUsers(req: Request, res: Response) {
   try {
+    const { page, limit } = req.query;
+
+    // Параметры пагинации
+    const pageNum = parseInt(page as string) || 1;
+    const limitNum = parseInt(limit as string) || 20;
+    const offset = (pageNum - 1) * limitNum;
+
+    // Запрос для получения общего количества
+    const { count, error: countError } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true });
+
+    if (countError) {
+      throw countError;
+    }
+
+    // Запрос для получения данных с пагинацией
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limitNum - 1);
 
     if (error) {
       throw error;
     }
 
+    const totalPages = Math.ceil((count || 0) / limitNum);
+
     res.json({
       success: true,
-      data: data as User[]
+      data: data as User[],
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total: count || 0,
+        totalPages,
+        hasNext: pageNum < totalPages,
+        hasPrev: pageNum > 1
+      }
     });
   } catch (error: any) {
     console.error('Error fetching users:', error);
