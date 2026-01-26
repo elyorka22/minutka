@@ -31,8 +31,8 @@ export default function AdminOrdersArchivePage() {
   useEffect(() => {
     async function fetchOrders() {
       try {
-        const data = await getOrders(undefined, true); // archived = true
-        setOrders(data);
+        const result = await getOrders(undefined, true); // archived = true
+        setOrders(result.data);
       } catch (error) {
         console.error('Error fetching archived orders:', error);
       } finally {
