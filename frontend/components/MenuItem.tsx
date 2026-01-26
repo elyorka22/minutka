@@ -70,23 +70,28 @@ export default function MenuItem({ item }: MenuItemProps) {
           </div>
         )}
         <div className="flex-1 p-4 flex flex-col">
-          <div className="flex justify-between items-start mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-            <span className="text-lg font-bold text-primary-600">
-              {item.price} сум
-            </span>
-          </div>
+          {/* Название блюда (жирнее) */}
+          <h3 className="text-lg font-bold text-gray-900 mb-1">{item.name}</h3>
+          
+          {/* Цена (под названием, размер можно уменьшить) */}
+          <span className="text-base font-semibold text-primary-600 mb-2">
+            {item.price} сум
+          </span>
+          
+          {/* Описание (маленькими буквами, под ценой) */}
           {item.description && (
-            <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+            <p className="text-xs text-gray-600 mb-2 leading-relaxed">{item.description}</p>
           )}
+          
+          {/* Статус доступности */}
           {!item.is_available && (
             <span className="inline-block text-xs text-red-600 font-medium mb-2">
               Mavjud emas
             </span>
           )}
           
-          {/* Кнопка добавления / Счетчик количества */}
-          <div className="flex items-center justify-end mt-3">
+          {/* Кнопка добавления / Счетчик количества (под описанием) */}
+          <div className="flex items-center justify-end mt-auto">
             {!isExpanded && !cartItem ? (
               <button
                 onClick={handleAddClick}
