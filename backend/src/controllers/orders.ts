@@ -269,7 +269,7 @@ export async function getOrders(req: AuthenticatedRequest, res: Response) {
  * GET /api/orders/:id
  * Получить заказ по ID с деталями
  */
-export async function getOrderById(req: Request, res: Response) {
+export async function getOrderById(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
 

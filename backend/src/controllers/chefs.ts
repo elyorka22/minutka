@@ -5,6 +5,8 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { Chef } from '../types';
+import { hashPassword, isHashed } from '../utils/password';
+import { validateTelegramId, validatePassword, validateString, validateUuid } from '../utils/validation';
 
 /**
  * GET /api/chefs
