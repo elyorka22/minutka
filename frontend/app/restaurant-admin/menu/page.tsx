@@ -170,6 +170,7 @@ export default function RestaurantAdminMenuPage() {
                   is_available: item.is_available,
                 });
                 setMenuItems(menuItems.map((i) => (i.id === item.id ? updated : i)));
+                showSuccess('Блюдо успешно обновлено!');
               } else {
                 // Создание нового блюда
                 if (!currentRestaurantId) {
@@ -187,8 +188,6 @@ export default function RestaurantAdminMenuPage() {
                 });
                 setMenuItems([...menuItems, created]);
                 showSuccess('Блюдо успешно создано!');
-              } else {
-                showSuccess('Блюдо успешно обновлено!');
               }
               setShowForm(false);
               setEditingItem(null);
