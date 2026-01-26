@@ -20,6 +20,7 @@ import usersRouter from './routes/users';
 import statsRouter from './routes/stats';
 import authRouter from './routes/auth';
 import cleanupRouter from './routes/cleanup';
+import { generalLimiter, strictLimiter, createUpdateLimiter } from './middleware/rateLimit';
 
 // Load environment variables
 dotenv.config();
@@ -61,7 +62,10 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check
+// Rate limiting - применяется ко всем запросам
+app.use(generalLimiter);
+
+// Health check (без rate limiting)
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });

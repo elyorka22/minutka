@@ -4,6 +4,7 @@
 
 import express from 'express';
 import { getCurrentUser, loginStaff, changePassword } from '../controllers/auth';
+import { strictLimiter } from '../middleware/rateLimit';
 
 const router = express.Router();
 
@@ -11,8 +12,9 @@ const router = express.Router();
  * POST /api/auth/login
  * Вход для сотрудников (с паролем)
  * Body: { telegram_id: string, password: string }
+ * Защищено строгим rate limiting
  */
-router.post('/login', loginStaff);
+router.post('/login', strictLimiter, loginStaff);
 
 /**
  * GET /api/auth/me

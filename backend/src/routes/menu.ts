@@ -5,6 +5,7 @@
 import express from 'express';
 import { getMenuItems, getMenuItemById, createMenuItem, updateMenuItem, deleteMenuItem } from '../controllers/menu';
 import { requireStaffAuth } from '../middleware/auth';
+import { createUpdateLimiter } from '../middleware/rateLimit';
 
 const router = express.Router();
 
@@ -28,14 +29,14 @@ router.get('/:id', getMenuItemById);
  * Создать новое блюдо
  * Только для сотрудников
  */
-router.post('/', requireStaffAuth, createMenuItem);
+router.post('/', requireStaffAuth, createUpdateLimiter, createMenuItem);
 
 /**
  * PATCH /api/menu/:id
  * Обновить блюдо
  * Только для сотрудников
  */
-router.patch('/:id', requireStaffAuth, updateMenuItem);
+router.patch('/:id', requireStaffAuth, createUpdateLimiter, updateMenuItem);
 
 /**
  * DELETE /api/menu/:id
