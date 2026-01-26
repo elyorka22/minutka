@@ -146,6 +146,16 @@ export default function AdminUsersPage() {
           Пользователи не найдены
         </div>
       )}
+
+      {pagination && (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={setCurrentPage}
+          hasNext={pagination.hasNext}
+          hasPrev={pagination.hasPrev}
+        />
+      )}
     </div>
   );
 }

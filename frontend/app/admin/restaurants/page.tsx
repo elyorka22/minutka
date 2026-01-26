@@ -566,6 +566,16 @@ function RestaurantFormModal({
           </form>
         </div>
       </div>
+
+      {pagination && (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={setCurrentPage}
+          hasNext={pagination.hasNext}
+          hasPrev={pagination.hasPrev}
+        />
+      )}
     </div>
   );
 }

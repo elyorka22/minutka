@@ -169,6 +169,16 @@ export default function RestaurantAdminOrdersPage() {
           Заказов с выбранным статусом не найдено
         </div>
       )}
+
+      {pagination && (
+        <Pagination
+          currentPage={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={setCurrentPage}
+          hasNext={pagination.hasNext}
+          hasPrev={pagination.hasPrev}
+        />
+      )}
     </div>
   );
 }
