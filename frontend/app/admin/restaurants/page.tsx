@@ -10,8 +10,10 @@ import { getRestaurants, createRestaurant, updateRestaurant, deleteRestaurant, g
 import ImageUpload from '@/components/ImageUpload';
 import { handleApiError } from '@/lib/errorHandler';
 import Pagination from '@/components/Pagination';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function AdminRestaurantsPage() {
+  const { showSuccess, showError } = useToast();
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -48,7 +50,7 @@ export default function AdminRestaurantsPage() {
         setRestaurants(restaurants.filter((r) => r.id !== id));
       } catch (error) {
         console.error('Error deleting restaurant:', error);
-        alert(handleApiError(error));
+        showError(handleApiError(error));
       }
     }
   };
@@ -62,9 +64,10 @@ export default function AdminRestaurantsPage() {
         is_active: !restaurant.is_active
       });
       setRestaurants(restaurants.map((r) => (r.id === id ? updated : r)));
+      showSuccess(`Ресторан ${updated.is_active ? 'активирован' : 'деактивирован'}!`);
     } catch (error) {
       console.error('Error updating restaurant:', error);
-      alert(handleApiError(error));
+      showError(handleApiError(error));
     }
   };
 

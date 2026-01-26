@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { CartProvider } from '@/contexts/CartContext'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { ToastProvider } from '@/contexts/ToastContext'
 
 export const metadata: Metadata = {
   title: 'Minutka - Ovqat yetkazib berish',
@@ -17,9 +18,11 @@ export default function RootLayout({
     <html lang="uz">
       <body>
         <AuthProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
+          <ToastProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

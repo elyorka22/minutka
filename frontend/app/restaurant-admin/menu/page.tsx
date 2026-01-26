@@ -11,9 +11,11 @@ import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { handleApiError } from '@/lib/errorHandler';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function RestaurantAdminMenuPage() {
   const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
   // Получаем restaurant_id из данных пользователя
   const currentRestaurantId = (user?.user as any)?.restaurant_id;
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -52,7 +54,7 @@ export default function RestaurantAdminMenuPage() {
         setMenuItems(menuItems.filter((item) => item.id !== id));
       } catch (error) {
         console.error('Error deleting menu item:', error);
-        alert(handleApiError(error));
+        showError(handleApiError(error));
       }
     }
   };
@@ -171,7 +173,7 @@ export default function RestaurantAdminMenuPage() {
               } else {
                 // Создание нового блюда
                 if (!currentRestaurantId) {
-                  alert('Ошибка: не удалось определить ресторан');
+                  showError('Ошибка: не удалось определить ресторан');
                   return;
                 }
                 const created = await createMenuItem({
@@ -184,12 +186,15 @@ export default function RestaurantAdminMenuPage() {
                   is_available: item.is_available,
                 });
                 setMenuItems([...menuItems, created]);
+                showSuccess(editingItem ? 'Блюдо успешно обновлено!' : 'Блюдо успешно создано!');
+              } else {
+                showSuccess('Блюдо успешно обновлено!');
               }
               setShowForm(false);
               setEditingItem(null);
             } catch (error) {
               console.error('Error saving menu item:', error);
-              alert(handleApiError(error));
+              showError(handleApiError(error));
             }
           }}
         />

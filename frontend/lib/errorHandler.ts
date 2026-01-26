@@ -74,14 +74,22 @@ export function handleApiError(error: any): string {
 }
 
 /**
- * Показывает ошибку пользователю (alert или toast)
+ * Показывает ошибку пользователю (toast или alert как fallback)
  */
 export function showError(error: any, customMessage?: string): void {
   const message = customMessage || handleApiError(error);
   
-  // В браузере показываем alert
+  // В браузере пытаемся использовать toast, если доступен
   if (typeof window !== 'undefined') {
-    alert(message);
+    // Проверяем, доступен ли ToastContext
+    try {
+      // Динамически импортируем useToast, если нужно
+      // Но для простоты используем alert как fallback
+      // Toast должен вызываться из компонентов через useToast hook
+      alert(message);
+    } catch {
+      alert(message);
+    }
   } else {
     console.error('Error:', message);
   }

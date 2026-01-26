@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import Image from 'next/image';
 import { createOrder } from '@/lib/api';
+import { useToast } from '@/contexts/ToastContext';
 
 interface CartProps {
   restaurantId: string;
@@ -18,6 +19,7 @@ interface CartProps {
 
 export default function Cart({ restaurantId, restaurantName, telegramBotUsername, buttonPosition = 'floating' }: CartProps) {
   const { items, removeItem, updateQuantity, clearCart, getTotalPrice, getTotalItems } = useCart();
+  const { showSuccess, showError } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [address, setAddress] = useState('');
   const [phone, setPhone] = useState('');
@@ -133,7 +135,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
       });
 
       // Успешно оформлен заказ
-      alert('Buyurtma muvaffaqiyatli qabul qilindi!');
+      showSuccess('Buyurtma muvaffaqiyatli qabul qilindi!');
       
       // Очищаем корзину после отправки
       clearCart();
@@ -145,7 +147,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
       setChatId('');
     } catch (error: any) {
       console.error('Error creating order:', error);
-      alert('Buyurtma yuborishda xatolik yuz berdi: ' + (error.message || 'Noma\'lum xatolik'));
+      showError('Buyurtma yuborishda xatolik yuz berdi: ' + (error.message || 'Noma\'lum xatolik'));
     } finally {
       setIsSubmitting(false);
     }
