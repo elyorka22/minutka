@@ -297,7 +297,7 @@ export async function updateChef(req: AuthenticatedRequest, res: Response) {
  * DELETE /api/chefs/:id
  * Удалить повара
  */
-export async function deleteChef(req: Request, res: Response) {
+export async function deleteChef(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
 
