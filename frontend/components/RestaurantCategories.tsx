@@ -18,12 +18,14 @@ interface RestaurantCategoriesProps {
   categories: Category[];
   selectedCategory: string | null;
   onCategorySelect: (categoryId: string | null) => void;
+  allCategoryImage?: string; // Изображение для категории "Все"
 }
 
 export default function RestaurantCategories({
   categories,
   selectedCategory,
   onCategorySelect,
+  allCategoryImage,
 }: RestaurantCategoriesProps) {
   const [scrollPosition, setScrollPosition] = useState(0);
 
@@ -66,9 +68,20 @@ export default function RestaurantCategories({
                 : 'bg-white hover:bg-gray-50'
             }`}
           >
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-3xl">
-              🍽️
-            </div>
+            {allCategoryImage ? (
+              <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-offset-2 ring-transparent hover:ring-primary-300 transition-all">
+                <Image
+                  src={allCategoryImage}
+                  alt="Hammasi"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-3xl">
+                🍽️
+              </div>
+            )}
             <span className={`text-sm font-semibold ${
               selectedCategory === null ? 'text-primary-700' : 'text-gray-700'
             }`}>

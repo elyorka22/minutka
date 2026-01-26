@@ -41,7 +41,15 @@ export default function CategoriesPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/categories`);
       const data = await response.json();
-      setCategories(data.data || []);
+      // Сортируем категории так, чтобы "Все"/"Hammasi" была первой
+      const categoriesList = data.data || [];
+      const allCategory = categoriesList.find((c: Category) => 
+        c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all'
+      );
+      const otherCategories = categoriesList.filter((c: Category) => 
+        c.name !== 'Все' && c.name !== 'Hammasi' && c.id !== 'all'
+      );
+      setCategories(allCategory ? [allCategory, ...otherCategories] : categoriesList);
     } catch (error) {
       console.error('Error fetching categories:', error);
     } finally {

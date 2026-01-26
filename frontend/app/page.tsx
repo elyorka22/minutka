@@ -100,6 +100,7 @@ export default function Home() {
           categories={categories}
           selectedCategory={selectedCategory}
           onCategorySelect={setSelectedCategory}
+          allCategoryImage={categories.find(c => c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all')?.image_url}
         />
       </section>
 
