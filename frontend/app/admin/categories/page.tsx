@@ -178,6 +178,16 @@ export default function CategoriesPage() {
         </button>
       </div>
 
+      {/* Информация о категории "Все" */}
+      {categories.length > 0 && categories.some(c => c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all') && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <p className="text-sm text-blue-800">
+            <strong>💡 Совет:</strong> Категория с названием "Все" или "Hammasi" используется как кнопка "Все" на главной странице. 
+            Вы можете загрузить изображение для этой категории, и оно будет отображаться вместо эмодзи.
+          </p>
+        </div>
+      )}
+
       {/* Add/Edit Form */}
       {(showAddForm || editing) && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
