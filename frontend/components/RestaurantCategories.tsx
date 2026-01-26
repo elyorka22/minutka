@@ -68,13 +68,21 @@ export default function RestaurantCategories({
                 : 'bg-white hover:bg-gray-50'
             }`}
           >
-            {allCategoryImage ? (
+            {allCategoryImage && allCategoryImage.trim() !== '' ? (
               <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-offset-2 ring-transparent hover:ring-primary-300 transition-all">
                 <Image
                   src={allCategoryImage}
                   alt="Hammasi"
                   fill
                   className="object-cover"
+                  onError={(e) => {
+                    console.error('Error loading all category image:', allCategoryImage);
+                    // Fallback to emoji if image fails to load
+                    const target = e.target as HTMLImageElement;
+                    if (target.parentElement) {
+                      target.parentElement.innerHTML = '<div class="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-3xl">🍽️</div>';
+                    }
+                  }}
                 />
               </div>
             ) : (
