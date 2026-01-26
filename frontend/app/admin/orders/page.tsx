@@ -69,7 +69,7 @@ export default function AdminOrdersPage() {
       }
     } catch (error) {
       console.error('Error updating order status:', error);
-      alert('Ошибка при обновлении статуса заказа');
+      alert(handleApiError(error));
     }
   };
 

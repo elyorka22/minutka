@@ -2,18 +2,19 @@
 // Chefs Controller
 // ============================================
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { supabase } from '../config/supabase';
 import { Chef } from '../types';
 import { hashPassword, isHashed } from '../utils/password';
 import { validateTelegramId, validatePassword, validateString, validateUuid } from '../utils/validation';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 /**
  * GET /api/chefs
  * Получить всех поваров (с фильтрацией по ресторану)
  * Query params: restaurant_id (optional)
  */
-export async function getChefs(req: Request, res: Response) {
+export async function getChefs(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id } = req.query;
 
@@ -50,7 +51,7 @@ export async function getChefs(req: Request, res: Response) {
  * GET /api/chefs/:id
  * Получить повара по ID
  */
-export async function getChefById(req: Request, res: Response) {
+export async function getChefById(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
 
@@ -97,7 +98,7 @@ export async function getChefById(req: Request, res: Response) {
  *   is_active?: boolean
  * }
  */
-export async function createChef(req: Request, res: Response) {
+export async function createChef(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id, telegram_id, telegram_chat_id, username, first_name, last_name, is_active = true, password } = req.body;
 
@@ -236,7 +237,7 @@ export async function createChef(req: Request, res: Response) {
  * PATCH /api/chefs/:id
  * Обновить повара
  */
-export async function updateChef(req: Request, res: Response) {
+export async function updateChef(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
     const { telegram_chat_id, username, first_name, last_name, is_active, password } = req.body;

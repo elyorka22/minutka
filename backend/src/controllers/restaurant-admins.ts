@@ -2,18 +2,19 @@
 // Restaurant Admins Controller
 // ============================================
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { supabase } from '../config/supabase';
 import { RestaurantAdmin } from '../types';
 import { hashPassword, isHashed } from '../utils/password';
 import { validateTelegramId, validatePassword, validateString, validateUuid, validatePhone } from '../utils/validation';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 /**
  * GET /api/restaurant-admins
  * Получить список админов ресторана
  * Query params: restaurant_id (optional)
  */
-export async function getRestaurantAdmins(req: Request, res: Response) {
+export async function getRestaurantAdmins(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id } = req.query;
 
@@ -43,7 +44,7 @@ export async function getRestaurantAdmins(req: Request, res: Response) {
  * GET /api/restaurant-admins/:id
  * Получить админа по ID
  */
-export async function getRestaurantAdminById(req: Request, res: Response) {
+export async function getRestaurantAdminById(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
 
@@ -71,7 +72,7 @@ export async function getRestaurantAdminById(req: Request, res: Response) {
  * POST /api/restaurant-admins
  * Создать нового админа ресторана
  */
-export async function createRestaurantAdmin(req: Request, res: Response) {
+export async function createRestaurantAdmin(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id, telegram_id, username, first_name, last_name, phone, is_active, password } = req.body;
 
@@ -146,7 +147,7 @@ export async function createRestaurantAdmin(req: Request, res: Response) {
  * PATCH /api/restaurant-admins/:id
  * Обновить админа ресторана
  */
-export async function updateRestaurantAdmin(req: Request, res: Response) {
+export async function updateRestaurantAdmin(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
     const { username, first_name, last_name, phone, is_active, password } = req.body;

@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
 import { getOrders } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { handleApiError } from '@/lib/errorHandler';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
@@ -77,7 +78,7 @@ export default function RestaurantAdminOrdersPage() {
       }
     } catch (error) {
       console.error('Error updating order status:', error);
-      alert('Ошибка при обновлении статуса заказа');
+      alert(handleApiError(error));
     }
   };
 

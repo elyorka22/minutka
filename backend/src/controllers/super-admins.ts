@@ -2,17 +2,18 @@
 // Super Admins Controller
 // ============================================
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { supabase } from '../config/supabase';
 import { SuperAdmin } from '../types';
 import { hashPassword, isHashed } from '../utils/password';
 import { validateTelegramId, validatePassword, validateString } from '../utils/validation';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 /**
  * GET /api/super-admins
  * Получить всех супер-админов
  */
-export async function getSuperAdmins(req: Request, res: Response) {
+export async function getSuperAdmins(req: AuthenticatedRequest, res: Response) {
   try {
     const { data, error } = await supabase
       .from('super_admins')
@@ -34,7 +35,7 @@ export async function getSuperAdmins(req: Request, res: Response) {
  * GET /api/super-admins/:id
  * Получить супер-админа по ID
  */
-export async function getSuperAdminById(req: Request, res: Response) {
+export async function getSuperAdminById(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
 
@@ -62,7 +63,7 @@ export async function getSuperAdminById(req: Request, res: Response) {
  * POST /api/super-admins
  * Создать нового супер-админа
  */
-export async function createSuperAdmin(req: Request, res: Response) {
+export async function createSuperAdmin(req: AuthenticatedRequest, res: Response) {
   try {
     const { telegram_id, username, first_name, last_name, password, is_active } = req.body;
 
@@ -138,7 +139,7 @@ export async function createSuperAdmin(req: Request, res: Response) {
  * PATCH /api/super-admins/:id
  * Обновить супер-админа
  */
-export async function updateSuperAdmin(req: Request, res: Response) {
+export async function updateSuperAdmin(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
     const { username, first_name, last_name, password, is_active } = req.body;
