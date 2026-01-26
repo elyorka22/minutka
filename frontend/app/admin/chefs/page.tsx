@@ -6,7 +6,8 @@
 
 import { useState, useEffect } from 'react';
 import { Chef, Restaurant } from '@/lib/types';
-import { getChefs, getRestaurants } from '@/lib/api';
+import { getChefs, getRestaurants, createChef, updateChef, deleteChef } from '@/lib/api';
+import { handleApiError } from '@/lib/errorHandler';
 
 export default function AdminChefsPage() {
   const [chefs, setChefs] = useState<Chef[]>([]);

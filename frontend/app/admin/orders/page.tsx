@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
 import { getOrders } from '@/lib/api';
+import { handleApiError } from '@/lib/errorHandler';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 

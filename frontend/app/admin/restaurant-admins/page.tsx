@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { RestaurantAdmin, Restaurant } from '@/lib/types';
 import { getRestaurantAdmins, getRestaurants, createRestaurantAdmin, updateRestaurantAdmin, deleteRestaurantAdmin } from '@/lib/api';
+import { handleApiError } from '@/lib/errorHandler';
 
 export default function AdminRestaurantAdminsPage() {
   const [admins, setAdmins] = useState<RestaurantAdmin[]>([]);
@@ -45,7 +46,7 @@ export default function AdminRestaurantAdminsPage() {
         setAdmins(admins.filter((a) => a.id !== id));
       } catch (error) {
         console.error('Error deleting admin:', error);
-        alert('Ошибка при удалении админа');
+        alert(handleApiError(error));
       }
     }
   };
@@ -87,7 +88,7 @@ export default function AdminRestaurantAdminsPage() {
       setEditingAdmin(null);
     } catch (error) {
       console.error('Error saving admin:', error);
-      alert('Ошибка при сохранении админа');
+      alert(handleApiError(error));
     }
   };
 

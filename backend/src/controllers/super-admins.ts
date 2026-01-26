@@ -188,7 +188,7 @@ export async function updateSuperAdmin(req: AuthenticatedRequest, res: Response)
  * DELETE /api/super-admins/:id
  * Удалить супер-админа
  */
-export async function deleteSuperAdmin(req: Request, res: Response) {
+export async function deleteSuperAdmin(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
 

@@ -49,7 +49,7 @@ export default function RestaurantAdminChefsPage() {
         setChefs(chefs.filter((c) => c.id !== id));
       } catch (error) {
         console.error('Error deleting chef:', error);
-        alert('Ошибка при удалении повара');
+        alert(handleApiError(error));
       }
     }
   };
@@ -97,7 +97,7 @@ export default function RestaurantAdminChefsPage() {
       setEditingChef(null);
     } catch (error) {
       console.error('Error saving chef:', error);
-      alert('Ошибка при сохранении повара');
+      alert(handleApiError(error));
     }
   };
 

@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { SuperAdmin } from '@/lib/types';
 import { getSuperAdmins, createSuperAdmin, updateSuperAdmin, deleteSuperAdmin } from '@/lib/api';
+import { handleApiError } from '@/lib/errorHandler';
 
 export default function AdminSuperAdminsPage() {
   const [admins, setAdmins] = useState<SuperAdmin[]>([]);
@@ -40,7 +41,7 @@ export default function AdminSuperAdminsPage() {
         setAdmins(admins.filter((a) => a.id !== id));
       } catch (error) {
         console.error('Error deleting super admin:', error);
-        alert('Ошибка при удалении супер-админа');
+        alert(handleApiError(error));
       }
     }
   };
@@ -81,7 +82,7 @@ export default function AdminSuperAdminsPage() {
       setEditingAdmin(null);
     } catch (error) {
       console.error('Error saving super admin:', error);
-      alert('Ошибка при сохранении супер-админа');
+      alert(handleApiError(error));
     }
   };
 

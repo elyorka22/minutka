@@ -185,7 +185,7 @@ export async function updateRestaurantAdmin(req: AuthenticatedRequest, res: Resp
  * DELETE /api/restaurant-admins/:id
  * Удалить админа ресторана
  */
-export async function deleteRestaurantAdmin(req: Request, res: Response) {
+export async function deleteRestaurantAdmin(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
 

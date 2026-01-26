@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { RestaurantAdmin } from '@/lib/types';
 import { getRestaurantAdmins, createRestaurantAdmin, updateRestaurantAdmin, deleteRestaurantAdmin } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { handleApiError } from '@/lib/errorHandler';
 
 export default function RestaurantAdminAdminsPage() {
   const { user } = useAuth();
@@ -45,7 +46,7 @@ export default function RestaurantAdminAdminsPage() {
         setAdmins(admins.filter((a) => a.id !== id));
       } catch (error) {
         console.error('Error deleting admin:', error);
-        alert('Ошибка при удалении админа');
+        alert(handleApiError(error));
       }
     }
   };
@@ -92,7 +93,7 @@ export default function RestaurantAdminAdminsPage() {
       setEditingAdmin(null);
     } catch (error) {
       console.error('Error saving admin:', error);
-      alert('Ошибка при сохранении админа');
+      alert(handleApiError(error));
     }
   };
 
