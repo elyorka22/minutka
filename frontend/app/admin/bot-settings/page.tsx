@@ -5,6 +5,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useToast } from '@/contexts/ToastContext';
 
 interface BotSetting {
   id: string;
@@ -17,6 +18,7 @@ interface BotSetting {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 export default function BotSettingsPage() {
+  const { showSuccess, showError } = useToast();
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [botInfoMessage, setBotInfoMessage] = useState('');
   const [partnershipMessage, setPartnershipMessage] = useState('');
@@ -98,10 +100,10 @@ export default function BotSettingsPage() {
         throw new Error('Failed to save settings');
       }
 
-      alert('Настройки успешно сохранены!');
+      showSuccess('Настройки успешно сохранены!');
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Ошибка при сохранении настроек');
+      showError('Ошибка при сохранении настроек');
     } finally {
       setSaving(false);
     }
