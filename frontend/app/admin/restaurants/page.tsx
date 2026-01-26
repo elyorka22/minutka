@@ -118,12 +118,15 @@ export default function AdminRestaurantsPage() {
         
         const created = await createRestaurant(restaurantData);
         setRestaurants([...restaurants, created]);
+        showSuccess('Ресторан успешно создан!');
+      } else {
+        showSuccess('Ресторан успешно обновлен!');
       }
       setShowForm(false);
       setEditingRestaurant(null);
     } catch (error) {
       console.error('Error saving restaurant:', error);
-      alert(handleApiError(error));
+      showError(handleApiError(error));
     }
   };
 
