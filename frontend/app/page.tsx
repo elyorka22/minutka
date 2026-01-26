@@ -100,8 +100,8 @@ export default function Home() {
       {/* Hero Section with CTA */}
       <section className="bg-gradient-to-r from-primary-500 to-primary-600 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ovqat buyurtma qiling!</h2>
-          <p className="text-lg">Restoran tanlang va Telegram-bot orqali buyurtma bering</p>
+          <h2 className="text-3xl font-bold mb-4">{bannerTitle}</h2>
+          <p className="text-lg">{bannerSubtitle}</p>
         </div>
       </section>
 
