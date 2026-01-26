@@ -4,7 +4,7 @@
 
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
@@ -90,17 +90,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     loadUser();
+  }, []);
 
-    // Проверяем истечение сессии каждую минуту
+  // Проверяем истечение сессии каждую минуту
+  useEffect(() => {
+    if (!user) return;
+
     const sessionCheckInterval = setInterval(() => {
-      if (checkSessionExpiry() && user) {
+      if (checkSessionExpiry()) {
         console.log('Session expired, logging out');
         logout();
       }
     }, 60 * 1000); // Проверка каждую минуту
 
     return () => clearInterval(sessionCheckInterval);
-  }, [user]);
+  }, [user, logout]);
 
   const refreshUser = async () => {
     try {
