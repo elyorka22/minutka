@@ -23,6 +23,8 @@ export default function BotSettingsPage() {
   const [botInfoMessage, setBotInfoMessage] = useState('');
   const [partnershipMessage, setPartnershipMessage] = useState('');
   const [appSlogan, setAppSlogan] = useState('');
+  const [bannerTitle, setBannerTitle] = useState('Ovqat buyurtma qiling!');
+  const [bannerSubtitle, setBannerSubtitle] = useState('Restoran tanlang va Telegram-bot orqali buyurtma bering');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -44,11 +46,15 @@ export default function BotSettingsPage() {
       const botInfoSetting = settings.find((s: BotSetting) => s.key === 'bot_info');
       const partnershipSetting = settings.find((s: BotSetting) => s.key === 'partnership');
       const appSloganSetting = settings.find((s: BotSetting) => s.key === 'app_slogan');
+      const bannerTitleSetting = settings.find((s: BotSetting) => s.key === 'banner_title');
+      const bannerSubtitleSetting = settings.find((s: BotSetting) => s.key === 'banner_subtitle');
       
       setWelcomeMessage(welcomeSetting?.value || '🍽️ *Minutka\'ga xush kelibsiz!*\n\nBuyurtma berish uchun restoran tanlang:');
       setBotInfoMessage(botInfoSetting?.value || 'Minutka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
       setPartnershipMessage(partnershipSetting?.value || 'Hamkorlik uchun biz bilan bog\'laning: @minutka_admin yoki email: info@minutka.uz');
       setAppSlogan(appSloganSetting?.value || 'Telegram orqali ovqat yetkazib berish');
+      setBannerTitle(bannerTitleSetting?.value || 'Ovqat buyurtma qiling!');
+      setBannerSubtitle(bannerSubtitleSetting?.value || 'Restoran tanlang va Telegram-bot orqali buyurtma bering');
     } catch (error) {
       console.error('Error fetching bot settings:', error);
       // Используем значения по умолчанию
@@ -56,6 +62,8 @@ export default function BotSettingsPage() {
       setBotInfoMessage('Minutka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
       setPartnershipMessage('Hamkorlik uchun biz bilan bog\'laning: @minutka_admin yoki email: info@minutka.uz');
       setAppSlogan('Telegram orqali ovqat yetkazib berish');
+      setBannerTitle('Ovqat buyurtma qiling!');
+      setBannerSubtitle('Restoran tanlang va Telegram-bot orqali buyurtma bering');
     } finally {
       setLoading(false);
     }
@@ -65,7 +73,7 @@ export default function BotSettingsPage() {
     setSaving(true);
     try {
       // Сохраняем все тексты сообщений
-      const [welcomeResponse, botInfoResponse, partnershipResponse, appSloganResponse] = await Promise.all([
+      const [welcomeResponse, botInfoResponse, partnershipResponse, appSloganResponse, bannerTitleResponse, bannerSubtitleResponse] = await Promise.all([
         fetch(`${API_BASE_URL}/api/bot-settings/welcome_message`, {
           method: 'PATCH',
           headers: {
@@ -94,9 +102,23 @@ export default function BotSettingsPage() {
           },
           body: JSON.stringify({ value: appSlogan }),
         }),
+        fetch(`${API_BASE_URL}/api/bot-settings/banner_title`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ value: bannerTitle }),
+        }),
+        fetch(`${API_BASE_URL}/api/bot-settings/banner_subtitle`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ value: bannerSubtitle }),
+        }),
       ]);
 
-      if (!welcomeResponse.ok || !botInfoResponse.ok || !partnershipResponse.ok || !appSloganResponse.ok) {
+      if (!welcomeResponse.ok || !botInfoResponse.ok || !partnershipResponse.ok || !appSloganResponse.ok || !bannerTitleResponse.ok || !bannerSubtitleResponse.ok) {
         throw new Error('Failed to save settings');
       }
 
