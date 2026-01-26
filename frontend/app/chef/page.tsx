@@ -45,7 +45,8 @@ export default function ChefDashboard() {
       }
 
       try {
-        const ordersData = await getOrders(restaurantId);
+        const ordersResult = await getOrders(restaurantId);
+        const ordersData = ordersResult.data;
         // Фильтруем только заказы в статусе pending, accepted, ready
         const filteredOrders = ordersData.filter(
           (order) => ['pending', 'accepted', 'ready'].includes(order.status)
