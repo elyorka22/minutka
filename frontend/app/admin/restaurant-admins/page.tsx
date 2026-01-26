@@ -19,12 +19,12 @@ export default function AdminRestaurantAdminsPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [adminsData, restaurantsData] = await Promise.all([
+        const [adminsData, restaurantsResult] = await Promise.all([
           getRestaurantAdmins(),
           getRestaurants()
         ]);
         setAdmins(adminsData);
-        setRestaurants(restaurantsData);
+        setRestaurants(restaurantsResult.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {

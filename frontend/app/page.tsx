@@ -26,12 +26,13 @@ export default function Home() {
       setLoading(true);
       try {
         // Загружаем все данные из API
-        const [fetchedCategories, fetchedRestaurants, fetchedBanners] = await Promise.all([
+        const [fetchedCategories, restaurantsResult, fetchedBanners] = await Promise.all([
           getCategories(),
           getRestaurants(),
           getBanners('homepage')
         ]);
 
+        const fetchedRestaurants = restaurantsResult.data;
         setCategories(fetchedCategories);
         setRestaurants(fetchedRestaurants);
         setFeaturedRestaurants(fetchedRestaurants.filter(r => r.is_featured));
