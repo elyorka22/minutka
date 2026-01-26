@@ -13,6 +13,7 @@ import {
 } from '../services/telegramNotification';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { validateUuid, validateString, validateCoordinate } from '../utils/validation';
+import { Logger } from '../services/logger';
 
 /**
  * POST /api/orders

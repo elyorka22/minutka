@@ -12,6 +12,8 @@ interface LogEntry {
   resourceId?: string;
   details?: any;
   ip?: string;
+  error?: string;
+  stack?: string;
 }
 
 /**
