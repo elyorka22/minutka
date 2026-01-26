@@ -98,7 +98,18 @@ export default function RestaurantCategories({
           </button>
 
           {/* Category Items */}
-          {categories.map((category) => (
+          {categories
+            .filter(category => {
+              // Исключаем категорию "Все"/"Hammasi" из списка, так как она уже показывается как кнопка "Все"
+              const isAllCategory = 
+                category.name === 'Все' || 
+                category.name === 'Hammasi' || 
+                category.name?.toLowerCase() === 'все' ||
+                category.name?.toLowerCase() === 'hammasi' ||
+                category.id === 'all';
+              return !isAllCategory;
+            })
+            .map((category) => (
             <button
               key={category.id}
               onClick={() => onCategorySelect(category.id)}
