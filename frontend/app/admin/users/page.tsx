@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { User } from '@/lib/types';
 import { getUsers } from '@/lib/api';
+import Pagination from '@/components/Pagination';
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
