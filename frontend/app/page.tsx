@@ -37,6 +37,21 @@ export default function Home() {
         setRestaurants(fetchedRestaurants);
         setFeaturedRestaurants(fetchedRestaurants.filter(r => r.is_featured));
         setBanners(fetchedBanners);
+        
+        // Отладка: проверяем категории
+        console.log('Fetched categories:', fetchedCategories);
+        const allCategory = fetchedCategories.find(c => 
+          c.name === 'Все' || 
+          c.name === 'Hammasi' || 
+          c.name?.toLowerCase() === 'все' ||
+          c.name?.toLowerCase() === 'hammasi' ||
+          c.id === 'all'
+        );
+        if (allCategory) {
+          console.log('Found "Все" category:', allCategory);
+        } else {
+          console.log('"Все" category not found. Available categories:', fetchedCategories.map(c => ({ id: c.id, name: c.name })));
+        }
       } catch (error) {
         console.error('Error loading data:', error);
         // В случае ошибки оставляем пустые массивы
