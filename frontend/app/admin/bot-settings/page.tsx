@@ -20,6 +20,7 @@ export default function BotSettingsPage() {
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [botInfoMessage, setBotInfoMessage] = useState('');
   const [partnershipMessage, setPartnershipMessage] = useState('');
+  const [appSlogan, setAppSlogan] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -40,16 +41,19 @@ export default function BotSettingsPage() {
       const welcomeSetting = settings.find((s: BotSetting) => s.key === 'welcome_message');
       const botInfoSetting = settings.find((s: BotSetting) => s.key === 'bot_info');
       const partnershipSetting = settings.find((s: BotSetting) => s.key === 'partnership');
+      const appSloganSetting = settings.find((s: BotSetting) => s.key === 'app_slogan');
       
       setWelcomeMessage(welcomeSetting?.value || '🍽️ *Minutka\'ga xush kelibsiz!*\n\nBuyurtma berish uchun restoran tanlang:');
       setBotInfoMessage(botInfoSetting?.value || 'Minutka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
       setPartnershipMessage(partnershipSetting?.value || 'Hamkorlik uchun biz bilan bog\'laning: @minutka_admin yoki email: info@minutka.uz');
+      setAppSlogan(appSloganSetting?.value || 'Telegram orqali ovqat yetkazib berish');
     } catch (error) {
       console.error('Error fetching bot settings:', error);
       // Используем значения по умолчанию
       setWelcomeMessage('🍽️ *Minutka\'ga xush kelibsiz!*\n\nBuyurtma berish uchun restoran tanlang:');
       setBotInfoMessage('Minutka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
       setPartnershipMessage('Hamkorlik uchun biz bilan bog\'laning: @minutka_admin yoki email: info@minutka.uz');
+      setAppSlogan('Telegram orqali ovqat yetkazib berish');
     } finally {
       setLoading(false);
     }
@@ -59,7 +63,7 @@ export default function BotSettingsPage() {
     setSaving(true);
     try {
       // Сохраняем все тексты сообщений
-      const [welcomeResponse, botInfoResponse, partnershipResponse] = await Promise.all([
+      const [welcomeResponse, botInfoResponse, partnershipResponse, appSloganResponse] = await Promise.all([
         fetch(`${API_BASE_URL}/api/bot-settings/welcome_message`, {
           method: 'PATCH',
           headers: {
@@ -81,9 +85,16 @@ export default function BotSettingsPage() {
           },
           body: JSON.stringify({ value: partnershipMessage }),
         }),
+        fetch(`${API_BASE_URL}/api/bot-settings/app_slogan`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ value: appSlogan }),
+        }),
       ]);
 
-      if (!welcomeResponse.ok || !botInfoResponse.ok || !partnershipResponse.ok) {
+      if (!welcomeResponse.ok || !botInfoResponse.ok || !partnershipResponse.ok || !appSloganResponse.ok) {
         throw new Error('Failed to save settings');
       }
 
@@ -171,6 +182,28 @@ export default function BotSettingsPage() {
                 rows={6}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Введите текст сообщения..."
+                disabled={loading || saving}
+              />
+            </div>
+          </div>
+
+          {/* Поле для слогана приложения */}
+          <div className="border-b border-gray-200 pb-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                📱 Слоган приложения
+              </h3>
+              <p className="text-sm text-gray-500">
+                Текст, который отображается под названием "Minutka" на главной странице сайта
+              </p>
+            </div>
+            <div>
+              <input
+                type="text"
+                value={appSlogan}
+                onChange={(e) => setAppSlogan(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="Введите слоган приложения..."
                 disabled={loading || saving}
               />
             </div>

@@ -19,6 +19,7 @@ export default function Home() {
   const [banners, setBanners] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [appSlogan, setAppSlogan] = useState('Telegram orqali ovqat yetkazib berish');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,10 +27,11 @@ export default function Home() {
       setLoading(true);
       try {
         // Загружаем все данные из API
-        const [fetchedCategories, restaurantsResult, fetchedBanners] = await Promise.all([
+        const [fetchedCategories, restaurantsResult, fetchedBanners, botSettingsResponse] = await Promise.all([
           getCategories(),
           getRestaurants(),
-          getBanners('homepage')
+          getBanners('homepage'),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}/api/bot-settings`).then(r => r.json()).catch(() => ({ data: [] }))
         ]);
 
         const fetchedRestaurants = restaurantsResult.data;
@@ -37,6 +39,12 @@ export default function Home() {
         setRestaurants(fetchedRestaurants);
         setFeaturedRestaurants(fetchedRestaurants.filter(r => r.is_featured));
         setBanners(fetchedBanners);
+        
+        // Получаем слоган приложения
+        const appSloganSetting = botSettingsResponse.data?.find((s: any) => s.key === 'app_slogan');
+        if (appSloganSetting?.value) {
+          setAppSlogan(appSloganSetting.value);
+        }
         
         // Отладка: проверяем категории
         console.log('Fetched categories:', fetchedCategories);
@@ -79,7 +87,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">🍽️ Minutka</h1>
-              <p className="text-sm text-gray-600">Telegram orqali ovqat yetkazib berish</p>
+              <p className="text-sm text-gray-600">{appSlogan}</p>
             </div>
             <div className="flex items-center gap-3">
               <Link
