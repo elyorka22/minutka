@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { Chef } from '@/lib/types';
 import { getChefs, createChef, updateChef, deleteChef } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { handleApiError } from '@/lib/errorHandler';
 
 export default function RestaurantAdminChefsPage() {
   const { user } = useAuth();
