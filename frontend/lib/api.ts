@@ -24,14 +24,17 @@ function getTelegramId(): string | null {
 api.interceptors.request.use((config) => {
   const telegramId = getTelegramId();
   if (telegramId) {
-    // Добавляем telegram_id в query параметры для GET запросов
+    // Добавляем telegram_id в заголовки для всех запросов
+    config.headers['x-telegram-id'] = telegramId;
+    
+    // Также добавляем в query параметры для GET запросов (для обратной совместимости)
     if (config.method === 'get' || config.method === 'GET') {
       config.params = {
         ...config.params,
         telegram_id: telegramId,
       };
     } else {
-      // Для POST/PATCH/DELETE добавляем в body
+      // Для POST/PATCH/DELETE добавляем в body (для обратной совместимости)
       if (config.data && typeof config.data === 'object') {
         config.data = {
           ...config.data,
@@ -44,6 +47,41 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Interceptor для обработки ответов и автоматического logout при 401
+api.interceptors.response.use(
+  (response) => {
+    // Обновляем время последней активности при успешном запросе
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('last_activity', Date.now().toString());
+    }
+    return response;
+  },
+  (error) => {
+    // Обработка 401 ошибки (Unauthorized)
+    if (error.response?.status === 401) {
+      // Очищаем данные пользователя
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('user');
+        localStorage.removeItem('telegram_id');
+        localStorage.removeItem('last_activity');
+        
+        // Перенаправляем на страницу входа
+        // Используем window.location вместо router, так как мы не в React компоненте
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      }
+    }
+    
+    // Обновляем время последней активности даже при ошибке (кроме 401)
+    if (error.response?.status !== 401 && typeof window !== 'undefined') {
+      localStorage.setItem('last_activity', Date.now().toString());
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 // Restaurants API
 export async function getRestaurants(featured?: boolean, page?: number, limit?: number): Promise<{ data: Restaurant[]; pagination?: any }> {

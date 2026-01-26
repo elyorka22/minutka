@@ -30,10 +30,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // Проверка истечения сессии (30 минут неактивности)
+  const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 минут в миллисекундах
+
+  const checkSessionExpiry = () => {
+    if (typeof window === 'undefined') return false;
+    
+    const lastActivity = localStorage.getItem('last_activity');
+    if (!lastActivity) return false;
+    
+    const timeSinceLastActivity = Date.now() - parseInt(lastActivity, 10);
+    return timeSinceLastActivity > SESSION_TIMEOUT;
+  };
+
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+    localStorage.removeItem('telegram_id');
+    localStorage.removeItem('last_activity');
+    router.push('/login');
+  };
+
   // Загружаем пользователя из localStorage при монтировании
   useEffect(() => {
     const loadUser = async () => {
       try {
+        // Проверяем истечение сессии
+        if (checkSessionExpiry()) {
+          console.log('Session expired, clearing user data');
+          localStorage.removeItem('user');
+          localStorage.removeItem('telegram_id');
+          localStorage.removeItem('last_activity');
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
         const storedUser = localStorage.getItem('user');
         const telegramId = localStorage.getItem('telegram_id');
 
@@ -43,18 +75,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           
           // Обновляем данные пользователя с сервера
           await refreshUser();
+          
+          // Обновляем время последней активности
+          localStorage.setItem('last_activity', Date.now().toString());
         }
       } catch (error) {
         console.error('Error loading user:', error);
         localStorage.removeItem('user');
         localStorage.removeItem('telegram_id');
+        localStorage.removeItem('last_activity');
       } finally {
         setLoading(false);
       }
     };
 
     loadUser();
-  }, []);
+
+    // Проверяем истечение сессии каждую минуту
+    const sessionCheckInterval = setInterval(() => {
+      if (checkSessionExpiry() && user) {
+        console.log('Session expired, logging out');
+        logout();
+      }
+    }, 60 * 1000); // Проверка каждую минуту
+
+    return () => clearInterval(sessionCheckInterval);
+  }, [user]);
 
   const refreshUser = async () => {
     try {
@@ -70,11 +116,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok && data.success) {
         setUser(data.data);
         localStorage.setItem('user', JSON.stringify(data.data));
+        localStorage.setItem('last_activity', Date.now().toString()); // Обновляем время активности
       } else {
         // Пользователь не найден или ошибка
         setUser(null);
         localStorage.removeItem('user');
         localStorage.removeItem('telegram_id');
+        localStorage.removeItem('last_activity');
       }
     } catch (error) {
       console.error('Error refreshing user:', error);
@@ -134,6 +182,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.data);
       localStorage.setItem('user', JSON.stringify(data.data));
       localStorage.setItem('telegram_id', telegramId);
+      localStorage.setItem('last_activity', Date.now().toString()); // Обновляем время активности
 
       console.log('AuthContext: User logged in, role:', data.data.role);
 
@@ -164,7 +213,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     localStorage.removeItem('user');
     localStorage.removeItem('telegram_id');
-    router.push('/');
+    localStorage.removeItem('last_activity');
+    router.push('/login');
   };
 
   return (
