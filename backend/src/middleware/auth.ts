@@ -4,6 +4,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { supabase } from '../config/supabase';
+import { Logger } from '../services/logger';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
@@ -113,6 +114,7 @@ export function requireSuperAdmin(
   }
 
   if (req.user.role !== 'super_admin') {
+    Logger.logUnauthorizedAccess(req.path, req.ip);
     return res.status(403).json({
       success: false,
       error: 'Forbidden: Super admin access required'

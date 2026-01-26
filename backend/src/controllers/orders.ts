@@ -176,6 +176,9 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
       // Не прерываем создание заказа, если уведомления не отправились
     });
 
+    // Логирование создания заказа
+    Logger.logCreate('order', data.id, user_id, 'mijoz', req.ip);
+
     res.status(201).json({
       success: true,
       data: data as Order

@@ -8,6 +8,7 @@ import { Restaurant } from '../types';
 import { hashPassword } from '../utils/password';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { validateString, validatePhone, validateUrl, validateTelegramId } from '../utils/validation';
+import { Logger } from '../services/logger';
 
 /**
  * GET /api/restaurants
