@@ -9,6 +9,7 @@ import { Restaurant } from '@/lib/types';
 import { getRestaurants, createRestaurant, updateRestaurant, deleteRestaurant, getRestaurantAdmins, updateRestaurantAdmin } from '@/lib/api';
 import ImageUpload from '@/components/ImageUpload';
 import { handleApiError } from '@/lib/errorHandler';
+import Pagination from '@/components/Pagination';
 
 export default function AdminRestaurantsPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
