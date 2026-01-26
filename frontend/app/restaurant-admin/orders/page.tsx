@@ -118,50 +118,134 @@ export default function RestaurantAdminOrdersPage() {
 
       {/* Orders List */}
       <div className="space-y-4">
-        {filteredOrders.map((order) => (
-          <div key={order.id} className="bg-white rounded-lg shadow-md p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
-              <div className="flex-1">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">Заказ #{order.id}</h3>
-                  <span className={`px-3 py-1 rounded-full text-xs font-semibold w-fit ${statusColors[order.status]}`}>
-                    {statusLabels[order.status]}
-                  </span>
+        {filteredOrders.map((order) => {
+          // Парсим order_text для извлечения структурированной информации
+          const parseOrderText = (text: string) => {
+            const lines = text.split('\n').filter(line => line.trim());
+            const result: {
+              items?: string[];
+              total?: string;
+              name?: string;
+              phone?: string;
+              address?: string;
+              notes?: string;
+            } = {};
+            
+            lines.forEach(line => {
+              if (line.includes('Jami:') || line.includes('💰')) {
+                result.total = line.replace(/💰|Jami:/g, '').trim();
+              } else if (line.includes('Ism:') || line.includes('👤')) {
+                result.name = line.replace(/👤|Ism:/g, '').trim();
+              } else if (line.includes('Telefon:') || line.includes('📞')) {
+                result.phone = line.replace(/📞|Telefon:/g, '').trim();
+              } else if (line.includes('Manzil:') || line.includes('📍')) {
+                result.address = line.replace(/📍|Manzil:/g, '').trim();
+              } else if (line.includes('Izoh:') || line.includes('📝')) {
+                result.notes = line.replace(/📝|Izoh:/g, '').trim();
+              } else if (!line.includes('restoranidan buyurtma') && line.trim() && !result.items) {
+                // Первые строки - это обычно товары
+                if (!result.items) result.items = [];
+                if (!line.includes('Jami:') && !line.includes('Ism:') && !line.includes('Telefon:') && !line.includes('Manzil:') && !line.includes('Izoh:')) {
+                  result.items.push(line.trim());
+                }
+              }
+            });
+            
+            return result;
+          };
+
+          const parsed = parseOrderText(order.order_text);
+          
+          return (
+            <div key={order.id} className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                <div className="flex-1 space-y-3">
+                  {/* Заголовок заказа и статус */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                    <h3 className="text-lg font-semibold text-gray-900">Заказ #{order.id.slice(0, 8)}</h3>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold w-fit ${statusColors[order.status]}`}>
+                      {statusLabels[order.status]}
+                    </span>
+                  </div>
+
+                  {/* Содержимое заказа (товары) */}
+                  {parsed.items && parsed.items.length > 0 && (
+                    <div className="space-y-1">
+                      {parsed.items.map((item, idx) => (
+                        <p key={idx} className="text-sm text-gray-700">{item}</p>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Итого */}
+                  {parsed.total && (
+                    <p className="text-base font-semibold text-primary-600">
+                      💰 {parsed.total}
+                    </p>
+                  )}
+
+                  {/* Имя клиента */}
+                  {parsed.name && (
+                    <p className="text-sm text-gray-700">
+                      👤 <span className="font-medium">Ism:</span> {parsed.name}
+                    </p>
+                  )}
+
+                  {/* Телефон */}
+                  {parsed.phone && (
+                    <p className="text-sm text-gray-700">
+                      📞 <span className="font-medium">Telefon:</span> {parsed.phone}
+                    </p>
+                  )}
+
+                  {/* Адрес */}
+                  {(parsed.address || order.address) && (
+                    <p className="text-sm text-gray-700">
+                      📍 <span className="font-medium">Manzil:</span> {parsed.address || order.address}
+                    </p>
+                  )}
+
+                  {/* Примечание */}
+                  {parsed.notes && (
+                    <p className="text-sm text-gray-600">
+                      📝 <span className="font-medium">Izoh:</span> {parsed.notes}
+                    </p>
+                  )}
+
+                  {/* Дата создания */}
+                  <p className="text-xs text-gray-500 pt-2 border-t">
+                    Создан: {new Date(order.created_at).toLocaleString('ru-RU')}
+                  </p>
                 </div>
-                <p className="text-sm sm:text-base text-gray-700 mb-2">{order.order_text}</p>
-                {order.address && (
-                  <p className="text-sm text-gray-600 mb-1">📍 {order.address}</p>
-                )}
-                <p className="text-xs text-gray-500 mt-2">
-                  Создан: {new Date(order.created_at).toLocaleString('ru-RU')}
-                </p>
-              </div>
-              <div className="w-full sm:w-auto sm:ml-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2 sm:hidden">
-                  Изменить статус:
-                </label>
-                <select
-                  value={order.status}
-                  onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                  className="w-full sm:w-auto px-4 py-2.5 pr-8 border-2 border-primary-500 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 focus:border-primary-600 cursor-pointer appearance-none"
-                  style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-                    backgroundPosition: 'right 0.75rem center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: '1.5em 1.5em',
-                    paddingRight: '2.75rem'
-                  }}
-                >
-                  {Object.entries(statusLabels).map(([value, label]) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
+                
+                {/* Изменение статуса */}
+                <div className="w-full sm:w-auto sm:ml-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2 sm:hidden">
+                    Изменить статус:
+                  </label>
+                  <select
+                    value={order.status}
+                    onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
+                    className="w-full sm:w-auto px-4 py-2.5 pr-8 border-2 border-primary-500 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 focus:border-primary-600 cursor-pointer appearance-none text-gray-900"
+                    style={{
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+                      backgroundPosition: 'right 0.75rem center',
+                      backgroundRepeat: 'no-repeat',
+                      backgroundSize: '1.5em 1.5em',
+                      paddingRight: '2.75rem'
+                    }}
+                  >
+                    {Object.entries(statusLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {filteredOrders.length === 0 && (
