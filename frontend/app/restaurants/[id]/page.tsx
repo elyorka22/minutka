@@ -70,7 +70,7 @@ export default async function RestaurantPage({ params }: PageProps) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <Link href="/" className="text-primary-600 hover:text-primary-700">
-                ← Restoranlar ro'yxatiga qaytish
+                ← Orqaga
               </Link>
               <Cart
                 restaurantId={restaurant.id}
@@ -87,7 +87,7 @@ export default async function RestaurantPage({ params }: PageProps) {
           <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
             {/* Restaurant Image */}
             {restaurant.image_url && (
-              <div className="relative w-full h-64 md:h-80 lg:h-96">
+              <div className="relative w-full h-48 md:h-56 lg:h-64">
                 <Image
                   src={restaurant.image_url}
                   alt={restaurant.name}

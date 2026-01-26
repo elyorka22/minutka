@@ -15,7 +15,7 @@ export const uz = {
   previous: 'Oldingi',
   
   // Navigation
-  backToRestaurants: "← Restoranlar ro'yxatiga qaytish",
+  backToRestaurants: '← Orqaga',
   backToSite: 'Saytga qaytish',
   
   // Restaurant
