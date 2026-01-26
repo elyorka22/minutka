@@ -186,7 +186,7 @@ export default function RestaurantAdminMenuPage() {
                   is_available: item.is_available,
                 });
                 setMenuItems([...menuItems, created]);
-                showSuccess(editingItem ? 'Блюдо успешно обновлено!' : 'Блюдо успешно создано!');
+                showSuccess('Блюдо успешно создано!');
               } else {
                 showSuccess('Блюдо успешно обновлено!');
               }

@@ -213,14 +213,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-    localStorage.removeItem('telegram_id');
-    localStorage.removeItem('last_activity');
-    router.push('/login');
-  };
-
   return (
     <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
       {children}

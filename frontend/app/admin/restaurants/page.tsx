@@ -87,6 +87,7 @@ export default function AdminRestaurantsPage() {
           is_featured: restaurant.is_featured,
         });
         setRestaurants(restaurants.map((r) => (r.id === restaurant.id ? updated : r)));
+        showSuccess('Ресторан успешно обновлен!');
       } else {
         // Создание нового ресторана
         const adminTelegramId = (restaurant as any).admin_telegram_id;
@@ -119,8 +120,6 @@ export default function AdminRestaurantsPage() {
         const created = await createRestaurant(restaurantData);
         setRestaurants([...restaurants, created]);
         showSuccess('Ресторан успешно создан!');
-      } else {
-        showSuccess('Ресторан успешно обновлен!');
       }
       setShowForm(false);
       setEditingRestaurant(null);
