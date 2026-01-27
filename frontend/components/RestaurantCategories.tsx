@@ -62,14 +62,18 @@ export default function RestaurantCategories({
           {/* All Categories Button */}
           <button
             onClick={() => onCategorySelect(null)}
-            className={`flex-shrink-0 flex flex-col items-center gap-2 p-4 rounded-2xl transition-all ${
+            className={`flex-shrink-0 flex flex-col items-center gap-3 transition-all ${
               selectedCategory === null
-                ? 'bg-primary-100 scale-110'
-                : 'bg-white hover:bg-gray-50'
+                ? 'scale-105'
+                : ''
             }`}
           >
             {allCategoryImage && allCategoryImage.trim() !== '' ? (
-              <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-offset-2 ring-transparent hover:ring-primary-300 transition-all">
+              <div className={`relative w-20 h-20 rounded-full overflow-hidden ring-4 transition-all ${
+                selectedCategory === null
+                  ? 'ring-primary-500 ring-offset-2'
+                  : 'ring-gray-200 ring-offset-0 hover:ring-primary-300'
+              }`}>
                 <Image
                   src={allCategoryImage}
                   alt="Hammasi"
@@ -86,12 +90,16 @@ export default function RestaurantCategories({
                 />
               </div>
             ) : (
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-3xl">
+              <div className={`w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-3xl ring-4 transition-all ${
+                selectedCategory === null
+                  ? 'ring-primary-500 ring-offset-2'
+                  : 'ring-gray-200 ring-offset-0'
+              }`}>
                 🍽️
               </div>
             )}
-            <span className={`text-sm font-semibold ${
-              selectedCategory === null ? 'text-primary-700' : 'text-gray-700'
+            <span className={`text-sm font-semibold text-center ${
+              selectedCategory === null ? 'text-primary-600' : 'text-gray-700'
             }`}>
               Hammasi
             </span>
@@ -113,13 +121,17 @@ export default function RestaurantCategories({
             <button
               key={category.id}
               onClick={() => onCategorySelect(category.id)}
-              className={`flex-shrink-0 flex flex-col items-center gap-2 p-4 rounded-2xl transition-all ${
+              className={`flex-shrink-0 flex flex-col items-center gap-3 transition-all ${
                 selectedCategory === category.id
-                  ? 'bg-primary-100 scale-110'
-                  : 'bg-white hover:bg-gray-50'
+                  ? 'scale-105'
+                  : ''
               }`}
             >
-              <div className="relative w-20 h-20 rounded-full overflow-hidden ring-2 ring-offset-2 ring-transparent hover:ring-primary-300 transition-all">
+              <div className={`relative w-20 h-20 rounded-full overflow-hidden ring-4 transition-all ${
+                selectedCategory === category.id
+                  ? 'ring-primary-500 ring-offset-2'
+                  : 'ring-gray-200 ring-offset-0 hover:ring-primary-300'
+              }`}>
                 <Image
                   src={category.image_url}
                   alt={category.name}
@@ -127,8 +139,8 @@ export default function RestaurantCategories({
                   className="object-cover"
                 />
               </div>
-              <span className={`text-sm font-semibold whitespace-nowrap ${
-                selectedCategory === category.id ? 'text-primary-700' : 'text-gray-700'
+              <span className={`text-sm font-semibold text-center whitespace-nowrap ${
+                selectedCategory === category.id ? 'text-primary-600' : 'text-gray-700'
               }`}>
                 {category.name}
               </span>
