@@ -235,7 +235,7 @@ export default function Home() {
       )}
 
       {/* Pharmacies/Stores Section - внизу по умолчанию или при выборе категории */}
-      {pharmaciesStores.length > 0 && (!selectedCategory || selectedCategory === 'pharmacies-stores') && !searchQuery && (
+      {pharmaciesStores.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">💊 Аптеки/Магазины</h2>
           <div className="grid grid-cols-2 gap-4">
