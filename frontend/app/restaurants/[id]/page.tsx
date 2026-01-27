@@ -104,42 +104,29 @@ export default async function RestaurantPage({ params }: PageProps) {
         </header>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {/* Restaurant Image */}
-          {restaurant.image_url && (
-            <div className="relative w-full h-64 md:h-80 lg:h-96 mb-6 rounded-lg overflow-hidden">
-              <Image
-                src={restaurant.image_url}
-                alt={restaurant.name}
-                fill
-                className="object-cover"
-                priority
-              />
-            </div>
-          )}
-
-          {/* Restaurant Name */}
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          {/* Restaurant Name - по центру */}
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">
             {restaurant.name}
           </h1>
 
-          {/* Description */}
+          {/* Description - под названием */}
           {restaurant.description && (
-            <p className="text-gray-700 text-base md:text-lg mb-4">
+            <p className="text-gray-700 text-base md:text-lg mb-4 text-center">
               {restaurant.description}
             </p>
           )}
 
-          {/* Closing Time */}
+          {/* Closing Time - до скольки открыто */}
           {closingTime && (
-            <div className="mb-4">
+            <div className="mb-4 text-center">
               <p className="text-sm md:text-base text-gray-600">
-                <span className="font-medium">Yopiladi:</span> {closingTime}
+                <span className="font-medium">Ochiladi:</span> {closingTime} gacha
               </p>
             </div>
           )}
 
-          {/* Delivery Info */}
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          {/* Delivery Info - как доставляется */}
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 text-center">
             <p className="text-sm md:text-base text-gray-700">
               <span className="font-medium">Yetkazib berish:</span> Telegram-bot orqali buyurtma bering
             </p>
