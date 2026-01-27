@@ -158,10 +158,42 @@ export async function getCategories(): Promise<any[]> {
 }
 
 // Banners API
-export async function getBanners(position?: string): Promise<Banner[]> {
-  const params = position ? { position } : {};
+export async function getBanners(position?: string, all: boolean = false): Promise<Banner[]> {
+  const params: any = {};
+  if (position) params.position = position;
+  if (all) params.all = 'true';
   const response = await api.get<{ success: boolean; data: Banner[] }>('/api/banners', { params });
   return response.data.data;
+}
+
+export async function createBanner(bannerData: {
+  restaurant_id?: string | null;
+  title?: string | null;
+  image_url: string;
+  link_url?: string | null;
+  position?: 'homepage' | 'restaurant_page' | 'recommended';
+  is_active?: boolean;
+  display_order?: number;
+}): Promise<Banner> {
+  const response = await api.post<{ success: boolean; data: Banner }>('/api/banners', bannerData);
+  return response.data.data;
+}
+
+export async function updateBanner(id: string, bannerData: {
+  restaurant_id?: string | null;
+  title?: string | null;
+  image_url?: string;
+  link_url?: string | null;
+  position?: 'homepage' | 'restaurant_page' | 'recommended';
+  is_active?: boolean;
+  display_order?: number;
+}): Promise<Banner> {
+  const response = await api.patch<{ success: boolean; data: Banner }>(`/api/banners/${id}`, bannerData);
+  return response.data.data;
+}
+
+export async function deleteBanner(id: string): Promise<void> {
+  await api.delete(`/api/banners/${id}`);
 }
 
 // Menu Items API

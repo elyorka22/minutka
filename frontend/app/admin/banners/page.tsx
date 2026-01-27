@@ -6,19 +6,23 @@
 
 import { useState, useEffect } from 'react';
 import { Banner, BannerPosition } from '@/lib/types';
-import { getBanners } from '@/lib/api';
+import { getBanners, createBanner, updateBanner, deleteBanner } from '@/lib/api';
 import ImageUpload from '@/components/ImageUpload';
+import { useToast } from '@/contexts/ToastContext';
+import { handleApiError } from '@/lib/errorHandler';
 
 export default function AdminBannersPage() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     async function fetchBanners() {
       try {
-        const data = await getBanners();
+        // Получаем все баннеры (включая неактивные) для админ-панели
+        const data = await getBanners(undefined, true);
         setBanners(data);
       } catch (error) {
         console.error('Error fetching banners:', error);
@@ -34,16 +38,28 @@ export default function AdminBannersPage() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Вы уверены, что хотите удалить этот баннер?')) {
-      setBanners(banners.filter((b) => b.id !== id));
+      try {
+        await deleteBanner(id);
+        setBanners(banners.filter((b) => b.id !== id));
+        showSuccess('Баннер успешно удален!');
+      } catch (error) {
+        console.error('Error deleting banner:', error);
+        showError(handleApiError(error));
+      }
     }
   };
 
-  const handleToggleActive = (id: string) => {
-    setBanners(
-      banners.map((b) => (b.id === id ? { ...b, is_active: !b.is_active } : b))
-    );
+  const handleToggleActive = async (banner: Banner) => {
+    try {
+      const updated = await updateBanner(banner.id, { is_active: !banner.is_active });
+      setBanners(banners.map((b) => (b.id === banner.id ? updated : b)));
+      showSuccess(`Баннер ${updated.is_active ? 'активирован' : 'деактивирован'}!`);
+    } catch (error) {
+      console.error('Error toggling banner:', error);
+      showError(handleApiError(error));
+    }
   };
 
   if (loading) {
@@ -91,7 +107,7 @@ export default function AdminBannersPage() {
               )}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <button
-                  onClick={() => handleToggleActive(banner.id)}
+                  onClick={() => handleToggleActive(banner)}
                   className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold ${
                     banner.is_active
                       ? 'bg-green-100 text-green-800 hover:bg-green-200'
@@ -126,14 +142,41 @@ export default function AdminBannersPage() {
             setShowForm(false);
             setEditingBanner(null);
           }}
-          onSave={(banner) => {
-            if (editingBanner) {
-              setBanners(banners.map((b) => (b.id === banner.id ? banner : b)));
-            } else {
-              setBanners([...banners, banner]);
+          onSave={async (banner) => {
+            try {
+              if (editingBanner) {
+                // Обновление существующего баннера
+                const updated = await updateBanner(banner.id, {
+                  restaurant_id: banner.restaurant_id,
+                  title: banner.title,
+                  image_url: banner.image_url,
+                  link_url: banner.link_url,
+                  position: banner.position,
+                  is_active: banner.is_active,
+                  display_order: banner.display_order,
+                });
+                setBanners(banners.map((b) => (b.id === banner.id ? updated : b)));
+                showSuccess('Баннер успешно обновлен!');
+              } else {
+                // Создание нового баннера
+                const created = await createBanner({
+                  restaurant_id: banner.restaurant_id,
+                  title: banner.title,
+                  image_url: banner.image_url,
+                  link_url: banner.link_url,
+                  position: banner.position,
+                  is_active: banner.is_active,
+                  display_order: banner.display_order,
+                });
+                setBanners([...banners, created]);
+                showSuccess('Баннер успешно создан!');
+              }
+              setShowForm(false);
+              setEditingBanner(null);
+            } catch (error) {
+              console.error('Error saving banner:', error);
+              showError(handleApiError(error));
             }
-            setShowForm(false);
-            setEditingBanner(null);
           }}
         />
       )}
