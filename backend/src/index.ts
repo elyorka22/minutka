@@ -58,6 +58,10 @@ const corsOptions = {
   credentials: true
 };
 
+// Trust proxy - необходимо для работы за прокси (Vercel, nginx и т.д.)
+// Это позволяет express-rate-limit правильно определять IP адреса клиентов
+app.set('trust proxy', true);
+
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
