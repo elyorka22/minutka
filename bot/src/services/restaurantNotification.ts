@@ -61,11 +61,11 @@ export async function sendOrderToRestaurant(
     `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
     `Buyurtma tayyor bo'lganda "Tayyor" tugmasini bosing:`;
 
-  // Создаем клавиатуру с одной кнопкой "Готов"
+  // Создаем клавиатуру с одной кнопкой "Готов" - просто удаляет сообщение
   const keyboard = {
     inline_keyboard: [
       [
-        { text: '🚀 Tayyor', callback_data: `order:ready:${orderId}` }
+        { text: '🚀 Tayyor', callback_data: `order:delete:${orderId}` }
       ]
     ]
   };
