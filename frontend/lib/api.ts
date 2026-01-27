@@ -141,6 +141,16 @@ export async function createOrder(orderData: {
   return response.data.data;
 }
 
+export async function updateOrderStatus(orderId: string, status: string): Promise<Order> {
+  try {
+    const response = await api.patch<{ success: boolean; data: Order }>(`/api/orders/${orderId}/status`, { status });
+    return response.data.data;
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    throw error;
+  }
+}
+
 export async function getOrderById(id: string): Promise<Order> {
   const response = await api.get<{ success: boolean; data: Order }>(`/api/orders/${id}`);
   return response.data.data;
