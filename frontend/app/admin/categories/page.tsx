@@ -7,6 +7,13 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
+import { getRestaurants } from '@/lib/api';
+import {
+  getRestaurantCategoryRelations,
+  createRestaurantCategoryRelation,
+  deleteRestaurantCategoryRelationByIds,
+} from '@/lib/api';
+import { useToast } from '@/contexts/ToastContext';
 
 interface Category {
   id: string;
@@ -18,13 +25,22 @@ interface Category {
   updated_at: string;
 }
 
+interface Restaurant {
+  id: string;
+  name: string;
+  image_url: string | null;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showRestaurantModal, setShowRestaurantModal] = useState<string | null>(null);
+  const [categoryRestaurants, setCategoryRestaurants] = useState<{ [key: string]: string[] }>({});
   const [formData, setFormData] = useState({
     name: '',
     image_url: '',
@@ -32,10 +48,18 @@ export default function CategoriesPage() {
     is_active: true,
   });
   const [saving, setSaving] = useState(false);
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     fetchCategories();
+    fetchRestaurants();
   }, []);
+
+  useEffect(() => {
+    if (categories.length > 0) {
+      fetchCategoryRestaurants();
+    }
+  }, [categories]);
 
   const fetchCategories = async () => {
     try {
@@ -54,6 +78,59 @@ export default function CategoriesPage() {
       console.error('Error fetching categories:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRestaurants = async () => {
+    try {
+      const result = await getRestaurants();
+      setRestaurants(result.data || []);
+    } catch (error) {
+      console.error('Error fetching restaurants:', error);
+    }
+  };
+
+  const fetchCategoryRestaurants = async () => {
+    try {
+      const relations: { [key: string]: string[] } = {};
+      for (const category of categories) {
+        const categoryRels = await getRestaurantCategoryRelations(undefined, category.id);
+        relations[category.id] = categoryRels.map((rel: any) => rel.restaurant_id);
+      }
+      setCategoryRestaurants(relations);
+    } catch (error) {
+      console.error('Error fetching category restaurants:', error);
+    }
+  };
+
+  const handleToggleRestaurant = async (categoryId: string, restaurantId: string) => {
+    try {
+      const isAttached = categoryRestaurants[categoryId]?.includes(restaurantId);
+      
+      if (isAttached) {
+        // Удаляем связь
+        await deleteRestaurantCategoryRelationByIds(restaurantId, categoryId);
+        showSuccess('Ресторан отвязан от категории');
+      } else {
+        // Создаем связь
+        await createRestaurantCategoryRelation(restaurantId, categoryId);
+        showSuccess('Ресторан привязан к категории');
+      }
+      
+      // Обновляем локальное состояние
+      const updated = { ...categoryRestaurants };
+      if (!updated[categoryId]) {
+        updated[categoryId] = [];
+      }
+      if (isAttached) {
+        updated[categoryId] = updated[categoryId].filter(id => id !== restaurantId);
+      } else {
+        updated[categoryId] = [...updated[categoryId], restaurantId];
+      }
+      setCategoryRestaurants(updated);
+    } catch (error: any) {
+      console.error('Error toggling restaurant:', error);
+      showError('Ошибка при изменении связи');
     }
   };
 
@@ -334,7 +411,20 @@ export default function CategoriesPage() {
                 <p>Порядок: {category.display_order}</p>
                 <p>Статус: {category.is_active ? '✅ Активна' : '❌ Неактивна'}</p>
               </div>
+              <div className="text-sm text-gray-600 mb-2">
+                <p>Привязано ресторанов: {categoryRestaurants[category.id]?.length || 0}</p>
+              </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <button
+                  onClick={() => {
+                    setShowRestaurantModal(category.id);
+                    setEditing(null);
+                    setShowAddForm(false);
+                  }}
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors text-sm"
+                >
+                  🏪 Рестораны ({categoryRestaurants[category.id]?.length || 0})
+                </button>
                 <button
                   onClick={() => handleEdit(category)}
                   className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm"
@@ -366,6 +456,77 @@ export default function CategoriesPage() {
       {categories.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           Категории не найдены. Добавьте первую категорию.
+        </div>
+      )}
+
+      {/* Modal for managing restaurants in category */}
+      {showRestaurantModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b">
+              <h2 className="text-xl font-bold text-gray-900">
+                Рестораны в категории "{categories.find(c => c.id === showRestaurantModal)?.name}"
+              </h2>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              {restaurants.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  Рестораны не найдены
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {restaurants.map((restaurant) => {
+                    const isAttached = categoryRestaurants[showRestaurantModal]?.includes(restaurant.id);
+                    return (
+                      <div
+                        key={restaurant.id}
+                        className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
+                          isAttached
+                            ? 'bg-blue-50 border-blue-300'
+                            : 'bg-white border-gray-200 hover:bg-gray-50'
+                        }`}
+                        onClick={() => handleToggleRestaurant(showRestaurantModal, restaurant.id)}
+                      >
+                        <div className="flex-shrink-0">
+                          {restaurant.image_url ? (
+                            <Image
+                              src={restaurant.image_url}
+                              alt={restaurant.name}
+                              width={60}
+                              height={60}
+                              className="rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="w-15 h-15 bg-gray-200 rounded-lg flex items-center justify-center">
+                              <span className="text-gray-400">🍽️</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-gray-900">{restaurant.name}</h3>
+                        </div>
+                        <div className="flex-shrink-0">
+                          {isAttached ? (
+                            <span className="text-green-600 font-semibold">✓ Привязан</span>
+                          ) : (
+                            <span className="text-gray-400">Не привязан</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="p-6 border-t">
+              <button
+                onClick={() => setShowRestaurantModal(null)}
+                className="w-full px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

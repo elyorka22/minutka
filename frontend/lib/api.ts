@@ -157,6 +157,41 @@ export async function getCategories(): Promise<any[]> {
   }
 }
 
+// Restaurant-Category Relations API
+export async function getRestaurantCategoryRelations(restaurantId?: string, categoryId?: string): Promise<any[]> {
+  try {
+    const params: any = {};
+    if (restaurantId) params.restaurant_id = restaurantId;
+    if (categoryId) params.category_id = categoryId;
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/restaurant-category-relations', { params });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching restaurant-category relations:', error);
+    return [];
+  }
+}
+
+export async function createRestaurantCategoryRelation(restaurantId: string, categoryId: string): Promise<any> {
+  const response = await api.post<{ success: boolean; data: any }>('/api/restaurant-category-relations', {
+    restaurant_id: restaurantId,
+    category_id: categoryId,
+  });
+  return response.data.data;
+}
+
+export async function deleteRestaurantCategoryRelation(id: string): Promise<void> {
+  await api.delete(`/api/restaurant-category-relations/${id}`);
+}
+
+export async function deleteRestaurantCategoryRelationByIds(restaurantId: string, categoryId: string): Promise<void> {
+  await api.delete('/api/restaurant-category-relations', {
+    data: {
+      restaurant_id: restaurantId,
+      category_id: categoryId,
+    },
+  });
+}
+
 // Banners API
 export async function getBanners(position?: string, all: boolean = false): Promise<Banner[]> {
   const params: any = {};

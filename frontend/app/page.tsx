@@ -47,6 +47,14 @@ export default function Home() {
         if (appSloganSetting?.value) {
           setAppSlogan(appSloganSetting.value);
         }
+
+        // Загружаем связи категорий и ресторанов
+        const relationsMap: { [categoryId: string]: string[] } = {};
+        for (const category of categoriesResponse.data || []) {
+          const relations = await getRestaurantCategoryRelations(undefined, category.id);
+          relationsMap[category.id] = relations.map((rel: any) => rel.restaurant_id);
+        }
+        setCategoryRestaurantMap(relationsMap);
       } catch (error) {
         console.error('Error loading data:', error);
         // В случае ошибки оставляем пустые массивы
@@ -63,9 +71,12 @@ export default function Home() {
 
   // Фильтрация ресторанов по категории и поисковому запросу
   const filteredRestaurants = restaurants.filter((r) => {
-    // Фильтр по категории
-    if (selectedCategory && r.category !== selectedCategory) {
-      return false;
+    // Фильтр по категории (используем связи ресторан-категория)
+    if (selectedCategory) {
+      const restaurantIds = categoryRestaurantMap[selectedCategory] || [];
+      if (!restaurantIds.includes(r.id)) {
+        return false;
+      }
     }
     // Фильтр по поисковому запросу
     if (searchQuery.trim()) {

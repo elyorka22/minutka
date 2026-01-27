@@ -20,6 +20,7 @@ import usersRouter from './routes/users';
 import statsRouter from './routes/stats';
 import authRouter from './routes/auth';
 import cleanupRouter from './routes/cleanup';
+import restaurantCategoryRelationsRouter from './routes/restaurant-category-relations';
 import { generalLimiter, strictLimiter, createUpdateLimiter } from './middleware/rateLimit';
 
 // Load environment variables
@@ -89,6 +90,7 @@ app.use('/api/users', usersRouter);
 app.use('/api/stats', statsRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/cleanup', cleanupRouter);
+app.use('/api/restaurant-category-relations', restaurantCategoryRelationsRouter);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
