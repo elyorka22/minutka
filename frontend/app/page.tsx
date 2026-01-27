@@ -11,6 +11,8 @@ import RestaurantCard from '@/components/RestaurantCard';
 import BannerCarousel from '@/components/BannerCarousel';
 import RestaurantCategories from '@/components/RestaurantCategories';
 import SplashScreen from '@/components/SplashScreen';
+import PharmacyStoreCard from '@/components/PharmacyStoreCard';
+import { getPharmaciesStores } from '@/lib/api';
 
 const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'your_bot_username';
 
@@ -25,6 +27,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [categoryRestaurantMap, setCategoryRestaurantMap] = useState<{ [categoryId: string]: string[] }>({});
   const [showSplash, setShowSplash] = useState(false);
+  const [pharmaciesStores, setPharmaciesStores] = useState<any[]>([]);
 
   // Проверяем, был ли уже показан splash screen в этой сессии
   useEffect(() => {
@@ -54,6 +57,7 @@ export default function Home() {
         setRestaurants(fetchedRestaurants);
         setFeaturedRestaurants(fetchedRestaurants.filter(r => r.is_featured));
         setBanners(fetchedBanners);
+        setPharmaciesStores(fetchedPharmaciesStores);
         
         // Получаем слоган приложения
         const appSloganSetting = botSettingsResponse.data?.find((s: any) => s.key === 'app_slogan');

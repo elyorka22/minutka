@@ -173,3 +173,15 @@ export interface RestaurantCategory {
   updated_at?: string;
 }
 
+// Pharmacy/Store types
+export interface PharmacyStore {
+  id: string;
+  name: string;
+  description: string | null;
+  phone: string;
+  working_hours: WorkingHours | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+

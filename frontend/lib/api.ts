@@ -192,6 +192,45 @@ export async function deleteRestaurantCategoryRelationByIds(restaurantId: string
   });
 }
 
+// Pharmacies/Stores API
+export async function getPharmaciesStores(active?: boolean): Promise<any[]> {
+  try {
+    const params: any = {};
+    if (active) params.active = 'true';
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/pharmacies-stores', { params });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching pharmacies/stores:', error);
+    return [];
+  }
+}
+
+export async function createPharmacyStore(pharmacyStoreData: {
+  name: string;
+  description?: string | null;
+  phone: string;
+  working_hours?: any;
+  is_active?: boolean;
+}): Promise<any> {
+  const response = await api.post<{ success: boolean; data: any }>('/api/pharmacies-stores', pharmacyStoreData);
+  return response.data.data;
+}
+
+export async function updatePharmacyStore(id: string, pharmacyStoreData: {
+  name?: string;
+  description?: string | null;
+  phone?: string;
+  working_hours?: any;
+  is_active?: boolean;
+}): Promise<any> {
+  const response = await api.patch<{ success: boolean; data: any }>(`/api/pharmacies-stores/${id}`, pharmacyStoreData);
+  return response.data.data;
+}
+
+export async function deletePharmacyStore(id: string): Promise<void> {
+  await api.delete(`/api/pharmacies-stores/${id}`);
+}
+
 // Banners API
 export async function getBanners(position?: string, all: boolean = false): Promise<Banner[]> {
   const params: any = {};
