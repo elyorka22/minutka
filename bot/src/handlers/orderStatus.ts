@@ -27,28 +27,33 @@ export async function orderStatusHandler(
       return;
     }
 
-    // Получаем заказ
-    const order: any = await apiRequest(`/api/orders/${orderId}`, {
-      headers: {
-        'x-telegram-id': String(telegramId)
-      }
-    });
+    // Сначала проверяем, является ли пользователь активным поваром
+    const { data: chef } = await supabase
+      .from('chefs')
+      .select('*')
+      .eq('telegram_id', telegramId)
+      .eq('is_active', true)
+      .maybeSingle();
 
-    if (!order) {
+    if (!chef) {
+      await ctx.answerCbQuery('Sizda bu buyurtmani boshqarish huquqi yo\'q');
+      return;
+    }
+
+    // Получаем заказ напрямую из Supabase (чтобы избежать циклической зависимости с аутентификацией)
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .single();
+
+    if (orderError || !order) {
       await ctx.answerCbQuery('Buyurtma topilmadi');
       return;
     }
 
-    // Проверяем, является ли пользователь поваром для этого ресторана
-    const { data: chef } = await supabase
-      .from('chefs')
-      .select('*')
-      .eq('restaurant_id', order.restaurant_id)
-      .eq('telegram_id', telegramId)
-      .eq('is_active', true)
-      .single();
-
-    if (!chef) {
+    // Проверяем, что заказ принадлежит ресторану повара
+    if (order.restaurant_id !== chef.restaurant_id) {
       await ctx.answerCbQuery('Sizda bu buyurtmani boshqarish huquqi yo\'q');
       return;
     }
