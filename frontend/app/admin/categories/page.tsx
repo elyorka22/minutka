@@ -68,7 +68,38 @@ export default function CategoriesPage() {
       const response = await fetch(`${API_BASE_URL}/api/categories`);
       const data = await response.json();
       // Сортируем категории так, чтобы "Все"/"Hammasi" была первой
-      const categoriesList = data.data || [];
+      let categoriesList = data.data || [];
+      
+      // Проверяем, есть ли категория "Аптеки/Магазины"
+      const pharmaciesCategory = categoriesList.find((c: Category) => 
+        c.name === 'Аптеки/Магазины' || c.name === 'Pharmacies/Stores' || c.id === 'pharmacies-stores'
+      );
+      
+      // Если категории нет, создаем её автоматически
+      if (!pharmaciesCategory) {
+        try {
+          const createResponse = await fetch(`${API_BASE_URL}/api/categories`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: 'Аптеки/Магазины',
+              image_url: '💊', // Временная эмодзи, можно будет заменить на картинку
+              display_order: categoriesList.length,
+              is_active: true,
+            }),
+          });
+          
+          if (createResponse.ok) {
+            const newCategory = await createResponse.json();
+            categoriesList.push(newCategory.data);
+          }
+        } catch (error) {
+          console.error('Error creating pharmacies category:', error);
+        }
+      }
+      
       const allCategory = categoriesList.find((c: Category) => 
         c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all'
       );
