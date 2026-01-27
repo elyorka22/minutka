@@ -3,6 +3,7 @@
 // ============================================
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Restaurant } from '../../shared/types';
 
 interface RestaurantCardProps {
@@ -10,42 +11,39 @@ interface RestaurantCardProps {
 }
 
 export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
-  const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'your_bot_username';
-
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      {/* Контент */}
-      <div className="p-4 md:p-6 flex flex-col">
-        <div className="flex items-start justify-between mb-2">
-          <h3 className="text-xl font-semibold text-gray-900">{restaurant.name}</h3>
-          {restaurant.is_featured && (
-            <span className="text-yellow-500 text-xl ml-2">⭐</span>
-          )}
-        </div>
-
-        {restaurant.description && (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-1">{restaurant.description}</p>
-        )}
-
-        {restaurant.working_hours && (
-          <div className="text-xs text-gray-500 mb-4">
-            <p className="font-medium">Ish vaqti:</p>
-            {Object.entries(restaurant.working_hours).slice(0, 2).map(([day, hours]) => (
-              <p key={day}>{day}: {hours}</p>
-            ))}
+    <Link href={`/restaurants/${restaurant.id}`}>
+      <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+        {/* Изображение ресторана */}
+        {restaurant.image_url && (
+          <div className="relative w-full h-48">
+            <Image
+              src={restaurant.image_url}
+              alt={restaurant.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
           </div>
         )}
 
-        <div className="flex gap-2 mt-auto">
-          <Link
-            href={`/restaurants/${restaurant.id}`}
-            className="flex-1 text-center bg-primary-500 text-white px-4 py-2 rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium"
-          >
-            Buyurtma berish
-          </Link>
+        {/* Контент */}
+        <div className="p-4 flex flex-col">
+          {/* Название ресторана */}
+          <h3 className="text-lg font-bold text-gray-900 mb-2">{restaurant.name}</h3>
+
+          {/* Категории блюд */}
+          {restaurant.category && (
+            <p className="text-sm text-gray-600 mb-2">{restaurant.category}</p>
+          )}
+
+          {/* Описание (как доставляется) */}
+          {restaurant.description && (
+            <p className="text-xs text-gray-500 line-clamp-2">{restaurant.description}</p>
+          )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 
