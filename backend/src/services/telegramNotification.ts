@@ -78,16 +78,13 @@ export async function sendOrderToChef(
       `👤 Mijoz: ${userInfo}\n` +
       `📝 Buyurtma: ${orderData.orderText}\n` +
       `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
-      `Amalni tanlang:`;
+      `Buyurtma tayyor bo'lganda "Tayyor" tugmasini bosing:`;
 
-    // Создаем клавиатуру действий (только для поваров: принять и готово)
+    // Создаем клавиатуру с одной кнопкой "Готов" - просто удаляет сообщение
     const keyboard = {
       inline_keyboard: [
         [
-          { text: '✅ Qabul qilish', callback_data: `order:accept:${orderId}` }
-        ],
-        [
-          { text: '🚀 Tayyor', callback_data: `order:ready:${orderId}` }
+          { text: '🚀 Tayyor', callback_data: `order:delete:${orderId}` }
         ]
       ]
     };
