@@ -281,7 +281,7 @@ export default function PharmaciesStoresPage() {
                     <p className="font-medium mb-1">Время работы:</p>
                     {Object.entries(pharmacyStore.working_hours).slice(0, 2).map(([day, hours]) => (
                       <p key={day} className="text-xs">
-                        {dayNames[day]}: {hours}
+                        {dayNames[day]}: {String(hours)}
                       </p>
                     ))}
                   </div>
