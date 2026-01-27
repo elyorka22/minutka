@@ -10,6 +10,7 @@ import { getRestaurants, getBanners, getCategories, getRestaurantCategoryRelatio
 import RestaurantCard from '@/components/RestaurantCard';
 import BannerCarousel from '@/components/BannerCarousel';
 import RestaurantCategories from '@/components/RestaurantCategories';
+import SplashScreen from '@/components/SplashScreen';
 
 const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'your_bot_username';
 
@@ -23,6 +24,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [categoryRestaurantMap, setCategoryRestaurantMap] = useState<{ [categoryId: string]: string[] }>({});
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
