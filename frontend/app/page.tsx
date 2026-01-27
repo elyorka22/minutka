@@ -51,7 +51,7 @@ export default function Home() {
 
         // Загружаем связи категорий и ресторанов
         const relationsMap: { [categoryId: string]: string[] } = {};
-        for (const category of categoriesResponse.data || []) {
+        for (const category of fetchedCategories || []) {
           const relations = await getRestaurantCategoryRelations(undefined, category.id);
           relationsMap[category.id] = relations.map((rel: any) => rel.restaurant_id);
         }
