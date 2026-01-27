@@ -166,7 +166,7 @@ export default function Home() {
       </section>
 
       {/* Featured Restaurants (TOP) */}
-      {!selectedCategory && featuredRestaurants.length > 0 && (
+      {!selectedCategory && !searchQuery && featuredRestaurants.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">⭐ Top restoranlar</h2>
           <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
@@ -180,7 +180,9 @@ export default function Home() {
       {/* All Restaurants or Filtered by Category */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          {selectedCategory
+          {searchQuery
+            ? `🔍 Qidiruv natijalari: "${searchQuery}"`
+            : selectedCategory
             ? `${categories.find(c => c.id === selectedCategory)?.name || 'Restoranlar'}`
             : '📋 Barcha restoranlar'}
         </h2>
