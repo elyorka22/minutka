@@ -27,17 +27,15 @@ export async function getRestaurantCategoryRelations(req: AuthenticatedRequest, 
       `);
 
     if (restaurant_id) {
-      const validation = validateUuid(restaurant_id as string);
-      if (!validation.isValid) {
-        return res.status(400).json({ success: false, error: validation.error });
+      if (!validateUuid(restaurant_id as string)) {
+        return res.status(400).json({ success: false, error: 'Invalid restaurant_id format' });
       }
       query = query.eq('restaurant_id', restaurant_id);
     }
 
     if (category_id) {
-      const validation = validateUuid(category_id as string);
-      if (!validation.isValid) {
-        return res.status(400).json({ success: false, error: validation.error });
+      if (!validateUuid(category_id as string)) {
+        return res.status(400).json({ success: false, error: 'Invalid category_id format' });
       }
       query = query.eq('category_id', category_id);
     }
@@ -64,14 +62,12 @@ export async function createRestaurantCategoryRelation(req: AuthenticatedRequest
     const { restaurant_id, category_id } = req.body;
 
     // Валидация
-    const restaurantValidation = validateUuid(restaurant_id);
-    if (!restaurantValidation.isValid) {
-      return res.status(400).json({ success: false, error: restaurantValidation.error });
+    if (!validateUuid(restaurant_id)) {
+      return res.status(400).json({ success: false, error: 'Invalid restaurant_id format' });
     }
 
-    const categoryValidation = validateUuid(category_id);
-    if (!categoryValidation.isValid) {
-      return res.status(400).json({ success: false, error: categoryValidation.error });
+    if (!validateUuid(category_id)) {
+      return res.status(400).json({ success: false, error: 'Invalid category_id format' });
     }
 
     // Проверяем, существует ли ресторан
@@ -148,9 +144,8 @@ export async function deleteRestaurantCategoryRelation(req: AuthenticatedRequest
   try {
     const { id } = req.params;
 
-    const validation = validateUuid(id);
-    if (!validation.isValid) {
-      return res.status(400).json({ success: false, error: validation.error });
+    if (!validateUuid(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid id format' });
     }
 
     const { error } = await supabase
@@ -178,14 +173,12 @@ export async function deleteRestaurantCategoryRelationByIds(req: AuthenticatedRe
   try {
     const { restaurant_id, category_id } = req.body;
 
-    const restaurantValidation = validateUuid(restaurant_id);
-    if (!restaurantValidation.isValid) {
-      return res.status(400).json({ success: false, error: restaurantValidation.error });
+    if (!validateUuid(restaurant_id)) {
+      return res.status(400).json({ success: false, error: 'Invalid restaurant_id format' });
     }
 
-    const categoryValidation = validateUuid(category_id);
-    if (!categoryValidation.isValid) {
-      return res.status(400).json({ success: false, error: categoryValidation.error });
+    if (!validateUuid(category_id)) {
+      return res.status(400).json({ success: false, error: 'Invalid category_id format' });
     }
 
     const { data, error } = await supabase
