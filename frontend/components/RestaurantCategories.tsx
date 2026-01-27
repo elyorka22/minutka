@@ -139,7 +139,12 @@ export default function RestaurantCategories({
             >
               <div className="relative p-2">
                 <div 
-                  className="relative w-20 h-20 rounded-full overflow-hidden transition-all"
+                  className={`relative w-20 h-20 rounded-full overflow-hidden transition-all ${
+                    // Если image_url это emoji (не URL), используем фон
+                    category.image_url && !category.image_url.startsWith('http') && !category.image_url.startsWith('/')
+                      ? 'bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-3xl'
+                      : ''
+                  }`}
                   style={{
                     boxShadow: selectedCategory === category.id
                       ? '0 0 0 4px rgb(249 115 22)'
@@ -156,12 +161,18 @@ export default function RestaurantCategories({
                     }
                   }}
                 >
-                  <Image
-                    src={category.image_url}
-                    alt={category.name}
-                    fill
-                    className="object-cover"
-                  />
+                  {category.image_url && !category.image_url.startsWith('http') && !category.image_url.startsWith('/') ? (
+                    // Если это emoji, показываем как текст
+                    <span>{category.image_url}</span>
+                  ) : (
+                    // Если это URL, показываем как изображение
+                    <Image
+                      src={category.image_url}
+                      alt={category.name}
+                      fill
+                      className="object-cover"
+                    />
+                  )}
                 </div>
               </div>
               <span className={`text-sm font-semibold text-center whitespace-nowrap ${
