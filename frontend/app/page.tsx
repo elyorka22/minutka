@@ -22,6 +22,7 @@ export default function Home() {
   const [appSlogan, setAppSlogan] = useState('Telegram orqali ovqat yetkazib berish');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [categoryRestaurantMap, setCategoryRestaurantMap] = useState<{ [categoryId: string]: string[] }>({});
 
   useEffect(() => {
     async function fetchData() {
