@@ -56,7 +56,7 @@ export default function RestaurantCategories({
         {/* Categories Carousel */}
         <div
           id="categories-carousel"
-          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-4"
+          className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth py-2 px-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {/* All Categories Button */}
@@ -69,7 +69,7 @@ export default function RestaurantCategories({
             }`}
           >
             {allCategoryImage && allCategoryImage.trim() !== '' ? (
-              <div className="relative">
+              <div className="relative p-2">
                 <div className={`relative w-20 h-20 rounded-full overflow-hidden ring-4 transition-all ${
                   selectedCategory === null
                     ? 'ring-primary-500'
@@ -92,12 +92,14 @@ export default function RestaurantCategories({
                 </div>
               </div>
             ) : (
-              <div className={`w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-3xl ring-4 transition-all ${
-                selectedCategory === null
-                  ? 'ring-primary-500'
-                  : 'ring-gray-200'
-              }`}>
-                🍽️
+              <div className="relative p-2">
+                <div className={`w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-3xl ring-4 transition-all ${
+                  selectedCategory === null
+                    ? 'ring-primary-500'
+                    : 'ring-gray-200'
+                }`}>
+                  🍽️
+                </div>
               </div>
             )}
             <span className={`text-sm font-semibold text-center ${
@@ -129,7 +131,7 @@ export default function RestaurantCategories({
                   : ''
               }`}
             >
-              <div className="relative">
+              <div className="relative p-2">
                 <div className={`relative w-20 h-20 rounded-full overflow-hidden ring-4 transition-all ${
                   selectedCategory === category.id
                     ? 'ring-primary-500'
