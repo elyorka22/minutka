@@ -23,13 +23,13 @@ export default function PharmacyStoreCard({ pharmacyStore }: PharmacyStoreCardPr
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow p-4">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow p-3 flex flex-col h-full">
       {/* Название */}
-      <h3 className="text-lg font-bold text-gray-900 mb-2">{pharmacyStore.name}</h3>
+      <h3 className="text-base font-bold text-gray-900 mb-1.5 line-clamp-1">{pharmacyStore.name}</h3>
 
       {/* Описание */}
       {pharmacyStore.description && (
-        <p className="text-sm text-gray-600 mb-2 line-clamp-2">{pharmacyStore.description}</p>
+        <p className="text-xs text-gray-600 mb-2 line-clamp-2 flex-1">{pharmacyStore.description}</p>
       )}
 
       {/* Время работы */}
@@ -41,22 +41,26 @@ export default function PharmacyStoreCard({ pharmacyStore }: PharmacyStoreCardPr
             const currentDay = dayNames[today.getDay()];
             const todayHours = pharmacyStore.working_hours[currentDay];
             return todayHours ? (
-              <p><span className="font-medium">Bugun:</span> {todayHours}</p>
+              <p className="truncate"><span className="font-medium">Bugun:</span> {todayHours}</p>
             ) : null;
           })()}
         </div>
       )}
 
-      {/* Телефон и кнопка звонка */}
-      <div className="mt-3 flex items-center justify-between">
-        <p className="text-sm font-medium text-gray-700">{pharmacyStore.phone}</p>
-        <button
-          onClick={handleCall}
-          className="px-4 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-sm flex items-center gap-2"
-        >
-          📞 Qo'ng'iroq qilish
-        </button>
+      {/* Телефон */}
+      <div className="mb-2">
+        <p className="text-xs text-gray-500 mb-0.5">Telefon:</p>
+        <p className="text-sm font-semibold text-gray-900 truncate">{pharmacyStore.phone}</p>
       </div>
+
+      {/* Кнопка звонка - компактная */}
+      <button
+        onClick={handleCall}
+        className="w-full mt-auto px-3 py-2 bg-green-500 text-white rounded-lg font-semibold hover:bg-green-600 transition-colors text-sm flex items-center justify-center gap-1.5"
+      >
+        <span>📞</span>
+        <span>Qo'ng'iroq</span>
+      </button>
     </div>
   );
 }
