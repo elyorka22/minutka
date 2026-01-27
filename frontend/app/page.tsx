@@ -40,19 +40,11 @@ export default function Home() {
         setFeaturedRestaurants(fetchedRestaurants.filter(r => r.is_featured));
         setBanners(fetchedBanners);
         
-        // Получаем слоган приложения и тексты баннера
+        // Получаем слоган приложения
         const appSloganSetting = botSettingsResponse.data?.find((s: any) => s.key === 'app_slogan');
-        const bannerTitleSetting = botSettingsResponse.data?.find((s: any) => s.key === 'banner_title');
-        const bannerSubtitleSetting = botSettingsResponse.data?.find((s: any) => s.key === 'banner_subtitle');
         
         if (appSloganSetting?.value) {
           setAppSlogan(appSloganSetting.value);
-        }
-        if (bannerTitleSetting?.value) {
-          setBannerTitle(bannerTitleSetting.value);
-        }
-        if (bannerSubtitleSetting?.value) {
-          setBannerSubtitle(bannerSubtitleSetting.value);
         }
       } catch (error) {
         console.error('Error loading data:', error);
