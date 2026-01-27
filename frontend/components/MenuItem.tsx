@@ -56,75 +56,73 @@ export default function MenuItem({ item }: MenuItemProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="flex items-stretch">
-        {item.image_url && (
-          <div className="relative w-32 md:w-40 flex-shrink-0">
-            <Image
-              src={item.image_url}
-              alt={item.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 128px, 160px"
-            />
-          </div>
-        )}
-        <div className="flex-1 p-4 flex flex-col">
-          {/* Название блюда (жирнее) */}
-          <h3 className="text-lg font-bold text-gray-900 mb-1">{item.name}</h3>
-          
-          {/* Цена (под названием, размер можно уменьшить) */}
-          <span className="text-base font-semibold text-primary-600 mb-2">
-            {item.price} сум
-          </span>
-          
-          {/* Описание (маленькими буквами, под ценой) */}
-          {item.description && (
-            <p className="text-xs text-gray-600 mb-2 leading-relaxed">{item.description}</p>
-          )}
-          
-          {/* Статус доступности */}
-          {!item.is_available && (
-            <span className="inline-block text-xs text-red-600 font-medium mb-2">
-              Mavjud emas
-            </span>
-          )}
-          
-          {/* Кнопка добавления / Счетчик количества (под описанием) */}
-          <div className="flex items-center justify-end mt-auto">
-            {!isExpanded && !cartItem ? (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+      {/* Картинка с плюсиком в правом нижнем углу */}
+      {item.image_url && (
+        <div className="relative w-full h-40 md:h-48">
+          <Image
+            src={item.image_url}
+            alt={item.name}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 50vw, 33vw"
+          />
+          {/* Плюсик в правом нижнем углу картинки */}
+          {!isExpanded && !cartItem ? (
+            <button
+              onClick={handleAddClick}
+              disabled={!item.is_available}
+              className="absolute bottom-2 right-2 bg-primary-500 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-primary-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed shadow-lg"
+              aria-label="Savatchaga qo'shish"
+            >
+              <span className="text-xl font-bold">+</span>
+            </button>
+          ) : (
+            <div className="absolute bottom-2 right-2 flex items-center gap-2 bg-white rounded-full px-2 py-1 shadow-lg">
               <button
-                onClick={handleAddClick}
+                onClick={handleDecrease}
+                className="bg-gray-200 text-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-300 transition-colors"
+                aria-label="Miqdorni kamaytirish"
+              >
+                <span className="text-lg font-bold">−</span>
+              </button>
+              <span className="text-base font-semibold text-gray-900 min-w-[1.5rem] text-center">
+                {cartItem?.quantity || 0}
+              </span>
+              <button
+                onClick={handleIncrease}
                 disabled={!item.is_available}
                 className="bg-primary-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-primary-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                aria-label="Savatchaga qo'shish"
+                aria-label="Miqdorni oshirish"
               >
-                <span className="text-xl font-bold">+</span>
+                <span className="text-lg font-bold">+</span>
               </button>
-            ) : (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleDecrease}
-                  className="bg-gray-200 text-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-300 transition-colors"
-                  aria-label="Miqdorni kamaytirish"
-                >
-                  <span className="text-lg font-bold">−</span>
-                </button>
-                <span className="text-lg font-semibold text-gray-900 min-w-[2rem] text-center">
-                  {cartItem?.quantity || 0}
-                </span>
-                <button
-                  onClick={handleIncrease}
-                  disabled={!item.is_available}
-                  className="bg-primary-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-primary-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  aria-label="Miqdorni oshirish"
-                >
-                  <span className="text-xl font-bold">+</span>
-                </button>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
+      )}
+      
+      {/* Контент под картинкой */}
+      <div className="p-3 flex flex-col flex-1">
+        {/* Цена (под картинкой) */}
+        <span className="text-base font-semibold text-primary-600 mb-1">
+          {item.price} сум
+        </span>
+        
+        {/* Название блюда (под ценой) */}
+        <h3 className="text-sm font-bold text-gray-900 mb-2 line-clamp-2">{item.name}</h3>
+        
+        {/* Описание (опционально, маленькими буквами) */}
+        {item.description && (
+          <p className="text-xs text-gray-600 mb-2 leading-relaxed line-clamp-2">{item.description}</p>
+        )}
+        
+        {/* Статус доступности */}
+        {!item.is_available && (
+          <span className="inline-block text-xs text-red-600 font-medium mt-auto">
+            Mavjud emas
+          </span>
+        )}
       </div>
     </div>
   );
