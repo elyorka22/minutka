@@ -92,8 +92,22 @@ export default function Home() {
     return <SplashScreen onFinish={() => setShowSplash(false)} isLoading={loading} />;
   }
 
+  // Добавляем категорию "Аптеки/магазины" в список категорий
+  const allCategories = [
+    ...categories,
+    ...(pharmaciesStores.length > 0 ? [{
+      id: 'pharmacies-stores',
+      name: 'Аптеки/Магазины',
+      image_url: '💊',
+    }] : [])
+  ];
+
   // Фильтрация ресторанов по категории и поисковому запросу
   const filteredRestaurants = restaurants.filter((r) => {
+    // Если выбрана категория "Аптеки/магазины", не показываем рестораны
+    if (selectedCategory === 'pharmacies-stores') {
+      return false;
+    }
     // Фильтр по категории (используем связи ресторан-категория)
     if (selectedCategory) {
       const restaurantIds = categoryRestaurantMap[selectedCategory] || [];
@@ -191,7 +205,7 @@ export default function Home() {
       {/* Restaurant Categories Carousel */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
         <RestaurantCategories
-          categories={categories}
+          categories={allCategories}
           selectedCategory={selectedCategory}
           onCategorySelect={setSelectedCategory}
           allCategoryImage={categories.find(c => c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all')?.image_url}
@@ -235,7 +249,7 @@ export default function Home() {
       )}
 
       {/* Pharmacies/Stores Section - внизу по умолчанию или при выборе категории */}
-      {pharmaciesStores.length > 0 && (
+      {pharmaciesStores.length > 0 && (!selectedCategory || selectedCategory === 'pharmacies-stores') && !searchQuery && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">💊 Аптеки/Магазины</h2>
           <div className="grid grid-cols-2 gap-4">
