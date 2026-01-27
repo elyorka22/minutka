@@ -17,15 +17,15 @@ export default function SplashScreen({ onFinish, isLoading = true }: SplashScree
   const [textVisible, setTextVisible] = useState(false);
 
   useEffect(() => {
-    // Минимальное время показа splash screen - 1 секунда (стандарт)
+    // Минимальное время показа splash screen - 0.5 секунды
     const minTimer = setTimeout(() => {
       setMinTimeElapsed(true);
-    }, 1000);
+    }, 500);
 
     // Анимация появления текста с небольшой задержкой
     const textTimer = setTimeout(() => {
       setTextVisible(true);
-    }, 100);
+    }, 50);
 
     return () => {
       clearTimeout(minTimer);
@@ -34,13 +34,13 @@ export default function SplashScreen({ onFinish, isLoading = true }: SplashScree
   }, []);
 
   useEffect(() => {
-    // Скрываем splash screen когда прошло минимум 1 секунда И данные загрузились
+    // Скрываем splash screen когда прошло минимум 0.5 секунды И данные загрузились
     if (minTimeElapsed && !isLoading) {
       setIsVisible(false);
       // Небольшая задержка для плавного исчезновения
       setTimeout(() => {
         onFinish();
-      }, 500);
+      }, 300);
     }
   }, [minTimeElapsed, isLoading, onFinish]);
 
