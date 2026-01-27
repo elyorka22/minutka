@@ -149,14 +149,13 @@ export default function Home() {
 
       {/* Top Banners Carousel */}
       {banners.length > 0 && (
-        <section className="px-4 sm:px-6 lg:px-8 pt-2 pb-8">
+        <section className="px-4 sm:px-6 lg:px-8 pt-2 pb-2">
           <BannerCarousel banners={banners} />
         </section>
       )}
 
       {/* Restaurant Categories Carousel */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Restoran kategoriyalari</h2>
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
         <RestaurantCategories
           categories={categories}
           selectedCategory={selectedCategory}
