@@ -140,7 +140,7 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
 // Компонент для отдельного слайда баннера
 function BannerSlide({ banner }: { banner: Banner }) {
   return (
-    <div className="relative w-full h-64 md:h-80 lg:h-96">
+    <div className="relative w-full h-40 md:h-48 lg:h-56">
       {banner.image_url && (
         <Image
           src={banner.image_url}
@@ -151,8 +151,8 @@ function BannerSlide({ banner }: { banner: Banner }) {
         />
       )}
       {banner.title && (
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-6">
-          <h3 className="text-white text-xl md:text-2xl font-bold">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent p-3 md:p-4">
+          <h3 className="text-white text-base md:text-lg font-bold">
             {banner.title}
           </h3>
         </div>
