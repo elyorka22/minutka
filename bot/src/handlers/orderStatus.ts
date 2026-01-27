@@ -130,12 +130,12 @@ export async function orderStatusHandler(
     }
 
     // Уведомляем пользователя об изменении статуса
-    await notifyUserAboutOrderStatus(order.user_id, orderId, newStatus);
+    await notifyUserAboutOrderStatus(order.user_id, orderId, 'ready');
 
     // Уведомляем супер-админов об изменении статуса
     const restaurant: any = await apiRequest(`/api/restaurants/${order.restaurant_id}`);
     const restaurantName = restaurant?.name || 'Noma\'lum restoran';
-    await notifySuperAdminsAboutOrderStatusChange(orderId, newStatus, {
+    await notifySuperAdminsAboutOrderStatusChange(orderId, 'ready', {
       restaurantName,
       orderText: order.order_text
     });
