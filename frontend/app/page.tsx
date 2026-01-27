@@ -45,11 +45,12 @@ export default function Home() {
       setLoading(true);
       try {
         // Загружаем все данные из API
-        const [fetchedCategories, restaurantsResult, fetchedBanners, botSettingsResponse] = await Promise.all([
+        const [fetchedCategories, restaurantsResult, fetchedBanners, botSettingsResponse, fetchedPharmaciesStores] = await Promise.all([
           getCategories(),
           getRestaurants(),
           getBanners('homepage'),
-          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}/api/bot-settings`).then(r => r.json()).catch(() => ({ data: [] }))
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}/api/bot-settings`).then(r => r.json()).catch(() => ({ data: [] })),
+          getPharmaciesStores(true).catch(() => [])
         ]);
 
         const fetchedRestaurants = restaurantsResult.data;
