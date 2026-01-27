@@ -39,7 +39,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
       orderText += `${cartItem.item.name} x${cartItem.quantity} - ${cartItem.item.price * cartItem.quantity} so'm\n`;
     });
     
-    orderText += `\n💰 Jami: ${totalPrice} сум\n`;
+    orderText += `\n💰 Jami: ${totalPrice} so'm\n`;
     
     if (name) {
       orderText += `\n👤 Ism: ${name}\n`;
