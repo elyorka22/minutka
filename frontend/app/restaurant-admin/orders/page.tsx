@@ -38,6 +38,7 @@ export default function RestaurantAdminOrdersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<any>(null);
   const pageSize = 20;
+  const { showSuccess, showError } = useToast();
 
   useEffect(() => {
     async function fetchOrders() {
