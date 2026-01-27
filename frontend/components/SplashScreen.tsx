@@ -17,10 +17,10 @@ export default function SplashScreen({ onFinish, isLoading = true }: SplashScree
   const [textVisible, setTextVisible] = useState(false);
 
   useEffect(() => {
-    // Минимальное время показа splash screen - 0.5 секунды
+    // Минимальное время показа splash screen - 0.3 секунды
     const minTimer = setTimeout(() => {
       setMinTimeElapsed(true);
-    }, 500);
+    }, 300);
 
     // Анимация появления текста с небольшой задержкой
     const textTimer = setTimeout(() => {
@@ -34,13 +34,13 @@ export default function SplashScreen({ onFinish, isLoading = true }: SplashScree
   }, []);
 
   useEffect(() => {
-    // Скрываем splash screen когда прошло минимум 0.5 секунды И данные загрузились
+    // Скрываем splash screen когда прошло минимум 0.3 секунды И данные загрузились
     if (minTimeElapsed && !isLoading) {
       setIsVisible(false);
       // Небольшая задержка для плавного исчезновения
       setTimeout(() => {
         onFinish();
-      }, 300);
+      }, 200);
     }
   }, [minTimeElapsed, isLoading, onFinish]);
 
@@ -50,55 +50,32 @@ export default function SplashScreen({ onFinish, isLoading = true }: SplashScree
 
   return (
     <div
-      className={`fixed inset-0 bg-gradient-to-br from-orange-500 via-orange-600 to-orange-700 z-50 flex items-center justify-center transition-opacity duration-500 ${
+      className={`fixed inset-0 bg-white z-50 flex items-center justify-center transition-opacity duration-300 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
     >
       <div className="text-center">
-        {/* Иконка еды с анимацией */}
-        <div
-          className={`mb-6 transition-all duration-700 ease-out ${
-            textVisible
-              ? 'opacity-100 scale-100 rotate-0'
-              : 'opacity-0 scale-50 rotate-12'
-          }`}
-        >
-          <div className="text-8xl md:text-9xl">🍽️</div>
-        </div>
-
         {/* Текст MINUTKA с анимацией */}
         <h1
-          className={`text-6xl md:text-8xl font-extrabold text-white transition-all duration-700 ease-out ${
+          className={`text-6xl md:text-8xl font-extrabold text-orange-500 transition-all duration-500 ease-out ${
             textVisible
               ? 'opacity-100 translate-y-0 scale-100'
               : 'opacity-0 translate-y-8 scale-95'
           }`}
           style={{
-            textShadow: '0 4px 20px rgba(0, 0, 0, 0.3)',
             letterSpacing: '0.1em',
           }}
         >
           MINUTKA
         </h1>
 
-        {/* Подзаголовок с анимацией */}
-        <p
-          className={`mt-4 text-xl md:text-2xl text-orange-100 font-medium transition-all duration-700 ease-out delay-200 ${
-            textVisible
-              ? 'opacity-100 translate-y-0'
-              : 'opacity-0 translate-y-4'
-          }`}
-        >
-          Ovqat yetkazib berish
-        </p>
-
-        {/* Индикатор загрузки */}
+        {/* Индикатор загрузки - анимационные точки */}
         <div className="mt-8 flex justify-center">
           <div className="flex space-x-2">
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className={`w-2 h-2 bg-white rounded-full transition-all duration-300 ${
+                className={`w-3 h-3 bg-orange-500 rounded-full transition-all duration-300 ${
                   textVisible ? 'opacity-100' : 'opacity-0'
                 }`}
                 style={{
