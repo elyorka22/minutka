@@ -70,9 +70,9 @@ export default function CategoriesPage() {
       // Сортируем категории так, чтобы "Все"/"Hammasi" была первой
       let categoriesList = data.data || [];
       
-      // Проверяем, есть ли категория "Аптеки/Магазины"
+      // Проверяем, есть ли категория "Dorixonalar" (Аптеки)
       const pharmaciesCategory = categoriesList.find((c: Category) => 
-        c.name === 'Аптеки/Магазины' || c.name === 'Pharmacies/Stores' || c.id === 'pharmacies-stores'
+        c.name === 'Dorixonalar' || c.name === 'Аптеки/Магазины' || c.name === 'Pharmacies/Stores' || c.id === 'pharmacies-stores'
       );
       
       // Если категории нет, создаем её автоматически
@@ -84,7 +84,7 @@ export default function CategoriesPage() {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              name: 'Аптеки/Магазины',
+              name: 'Dorixonalar',
               image_url: '💊', // Временная эмодзи, можно будет заменить на картинку
               display_order: categoriesList.length,
               is_active: true,
@@ -97,6 +97,36 @@ export default function CategoriesPage() {
           }
         } catch (error) {
           console.error('Error creating pharmacies category:', error);
+        }
+      }
+      
+      // Проверяем, есть ли категория "Do'konlar" (Магазины)
+      const storesCategory = categoriesList.find((c: Category) => 
+        c.name === 'Do\'konlar' || c.name === 'Магазины' || c.name === 'Stores' || c.id === 'stores'
+      );
+      
+      // Если категории нет, создаем её автоматически
+      if (!storesCategory) {
+        try {
+          const createResponse = await fetch(`${API_BASE_URL}/api/categories`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: 'Do\'konlar',
+              image_url: '🛒', // Временная эмодзи, можно будет заменить на картинку
+              display_order: categoriesList.length + 1,
+              is_active: true,
+            }),
+          });
+          
+          if (createResponse.ok) {
+            const newCategory = await createResponse.json();
+            categoriesList.push(newCategory.data);
+          }
+        } catch (error) {
+          console.error('Error creating stores category:', error);
         }
       }
       

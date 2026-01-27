@@ -93,19 +93,37 @@ export default function Home() {
     return <SplashScreen onFinish={() => setShowSplash(false)} isLoading={loading} />;
   }
 
-  // Используем категории из базы данных (включая "Аптеки/Магазины", если она создана)
+  // Используем категории из базы данных
   const allCategories = categories;
   
-  // Находим категорию "Аптеки/Магазины" в списке
+  // Находим категорию "Dorixonalar" (Аптеки) в списке
   const pharmaciesCategory = categories.find(c => 
-    c.name === 'Аптеки/Магазины' || c.name === 'Pharmacies/Stores' || c.id === 'pharmacies-stores'
+    c.name === 'Dorixonalar' || c.name === 'Аптеки/Магазины' || c.name === 'Pharmacies/Stores' || c.id === 'pharmacies-stores'
+  );
+  
+  // Находим категорию "Do'konlar" (Магазины) в списке
+  const storesCategory = categories.find(c => 
+    c.name === 'Do\'konlar' || c.name === 'Магазины' || c.name === 'Stores' || c.id === 'stores'
+  );
+  
+  // Разделяем аптеки и магазины (пока по названию, можно добавить поле type в будущем)
+  const pharmacies = pharmaciesStores.filter(ps => 
+    ps.name?.toLowerCase().includes('apteka') || 
+    ps.name?.toLowerCase().includes('аптека') ||
+    ps.name?.toLowerCase().includes('pharmacy') ||
+    ps.description?.toLowerCase().includes('apteka') ||
+    ps.description?.toLowerCase().includes('аптека')
+  );
+  const stores = pharmaciesStores.filter(ps => 
+    !pharmacies.includes(ps)
   );
 
   // Фильтрация ресторанов по категории и поисковому запросу
   const filteredRestaurants = restaurants.filter((r) => {
-    // Если выбрана категория "Аптеки/магазины", не показываем рестораны
+    // Если выбрана категория аптек или магазинов, не показываем рестораны
     if (selectedCategory === 'pharmacies-stores' || 
-        (pharmaciesCategory && selectedCategory === pharmaciesCategory.id)) {
+        (pharmaciesCategory && selectedCategory === pharmaciesCategory.id) ||
+        (storesCategory && selectedCategory === storesCategory.id)) {
       return false;
     }
     // Фильтр по категории (используем связи ресторан-категория)
@@ -226,7 +244,8 @@ export default function Home() {
 
       {/* All Restaurants or Filtered by Category */}
       {selectedCategory !== 'pharmacies-stores' && 
-       !(pharmaciesCategory && selectedCategory === pharmaciesCategory.id) && (
+       !(pharmaciesCategory && selectedCategory === pharmaciesCategory.id) &&
+       !(storesCategory && selectedCategory === storesCategory.id) && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             {searchQuery
@@ -249,16 +268,30 @@ export default function Home() {
         </section>
       )}
 
-      {/* Pharmacies/Stores Section - внизу по умолчанию или при выборе категории */}
-      {pharmaciesStores.length > 0 && 
+      {/* Pharmacies Section - показываем при выборе категории Dorixonalar или по умолчанию */}
+      {pharmacies.length > 0 && 
        (!selectedCategory || 
         selectedCategory === 'pharmacies-stores' || 
         (pharmaciesCategory && selectedCategory === pharmaciesCategory.id)) && 
        !searchQuery && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">💊 Аптеки/Магазины</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">💊 Dorixonalar</h2>
           <div className="grid grid-cols-2 gap-4">
-            {pharmaciesStores.map((pharmacyStore) => (
+            {pharmacies.map((pharmacyStore) => (
+              <PharmacyStoreCard key={pharmacyStore.id} pharmacyStore={pharmacyStore} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Stores Section - показываем при выборе категории Do'konlar */}
+      {stores.length > 0 && 
+       (storesCategory && selectedCategory === storesCategory.id) && 
+       !searchQuery && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">🛒 Do'konlar</h2>
+          <div className="grid grid-cols-2 gap-4">
+            {stores.map((pharmacyStore) => (
               <PharmacyStoreCard key={pharmacyStore.id} pharmacyStore={pharmacyStore} />
             ))}
           </div>

@@ -144,7 +144,7 @@ export default function PharmaciesStoresPage() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">💊 Аптеки/Магазины</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">💊 Dorixonalar / 🛒 Do'konlar</h1>
         <button
           onClick={() => {
             setShowAddForm(true);
@@ -319,7 +319,7 @@ export default function PharmaciesStoresPage() {
 
       {pharmaciesStores.length === 0 && (
         <div className="text-center py-12 text-gray-500">
-          Аптеки/магазины не найдены. Добавьте первую аптеку/магазин.
+          Dorixonalar/Do'konlar topilmadi. Birinchi dorixona/do'kon qo'shing.
         </div>
       )}
     </div>
