@@ -70,11 +70,14 @@ export default function RestaurantCategories({
           >
             {allCategoryImage && allCategoryImage.trim() !== '' ? (
               <div className="relative p-2">
-                <div className={`relative w-20 h-20 rounded-full overflow-hidden ring-4 transition-all ${
-                  selectedCategory === null
-                    ? 'ring-primary-500'
-                    : 'ring-gray-200 hover:ring-primary-300'
-                }`}>
+                <div 
+                  className="relative w-20 h-20 rounded-full overflow-hidden transition-all"
+                  style={{
+                    boxShadow: selectedCategory === null 
+                      ? '0 0 0 4px rgb(249 115 22)' 
+                      : '0 0 0 4px rgb(229 231 235)'
+                  }}
+                >
                   <Image
                     src={allCategoryImage}
                     alt="Hammasi"
@@ -93,11 +96,14 @@ export default function RestaurantCategories({
               </div>
             ) : (
               <div className="relative p-2">
-                <div className={`w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-3xl ring-4 transition-all ${
-                  selectedCategory === null
-                    ? 'ring-primary-500'
-                    : 'ring-gray-200'
-                }`}>
+                <div 
+                  className="w-20 h-20 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-3xl transition-all"
+                  style={{
+                    boxShadow: selectedCategory === null 
+                      ? '0 0 0 4px rgb(249 115 22)' 
+                      : '0 0 0 4px rgb(229 231 235)'
+                  }}
+                >
                   🍽️
                 </div>
               </div>
@@ -132,11 +138,24 @@ export default function RestaurantCategories({
               }`}
             >
               <div className="relative p-2">
-                <div className={`relative w-20 h-20 rounded-full overflow-hidden ring-4 transition-all ${
-                  selectedCategory === category.id
-                    ? 'ring-primary-500'
-                    : 'ring-gray-200 hover:ring-primary-300'
-                }`}>
+                <div 
+                  className="relative w-20 h-20 rounded-full overflow-hidden transition-all"
+                  style={{
+                    boxShadow: selectedCategory === category.id
+                      ? '0 0 0 4px rgb(249 115 22)'
+                      : '0 0 0 4px rgb(229 231 235)'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (selectedCategory !== category.id) {
+                      e.currentTarget.style.boxShadow = '0 0 0 4px rgb(251 146 60)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (selectedCategory !== category.id) {
+                      e.currentTarget.style.boxShadow = '0 0 0 4px rgb(229 231 235)';
+                    }
+                  }}
+                >
                   <Image
                     src={category.image_url}
                     alt={category.name}
