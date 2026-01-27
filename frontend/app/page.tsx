@@ -211,26 +211,40 @@ export default function Home() {
       )}
 
       {/* All Restaurants or Filtered by Category */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          {searchQuery
-            ? `🔍 Qidiruv natijalari: "${searchQuery}"`
-            : selectedCategory
-            ? `${categories.find(c => c.id === selectedCategory)?.name || 'Restoranlar'}`
-            : '📋 Barcha restoranlar'}
-        </h2>
-        {filteredRestaurants.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            Restoranlar topilmadi
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:gap-6">
-            {filteredRestaurants.map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+      {selectedCategory !== 'pharmacies-stores' && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            {searchQuery
+              ? `🔍 Qidiruv natijalari: "${searchQuery}"`
+              : selectedCategory
+              ? `${categories.find(c => c.id === selectedCategory)?.name || 'Restoranlar'}`
+              : '📋 Barcha restoranlar'}
+          </h2>
+          {filteredRestaurants.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              Restoranlar topilmadi
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:gap-6">
+              {filteredRestaurants.map((restaurant) => (
+                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Pharmacies/Stores Section - внизу по умолчанию или при выборе категории */}
+      {pharmaciesStores.length > 0 && (!selectedCategory || selectedCategory === 'pharmacies-stores') && !searchQuery && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">💊 Аптеки/Магазины</h2>
+          <div className="grid grid-cols-2 gap-4">
+            {pharmaciesStores.map((pharmacyStore) => (
+              <PharmacyStoreCard key={pharmacyStore.id} pharmacyStore={pharmacyStore} />
             ))}
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-8 mt-12">
