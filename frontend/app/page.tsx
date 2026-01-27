@@ -155,7 +155,7 @@ export default function Home() {
       )}
 
       {/* Restaurant Categories Carousel */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
         <RestaurantCategories
           categories={categories}
           selectedCategory={selectedCategory}
@@ -166,7 +166,7 @@ export default function Home() {
 
       {/* Featured Restaurants (TOP) */}
       {!selectedCategory && !searchQuery && featuredRestaurants.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">⭐ Top restoranlar</h2>
           <div className="grid grid-cols-1 gap-4 md:gap-6">
             {featuredRestaurants.map((restaurant) => (
@@ -177,7 +177,7 @@ export default function Home() {
       )}
 
       {/* All Restaurants or Filtered by Category */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
           {searchQuery
             ? `🔍 Qidiruv natijalari: "${searchQuery}"`
