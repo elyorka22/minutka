@@ -6,11 +6,11 @@ import rateLimit from 'express-rate-limit';
 
 /**
  * Общий rate limiter для всех API запросов
- * 200 запросов за 15 минут (увеличено)
+ * 1000 запросов за 15 минут (стандартное значение для веб-приложений)
  */
 export const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 минут
-  max: 200, // максимум 200 запросов за окно
+  max: 1000, // максимум 1000 запросов за окно (примерно 66 запросов в минуту)
   message: {
     success: false,
     error: 'Too many requests from this IP, please try again later.',
