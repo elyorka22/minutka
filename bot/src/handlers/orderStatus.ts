@@ -27,16 +27,41 @@ export async function orderStatusHandler(
       return;
     }
 
+    console.log(`[orderStatusHandler] Processing order ${orderId}, action: ${action}, telegramId: ${telegramId}`);
+
     // Сначала проверяем, является ли пользователь активным поваром
-    const { data: chef } = await supabase
+    // Supabase автоматически конвертирует числа в BigInt для полей типа BIGINT
+    const { data: chef, error: chefError } = await supabase
       .from('chefs')
       .select('*')
       .eq('telegram_id', telegramId)
       .eq('is_active', true)
       .maybeSingle();
 
+    if (chefError) {
+      console.error('[orderStatusHandler] Error fetching chef:', chefError);
+      await ctx.answerCbQuery('Xatolik yuz berdi. Iltimos, qayta urinib ko\'ring.');
+      return;
+    }
+
+    console.log(`[orderStatusHandler] Chef lookup result:`, { 
+      found: !!chef, 
+      chefId: chef?.id,
+      restaurantId: chef?.restaurant_id,
+      isActive: chef?.is_active
+    });
+
     if (!chef) {
-      await ctx.answerCbQuery('Sizda bu buyurtmani boshqarish huquqi yo\'q');
+      console.log(`[orderStatusHandler] Chef not found or inactive for telegramId: ${telegramId}`);
+      // Попробуем найти повара без фильтра is_active для диагностики
+      const { data: chefDebug } = await supabase
+        .from('chefs')
+        .select('*')
+        .eq('telegram_id', telegramId)
+        .maybeSingle();
+      console.log(`[orderStatusHandler] Chef debug (without is_active filter):`, chefDebug);
+      
+      await ctx.answerCbQuery('Sizda bu buyurtmani boshqarish huquqi yo\'q. Iltimos, super-admin bilan bog\'laning.');
       return;
     }
 
@@ -47,6 +72,17 @@ export async function orderStatusHandler(
       .eq('id', orderId)
       .single();
 
+    console.log(`[orderStatusHandler] Order lookup result:`, { 
+      found: !!order, 
+      error: orderError,
+      orderRestaurantId: order?.restaurant_id,
+      chefRestaurantId: chef.restaurant_id
+    });
+
+    if (orderError) {
+      console.error('[orderStatusHandler] Error fetching order:', orderError);
+    }
+
     if (orderError || !order) {
       await ctx.answerCbQuery('Buyurtma topilmadi');
       return;
@@ -54,6 +90,7 @@ export async function orderStatusHandler(
 
     // Проверяем, что заказ принадлежит ресторану повара
     if (order.restaurant_id !== chef.restaurant_id) {
+      console.log(`[orderStatusHandler] Restaurant mismatch: order belongs to ${order.restaurant_id}, chef belongs to ${chef.restaurant_id}`);
       await ctx.answerCbQuery('Sizda bu buyurtmani boshqarish huquqi yo\'q');
       return;
     }
