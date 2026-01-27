@@ -93,20 +93,19 @@ export default function Home() {
     return <SplashScreen onFinish={() => setShowSplash(false)} isLoading={loading} />;
   }
 
-  // Добавляем категорию "Аптеки/магазины" в список категорий
-  const allCategories = [
-    ...categories,
-    ...(pharmaciesStores.length > 0 ? [{
-      id: 'pharmacies-stores',
-      name: 'Аптеки/Магазины',
-      image_url: '💊',
-    }] : [])
-  ];
+  // Используем категории из базы данных (включая "Аптеки/Магазины", если она создана)
+  const allCategories = categories;
+  
+  // Находим категорию "Аптеки/Магазины" в списке
+  const pharmaciesCategory = categories.find(c => 
+    c.name === 'Аптеки/Магазины' || c.name === 'Pharmacies/Stores' || c.id === 'pharmacies-stores'
+  );
 
   // Фильтрация ресторанов по категории и поисковому запросу
   const filteredRestaurants = restaurants.filter((r) => {
     // Если выбрана категория "Аптеки/магазины", не показываем рестораны
-    if (selectedCategory === 'pharmacies-stores') {
+    if (selectedCategory === 'pharmacies-stores' || 
+        (pharmaciesCategory && selectedCategory === pharmaciesCategory.id)) {
       return false;
     }
     // Фильтр по категории (используем связи ресторан-категория)
@@ -226,7 +225,8 @@ export default function Home() {
       )}
 
       {/* All Restaurants or Filtered by Category */}
-      {selectedCategory !== 'pharmacies-stores' && (
+      {selectedCategory !== 'pharmacies-stores' && 
+       !(pharmaciesCategory && selectedCategory === pharmaciesCategory.id) && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             {searchQuery
@@ -250,7 +250,11 @@ export default function Home() {
       )}
 
       {/* Pharmacies/Stores Section - внизу по умолчанию или при выборе категории */}
-      {pharmaciesStores.length > 0 && (!selectedCategory || selectedCategory === 'pharmacies-stores') && !searchQuery && (
+      {pharmaciesStores.length > 0 && 
+       (!selectedCategory || 
+        selectedCategory === 'pharmacies-stores' || 
+        (pharmaciesCategory && selectedCategory === pharmaciesCategory.id)) && 
+       !searchQuery && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">💊 Аптеки/Магазины</h2>
           <div className="grid grid-cols-2 gap-4">
