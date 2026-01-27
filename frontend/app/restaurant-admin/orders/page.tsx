@@ -6,12 +6,11 @@
 
 import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
-import { getOrders } from '@/lib/api';
+import { getOrders, updateOrderStatus } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { handleApiError } from '@/lib/errorHandler';
+import { useToast } from '@/contexts/ToastContext';
 import Pagination from '@/components/Pagination';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 const statusLabels: Record<OrderStatus, string> = {
   pending: 'В ожидании',
@@ -62,29 +61,16 @@ export default function RestaurantAdminOrdersPage() {
 
   const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update order status');
-      }
-
-      const data = await response.json();
-      if (data.success) {
-        setOrders(
-          orders.map((order) =>
-            order.id === orderId ? { ...order, status: newStatus, updated_at: new Date().toISOString() } : order
-          )
-        );
-      }
+      const updatedOrder = await updateOrderStatus(orderId, newStatus);
+      setOrders(
+        orders.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus, updated_at: updatedOrder.updated_at } : order
+        )
+      );
+      showSuccess('Статус заказа успешно обновлен');
     } catch (error) {
       console.error('Error updating order status:', error);
-      alert(handleApiError(error));
+      showError(handleApiError(error));
     }
   };
 
