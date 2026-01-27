@@ -7,11 +7,14 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
-import { getRestaurants } from '@/lib/api';
+import { getRestaurants, getPharmaciesStores } from '@/lib/api';
 import {
   getRestaurantCategoryRelations,
   createRestaurantCategoryRelation,
   deleteRestaurantCategoryRelationByIds,
+  getPharmacyStoreCategoryRelations,
+  createPharmacyStoreCategoryRelation,
+  deletePharmacyStoreCategoryRelationByIds,
 } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -31,11 +34,19 @@ interface Restaurant {
   image_url: string | null;
 }
 
+interface PharmacyStore {
+  id: string;
+  name: string;
+  phone: string;
+  description?: string;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
+  const [pharmaciesStores, setPharmaciesStores] = useState<PharmacyStore[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);
   const [editingImage, setEditingImage] = useState<string | null>(null);
@@ -43,6 +54,8 @@ export default function CategoriesPage() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showRestaurantModal, setShowRestaurantModal] = useState<string | null>(null);
   const [categoryRestaurants, setCategoryRestaurants] = useState<{ [key: string]: string[] }>({});
+  const [categoryPharmaciesStores, setCategoryPharmaciesStores] = useState<{ [key: string]: string[] }>({});
+  const [modalTab, setModalTab] = useState<'restaurants' | 'pharmacies'>('restaurants');
   const [formData, setFormData] = useState({
     name: '',
     image_url: '',
@@ -55,11 +68,13 @@ export default function CategoriesPage() {
   useEffect(() => {
     fetchCategories();
     fetchRestaurants();
+    fetchPharmaciesStores();
   }, []);
 
   useEffect(() => {
     if (categories.length > 0) {
       fetchCategoryRestaurants();
+      fetchCategoryPharmaciesStores();
     }
   }, [categories]);
 
@@ -153,6 +168,17 @@ export default function CategoriesPage() {
     }
   };
 
+  const fetchPharmaciesStores = async () => {
+    try {
+      const result = await getPharmaciesStores();
+      console.log('Fetched pharmacies/stores:', result); // Debug log
+      setPharmaciesStores(Array.isArray(result) ? result : []);
+    } catch (error) {
+      console.error('Error fetching pharmacies/stores:', error);
+      setPharmaciesStores([]);
+    }
+  };
+
   const fetchCategoryRestaurants = async () => {
     try {
       const relations: { [key: string]: string[] } = {};
@@ -163,6 +189,19 @@ export default function CategoriesPage() {
       setCategoryRestaurants(relations);
     } catch (error) {
       console.error('Error fetching category restaurants:', error);
+    }
+  };
+
+  const fetchCategoryPharmaciesStores = async () => {
+    try {
+      const relations: { [key: string]: string[] } = {};
+      for (const category of categories) {
+        const categoryRels = await getPharmacyStoreCategoryRelations(undefined, category.id);
+        relations[category.id] = categoryRels.map((rel: any) => rel.pharmacy_store_id);
+      }
+      setCategoryPharmaciesStores(relations);
+    } catch (error) {
+      console.error('Error fetching category pharmacies/stores:', error);
     }
   };
 
@@ -193,6 +232,37 @@ export default function CategoriesPage() {
       setCategoryRestaurants(updated);
     } catch (error: any) {
       console.error('Error toggling restaurant:', error);
+      showError('Ошибка при изменении связи');
+    }
+  };
+
+  const handleTogglePharmacyStore = async (categoryId: string, pharmacyStoreId: string) => {
+    try {
+      const isAttached = categoryPharmaciesStores[categoryId]?.includes(pharmacyStoreId);
+      
+      if (isAttached) {
+        // Удаляем связь
+        await deletePharmacyStoreCategoryRelationByIds(pharmacyStoreId, categoryId);
+        showSuccess('Аптека/магазин отвязан от категории');
+      } else {
+        // Создаем связь
+        await createPharmacyStoreCategoryRelation(pharmacyStoreId, categoryId);
+        showSuccess('Аптека/магазин привязан к категории');
+      }
+      
+      // Обновляем локальное состояние
+      const updated = { ...categoryPharmaciesStores };
+      if (!updated[categoryId]) {
+        updated[categoryId] = [];
+      }
+      if (isAttached) {
+        updated[categoryId] = updated[categoryId].filter(id => id !== pharmacyStoreId);
+      } else {
+        updated[categoryId] = [...updated[categoryId], pharmacyStoreId];
+      }
+      setCategoryPharmaciesStores(updated);
+    } catch (error: any) {
+      console.error('Error toggling pharmacy/store:', error);
       showError('Ошибка при изменении связи');
     }
   };
@@ -555,17 +625,19 @@ export default function CategoriesPage() {
               </div>
               <div className="text-sm text-gray-600 mb-2">
                 <p>Привязано ресторанов: {categoryRestaurants[category.id]?.length || 0}</p>
+                <p>Привязано аптек/магазинов: {categoryPharmaciesStores[category.id]?.length || 0}</p>
               </div>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <button
                   onClick={() => {
                     setShowRestaurantModal(category.id);
+                    setModalTab('restaurants'); // Сбрасываем вкладку на рестораны при открытии
                     setEditing(null);
                     setShowAddForm(false);
                   }}
                   className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors text-sm"
                 >
-                  🏪 Рестораны ({categoryRestaurants[category.id]?.length || 0})
+                  🏪 Рестораны/Аптеки ({categoryRestaurants[category.id]?.length || 0}/{categoryPharmaciesStores[category.id]?.length || 0})
                 </button>
                 <button
                   onClick={() => handleEditImage(category)}
@@ -601,68 +673,139 @@ export default function CategoriesPage() {
         </div>
       )}
 
-      {/* Modal for managing restaurants in category */}
+      {/* Modal for managing restaurants and pharmacies/stores in category */}
       {showRestaurantModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
             <div className="p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-900">
-                Рестораны в категории "{categories.find(c => c.id === showRestaurantModal)?.name}"
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Элементы в категории "{categories.find(c => c.id === showRestaurantModal)?.name}"
               </h2>
+              {/* Tabs */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setModalTab('restaurants')}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                    modalTab === 'restaurants'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  🏪 Рестораны ({categoryRestaurants[showRestaurantModal]?.length || 0})
+                </button>
+                <button
+                  onClick={() => setModalTab('pharmacies')}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                    modalTab === 'pharmacies'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  }`}
+                >
+                  💊 Аптеки/Магазины ({categoryPharmaciesStores[showRestaurantModal]?.length || 0})
+                </button>
+              </div>
             </div>
             <div className="p-6 overflow-y-auto flex-1">
-              {restaurants.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  Рестораны не найдены
-                </div>
+              {modalTab === 'restaurants' ? (
+                restaurants.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    Рестораны не найдены
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {restaurants.map((restaurant) => {
+                      const isAttached = categoryRestaurants[showRestaurantModal]?.includes(restaurant.id);
+                      return (
+                        <div
+                          key={restaurant.id}
+                          className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
+                            isAttached
+                              ? 'bg-blue-50 border-blue-300'
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                          onClick={() => handleToggleRestaurant(showRestaurantModal, restaurant.id)}
+                        >
+                          <div className="flex-shrink-0">
+                            {restaurant.image_url ? (
+                              <Image
+                                src={restaurant.image_url}
+                                alt={restaurant.name}
+                                width={60}
+                                height={60}
+                                className="rounded-lg object-cover"
+                              />
+                            ) : (
+                              <div className="w-15 h-15 bg-gray-200 rounded-lg flex items-center justify-center">
+                                <span className="text-gray-400">🍽️</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">{restaurant.name}</h3>
+                          </div>
+                          <div className="flex-shrink-0">
+                            {isAttached ? (
+                              <span className="text-green-600 font-semibold">✓ Привязан</span>
+                            ) : (
+                              <span className="text-gray-400">Не привязан</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )
               ) : (
-                <div className="space-y-3">
-                  {restaurants.map((restaurant) => {
-                    const isAttached = categoryRestaurants[showRestaurantModal]?.includes(restaurant.id);
-                    return (
-                      <div
-                        key={restaurant.id}
-                        className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
-                          isAttached
-                            ? 'bg-blue-50 border-blue-300'
-                            : 'bg-white border-gray-200 hover:bg-gray-50'
-                        }`}
-                        onClick={() => handleToggleRestaurant(showRestaurantModal, restaurant.id)}
-                      >
-                        <div className="flex-shrink-0">
-                          {restaurant.image_url ? (
-                            <Image
-                              src={restaurant.image_url}
-                              alt={restaurant.name}
-                              width={60}
-                              height={60}
-                              className="rounded-lg object-cover"
-                            />
-                          ) : (
+                pharmaciesStores.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    Аптеки/магазины не найдены
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {pharmaciesStores.map((pharmacyStore) => {
+                      const isAttached = categoryPharmaciesStores[showRestaurantModal]?.includes(pharmacyStore.id);
+                      return (
+                        <div
+                          key={pharmacyStore.id}
+                          className={`flex items-center gap-4 p-4 border rounded-lg cursor-pointer transition-colors ${
+                            isAttached
+                              ? 'bg-blue-50 border-blue-300'
+                              : 'bg-white border-gray-200 hover:bg-gray-50'
+                          }`}
+                          onClick={() => handleTogglePharmacyStore(showRestaurantModal, pharmacyStore.id)}
+                        >
+                          <div className="flex-shrink-0">
                             <div className="w-15 h-15 bg-gray-200 rounded-lg flex items-center justify-center">
-                              <span className="text-gray-400">🍽️</span>
+                              <span className="text-gray-400">💊</span>
                             </div>
-                          )}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900">{pharmacyStore.name}</h3>
+                            {pharmacyStore.description && (
+                              <p className="text-sm text-gray-600 mt-1 line-clamp-1">{pharmacyStore.description}</p>
+                            )}
+                            <p className="text-xs text-gray-500 mt-1">📞 {pharmacyStore.phone}</p>
+                          </div>
+                          <div className="flex-shrink-0">
+                            {isAttached ? (
+                              <span className="text-green-600 font-semibold">✓ Привязан</span>
+                            ) : (
+                              <span className="text-gray-400">Не привязан</span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{restaurant.name}</h3>
-                        </div>
-                        <div className="flex-shrink-0">
-                          {isAttached ? (
-                            <span className="text-green-600 font-semibold">✓ Привязан</span>
-                          ) : (
-                            <span className="text-gray-400">Не привязан</span>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )
               )}
             </div>
             <div className="p-6 border-t">
               <button
-                onClick={() => setShowRestaurantModal(null)}
+                onClick={() => {
+                  setShowRestaurantModal(null);
+                  setModalTab('restaurants');
+                }}
                 className="w-full px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
               >
                 Закрыть

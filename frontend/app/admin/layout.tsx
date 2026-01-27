@@ -56,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-white shadow-sm border-b relative z-30">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center min-w-0 flex-1">
@@ -88,12 +88,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </header>
 
-      <div className="flex">
+      <div className="flex relative">
         {/* Sidebar */}
         <aside
           className={`bg-white shadow-sm transition-all duration-300 ${
             sidebarOpen ? 'w-64' : 'w-0'
-          } overflow-hidden`}
+          } overflow-hidden z-50 relative`}
         >
           <nav className="p-4 space-y-2">
             {navigation.map((item) => {
@@ -117,7 +117,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6">
+        <main className="flex-1 p-4 sm:p-6 relative z-10">
           {children}
         </main>
       </div>

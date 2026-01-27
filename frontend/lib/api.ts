@@ -202,6 +202,41 @@ export async function deleteRestaurantCategoryRelationByIds(restaurantId: string
   });
 }
 
+// Pharmacy/Store-Category Relations API
+export async function getPharmacyStoreCategoryRelations(pharmacyStoreId?: string, categoryId?: string): Promise<any[]> {
+  try {
+    const params: any = {};
+    if (pharmacyStoreId) params.pharmacy_store_id = pharmacyStoreId;
+    if (categoryId) params.category_id = categoryId;
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/pharmacy-store-category-relations', { params });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching pharmacy-store-category relations:', error);
+    return [];
+  }
+}
+
+export async function createPharmacyStoreCategoryRelation(pharmacyStoreId: string, categoryId: string): Promise<any> {
+  const response = await api.post<{ success: boolean; data: any }>('/api/pharmacy-store-category-relations', {
+    pharmacy_store_id: pharmacyStoreId,
+    category_id: categoryId,
+  });
+  return response.data.data;
+}
+
+export async function deletePharmacyStoreCategoryRelation(id: string): Promise<void> {
+  await api.delete(`/api/pharmacy-store-category-relations/${id}`);
+}
+
+export async function deletePharmacyStoreCategoryRelationByIds(pharmacyStoreId: string, categoryId: string): Promise<void> {
+  await api.delete('/api/pharmacy-store-category-relations', {
+    data: {
+      pharmacy_store_id: pharmacyStoreId,
+      category_id: categoryId,
+    },
+  });
+}
+
 // Pharmacies/Stores API
 export async function getPharmaciesStores(active?: boolean): Promise<any[]> {
   try {
