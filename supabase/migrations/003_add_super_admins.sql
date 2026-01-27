@@ -28,3 +28,4 @@ ALTER TABLE super_admins ENABLE ROW LEVEL SECURITY;
 -- RLS политики (только через service role для записи)
 -- Просмотр только через service role
 
+

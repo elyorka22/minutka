@@ -12,3 +12,4 @@ ALTER TABLE chefs ADD COLUMN IF NOT EXISTS password VARCHAR(255);
 -- TODO: В продакшене использовать bcrypt или другой хеш
 UPDATE super_admins SET password = '123456' WHERE password IS NULL;
 
+

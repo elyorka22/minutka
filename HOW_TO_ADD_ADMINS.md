@@ -191,3 +191,4 @@ SET is_active = true
 WHERE telegram_id = 123456789;
 ```
 
+

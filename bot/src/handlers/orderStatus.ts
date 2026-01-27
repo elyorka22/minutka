@@ -28,7 +28,11 @@ export async function orderStatusHandler(
     }
 
     // Получаем заказ
-    const order: any = await apiRequest(`/api/orders/${orderId}`);
+    const order: any = await apiRequest(`/api/orders/${orderId}`, {
+      headers: {
+        'x-telegram-id': String(telegramId)
+      }
+    });
 
     if (!order) {
       await ctx.answerCbQuery('Buyurtma topilmadi');
@@ -80,10 +84,13 @@ export async function orderStatusHandler(
     // Обновляем статус через API
     await apiRequest(`/api/orders/${orderId}/status`, {
       method: 'PATCH',
+      headers: {
+        'x-telegram-id': String(telegramId)
+      },
       body: JSON.stringify({
         status: newStatus,
         changed_by: 'restaurant',
-        telegram_id: ctx.from?.id
+        telegram_id: telegramId
       })
     });
 
