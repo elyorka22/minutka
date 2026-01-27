@@ -8,23 +8,32 @@ import { useEffect, useState } from 'react';
 
 interface SplashScreenProps {
   onFinish: () => void;
+  isLoading?: boolean;
 }
 
-export default function SplashScreen({ onFinish }: SplashScreenProps) {
+export default function SplashScreen({ onFinish, isLoading = true }: SplashScreenProps) {
   const [isVisible, setIsVisible] = useState(true);
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
   useEffect(() => {
-    // Показываем splash screen минимум 2 секунды
-    const timer = setTimeout(() => {
+    // Минимальное время показа splash screen - 1 секунда (стандарт)
+    const minTimer = setTimeout(() => {
+      setMinTimeElapsed(true);
+    }, 1000);
+
+    return () => clearTimeout(minTimer);
+  }, []);
+
+  useEffect(() => {
+    // Скрываем splash screen когда прошло минимум 1 секунда И данные загрузились
+    if (minTimeElapsed && !isLoading) {
       setIsVisible(false);
       // Небольшая задержка для плавного исчезновения
       setTimeout(() => {
         onFinish();
       }, 300);
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [onFinish]);
+    }
+  }, [minTimeElapsed, isLoading, onFinish]);
 
   if (!isVisible) {
     return null;

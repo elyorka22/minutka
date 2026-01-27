@@ -74,7 +74,7 @@ export default function Home() {
 
   // Показываем splash screen при первой загрузке
   if (showSplash) {
-    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+    return <SplashScreen onFinish={() => setShowSplash(false)} isLoading={loading} />;
   }
 
   // Фильтрация ресторанов по категории и поисковому запросу
