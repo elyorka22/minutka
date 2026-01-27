@@ -20,8 +20,6 @@ export default function Home() {
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appSlogan, setAppSlogan] = useState('Telegram orqali ovqat yetkazib berish');
-  const [bannerTitle, setBannerTitle] = useState('Ovqat buyurtma qiling!');
-  const [bannerSubtitle, setBannerSubtitle] = useState('Restoran tanlang va Telegram-bot orqali buyurtma bering');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
