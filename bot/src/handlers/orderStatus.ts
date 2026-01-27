@@ -95,32 +95,10 @@ export async function orderStatusHandler(
       return;
     }
 
-    // Повары могут только принимать заказы и отмечать как готовые
-    // Они не могут отменять заказы
-    let newStatus: string;
-    let message: string;
-
-    switch (action) {
-      case 'accept':
-        newStatus = 'accepted';
-        message = '✅ Buyurtma qabul qilindi!';
-        break;
-      case 'ready':
-        // Проверяем, что заказ уже принят
-        if (order.status !== 'accepted') {
-          await ctx.answerCbQuery('Avval buyurtmani qabul qiling!');
-          return;
-        }
-        newStatus = 'ready';
-        message = '✅ Buyurtma tayyor!';
-        break;
-      case 'cancel':
-        // Повары не могут отменять заказы
-        await ctx.answerCbQuery('Povarlar buyurtmalarni bekor qila olmaydi');
-        return;
-      default:
-        await ctx.answerCbQuery('Noma\'lum amal');
-        return;
+    // Повары могут только отмечать заказы как готовые
+    if (action !== 'ready') {
+      await ctx.answerCbQuery('Noma\'lum amal');
+      return;
     }
 
     // Обновляем статус через API
@@ -130,28 +108,26 @@ export async function orderStatusHandler(
         'x-telegram-id': String(telegramId)
       },
       body: JSON.stringify({
-        status: newStatus,
+        status: 'ready',
         changed_by: 'restaurant',
         telegram_id: telegramId
       })
     });
 
-    await ctx.answerCbQuery(message);
+    await ctx.answerCbQuery('✅ Buyurtma tayyor!');
 
-    // Обновляем сообщение с заказом
-    const statusEmoji = {
-      accepted: '✅',
-      ready: '🚀',
-      cancelled: '❌'
-    }[newStatus] || '📋';
-
-    await ctx.editMessageText(
-      `${statusEmoji} *Buyurtma holati yangilandi*\n\n` +
-      `Buyurtma #${orderId.slice(0, 8)}\n` +
-      `Holat: ${getStatusText(newStatus)}\n\n` +
-      `Joriy holat: ${getStatusText(newStatus)}`,
-      { parse_mode: 'Markdown' }
-    );
+    // Удаляем сообщение с заказом, чтобы не перемешивались все заказы
+    try {
+      await ctx.deleteMessage();
+    } catch (error) {
+      console.error('Error deleting message:', error);
+      // Если не удалось удалить, просто обновляем сообщение
+      await ctx.editMessageText(
+        `✅ *Buyurtma tayyor!*\n\n` +
+        `Buyurtma #${orderId.slice(0, 8)} tayyor bo'ldi va olib ketildi.`,
+        { parse_mode: 'Markdown' }
+      );
+    }
 
     // Уведомляем пользователя об изменении статуса
     await notifyUserAboutOrderStatus(order.user_id, orderId, newStatus);

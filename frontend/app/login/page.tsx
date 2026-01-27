@@ -29,8 +29,6 @@ export default function LoginPage() {
       const role = user.role;
       if (role === 'super_admin') {
         router.push('/admin');
-      } else if (role === 'chef') {
-        router.push('/chef');
       } else if (role === 'restaurant_admin') {
         router.push('/restaurant-admin');
       } else {

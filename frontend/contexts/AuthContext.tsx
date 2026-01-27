@@ -195,9 +195,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (role === 'super_admin') {
         console.log('AuthContext: Redirecting to /admin');
         router.push('/admin');
-      } else if (role === 'chef') {
-        console.log('AuthContext: Redirecting to /chef');
-        router.push('/chef');
       } else if (role === 'restaurant_admin') {
         console.log('AuthContext: Redirecting to /restaurant-admin');
         router.push('/restaurant-admin');

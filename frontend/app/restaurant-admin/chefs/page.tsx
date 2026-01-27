@@ -63,34 +63,23 @@ export default function RestaurantAdminChefsPage() {
 
     try {
       if (chef.id && chefs.some((c) => c.id === chef.id)) {
-        // Обновление существующего повара
+        // Обновление существующего повара - только chat_id
         const updated = await updateChef(chef.id, {
           telegram_chat_id: chef.telegram_chat_id ?? undefined,
-          username: chef.username,
-          first_name: chef.first_name,
-          last_name: chef.last_name,
-          is_active: chef.is_active,
         });
         setChefs(chefs.map((c) => (c.id === chef.id ? updated : c)));
       } else {
-        // Создание нового повара
+        // Создание нового повара - только chat_id
         if (!chef.telegram_chat_id) {
           alert('Пожалуйста, укажите Telegram Chat ID для получения уведомлений');
           return;
         }
         const chefData: any = {
           restaurant_id: currentRestaurantId,
-          telegram_id: chef.telegram_id,
+          telegram_id: chef.telegram_chat_id, // Используем chat_id как telegram_id
           telegram_chat_id: chef.telegram_chat_id,
-          username: chef.username,
-          first_name: chef.first_name,
-          last_name: chef.last_name,
-          is_active: chef.is_active,
+          is_active: true,
         };
-        // Добавляем пароль если он есть
-        if ((chef as any).password) {
-          chefData.password = (chef as any).password;
-        }
         const created = await createChef(chefData);
         setChefs([...chefs, created]);
       }
@@ -139,31 +128,12 @@ export default function RestaurantAdminChefsPage() {
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {chef.first_name || chef.last_name
-                      ? `${chef.first_name || ''} ${chef.last_name || ''}`.trim()
-                      : chef.username
-                      ? `@${chef.username}`
-                      : 'Повар'}
+                    Повар
                   </h3>
                   <div className="space-y-1 text-sm">
-                    <p className="text-gray-700">🆔 Telegram ID: {chef.telegram_id}</p>
                     {chef.telegram_chat_id && (
                       <p className="text-gray-700">💬 Chat ID: {chef.telegram_chat_id}</p>
                     )}
-                    {chef.username && (
-                      <p className="text-gray-700">👤 Username: @{chef.username}</p>
-                    )}
-                    <div className="mt-2">
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          chef.is_active
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {chef.is_active ? 'Активен' : 'Неактивен'}
-                      </span>
-                    </div>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -212,47 +182,29 @@ function ChefFormModal({
   onSave: (chef: Chef) => void;
 }) {
   const [formData, setFormData] = useState({
-    telegram_id: chef?.telegram_id?.toString() || '',
     telegram_chat_id: chef?.telegram_chat_id?.toString() || '',
-    username: chef?.username || '',
-    first_name: chef?.first_name || '',
-    last_name: chef?.last_name || '',
-    is_active: chef?.is_active ?? true,
-    password: '', // Пароль только при создании
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.telegram_id) {
-      alert('Пожалуйста, укажите Telegram ID');
-      return;
-    }
     if (!formData.telegram_chat_id) {
       alert('Пожалуйста, укажите Telegram Chat ID для получения уведомлений');
       return;
     }
-    if (!chef && !formData.password) {
-      alert('Пожалуйста, укажите пароль для нового повара');
-      return;
-    }
 
-    const newChef: Chef & { password?: string } = {
+    const newChef: Chef = {
       id: chef?.id || '',
       restaurant_id: chef?.restaurant_id || '',
-      telegram_id: parseInt(formData.telegram_id),
+      telegram_id: parseInt(formData.telegram_chat_id), // Используем chat_id как telegram_id
       telegram_chat_id: parseInt(formData.telegram_chat_id),
-      username: formData.username || null,
-      first_name: formData.first_name || null,
-      last_name: formData.last_name || null,
-      is_active: formData.is_active,
+      username: null,
+      first_name: null,
+      last_name: null,
+      is_active: true,
       created_at: chef?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
-    // Добавляем пароль только при создании нового повара
-    if (!chef && formData.password) {
-      (newChef as any).password = formData.password;
-    }
-    onSave(newChef as Chef);
+    onSave(newChef);
   };
 
   return (
@@ -271,24 +223,6 @@ function ChefFormModal({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Telegram ID *
-              </label>
-              <input
-                type="text"
-                value={formData.telegram_id}
-                onChange={(e) => setFormData({ ...formData, telegram_id: e.target.value })}
-                placeholder="Введите Telegram ID"
-                required
-                disabled={!!chef}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100"
-              />
-              <p className="mt-1 text-xs text-gray-500">
-                {chef ? 'Telegram ID нельзя изменить' : 'ID пользователя в Telegram'}
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Telegram Chat ID * (для уведомлений)
               </label>
               <input
@@ -303,75 +237,6 @@ function ChefFormModal({
                 Chat ID можно узнать в боте, нажав кнопку "🆔 Chat ID"
               </p>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Username
-              </label>
-              <input
-                type="text"
-                value={formData.username}
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                placeholder="@username"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Имя
-                </label>
-                <input
-                  type="text"
-                  value={formData.first_name}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Фамилия
-                </label>
-                <input
-                  type="text"
-                  value={formData.last_name}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.is_active}
-                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                  className="mr-2 w-4 h-4"
-                />
-                <span className="text-sm text-gray-700">Активен</span>
-              </label>
-            </div>
-
-            {!chef && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Parol (Пароль) *
-                </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  required={!chef}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Введите пароль для повара"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Пароль будет использоваться для входа в систему
-                </p>
-              </div>
-            )}
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4">
               <button

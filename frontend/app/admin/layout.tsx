@@ -36,9 +36,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         router.push('/login');
       } else if (user.role !== 'super_admin') {
         // Редиректим в зависимости от роли
-        if (user.role === 'chef') {
-          router.push('/chef');
-        } else if (user.role === 'restaurant_admin') {
+        if (user.role === 'restaurant_admin') {
           router.push('/restaurant-admin');
         } else {
           router.push('/');

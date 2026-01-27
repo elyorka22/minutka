@@ -33,8 +33,6 @@ export default function RestaurantAdminLayout({ children }: { children: React.Re
         // Редиректим в зависимости от роли
         if (user.role === 'super_admin') {
           router.push('/admin');
-        } else if (user.role === 'chef') {
-          router.push('/chef');
         } else {
           router.push('/');
         }
