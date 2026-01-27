@@ -63,6 +63,27 @@ export default async function RestaurantPage({ params }: PageProps) {
     }
   }
 
+    // Получаем текущее время и определяем, когда ресторан закроется
+    const getClosingTime = () => {
+      if (!restaurant.working_hours) return null;
+      
+      const today = new Date();
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const currentDay = dayNames[today.getDay()];
+      const todayHours = restaurant.working_hours[currentDay as keyof typeof restaurant.working_hours];
+      
+      if (todayHours && typeof todayHours === 'string') {
+        // Формат: "09:00-22:00"
+        const parts = todayHours.split('-');
+        if (parts.length === 2) {
+          return parts[1]; // Возвращаем время закрытия
+        }
+      }
+      return null;
+    };
+
+    const closingTime = getClosingTime();
+
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
@@ -82,76 +103,59 @@ export default async function RestaurantPage({ params }: PageProps) {
           </div>
         </header>
 
-        {/* Restaurant Details */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-            {/* Restaurant Image */}
-            {restaurant.image_url && (
-              <div className="relative w-full h-48 md:h-56 lg:h-64">
-                <Image
-                  src={restaurant.image_url}
-                  alt={restaurant.name}
-                  fill
-                  className="object-cover"
-                  priority
-                />
-              </div>
-            )}
-            
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <h1 className="text-3xl font-bold text-gray-900">{restaurant.name}</h1>
-                {restaurant.is_featured && (
-                  <span className="text-yellow-500 text-2xl">⭐</span>
-                )}
-              </div>
-
-            {restaurant.description && (
-              <p className="text-gray-700 mb-6">{restaurant.description}</p>
-            )}
-
-            {/* Working Hours */}
-            {restaurant.working_hours && (
-              <div className="mb-6">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2">Ish vaqti:</h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {Object.entries(restaurant.working_hours).map(([day, hours]) => (
-                    <div key={day} className="text-sm">
-                      <span className="font-medium capitalize">{day}:</span>{' '}
-                      <span className="text-gray-600">{hours}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Contact Info */}
-            {restaurant.phone && (
-              <div className="mb-6">
-                <p className="text-sm text-gray-600">
-                  <span className="font-medium">Telefon:</span> {restaurant.phone}
-                </p>
-              </div>
-            )}
-
-            {/* CTA Button */}
-            <TableBookingButton
-              restaurantId={restaurant.id}
-              restaurantName={restaurant.name}
-            />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Restaurant Image */}
+          {restaurant.image_url && (
+            <div className="relative w-full h-64 md:h-80 lg:h-96 mb-6 rounded-lg overflow-hidden">
+              <Image
+                src={restaurant.image_url}
+                alt={restaurant.name}
+                fill
+                className="object-cover"
+                priority
+              />
             </div>
+          )}
+
+          {/* Restaurant Name */}
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            {restaurant.name}
+          </h1>
+
+          {/* Description */}
+          {restaurant.description && (
+            <p className="text-gray-700 text-base md:text-lg mb-4">
+              {restaurant.description}
+            </p>
+          )}
+
+          {/* Closing Time */}
+          {closingTime && (
+            <div className="mb-4">
+              <p className="text-sm md:text-base text-gray-600">
+                <span className="font-medium">Yopiladi:</span> {closingTime}
+              </p>
+            </div>
+          )}
+
+          {/* Delivery Info */}
+          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm md:text-base text-gray-700">
+              <span className="font-medium">Yetkazib berish:</span> Telegram-bot orqali buyurtma bering
+            </p>
           </div>
 
           {/* Menu Section */}
           {menuByCategory.length > 0 && (
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">🍽️ Menyu</h2>
+            <div className="mb-8">
               {menuByCategory.map((category) => (
                 <div key={category.name} className="mb-8 last:mb-0">
-                  <h3 className="text-xl font-semibold text-gray-800 mb-4 border-b-2 border-primary-500 pb-2">
-                    {category.name}
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {menuByCategory.length > 1 && (
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                      {category.name}
+                    </h2>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
                     {category.items.map((item) => (
                       <MenuItem key={item.id} item={item} />
                     ))}
