@@ -20,6 +20,7 @@ export default function Home() {
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [appSlogan, setAppSlogan] = useState('Telegram orqali ovqat yetkazib berish');
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -60,10 +61,21 @@ export default function Home() {
     fetchData();
   }, []);
 
-  // Фильтрация ресторанов по категории
-  const filteredRestaurants = selectedCategory
-    ? restaurants.filter(r => r.category === selectedCategory)
-    : restaurants;
+  // Фильтрация ресторанов по категории и поисковому запросу
+  const filteredRestaurants = restaurants.filter((r) => {
+    // Фильтр по категории
+    if (selectedCategory && r.category !== selectedCategory) {
+      return false;
+    }
+    // Фильтр по поисковому запросу
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      const nameMatch = r.name?.toLowerCase().includes(query);
+      const descriptionMatch = r.description?.toLowerCase().includes(query);
+      return nameMatch || descriptionMatch;
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -86,6 +98,54 @@ export default function Home() {
           </div>
         </div>
       </header>
+
+      {/* Search Bar */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <svg
+              className="h-5 w-5 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Restoran qidirish..."
+            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          )}
+        </div>
+      </section>
 
       {/* Top Banners Carousel */}
       {banners.length > 0 && (
