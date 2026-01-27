@@ -11,8 +11,6 @@ import { handleApiError } from '@/lib/errorHandler';
 import { useToast } from '@/contexts/ToastContext';
 import Pagination from '@/components/Pagination';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
-
 const statusLabels: Record<OrderStatus, string> = {
   pending: 'В ожидании',
   accepted: 'Принят',
