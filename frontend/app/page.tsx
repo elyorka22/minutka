@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getRestaurants, getBanners, getCategories } from '@/lib/api';
+import { getRestaurants, getBanners, getCategories, getRestaurantCategoryRelations } from '@/lib/api';
 import RestaurantCard from '@/components/RestaurantCard';
 import BannerCarousel from '@/components/BannerCarousel';
 import RestaurantCategories from '@/components/RestaurantCategories';
