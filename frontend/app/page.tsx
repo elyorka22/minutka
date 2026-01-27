@@ -72,6 +72,11 @@ export default function Home() {
     fetchData();
   }, []);
 
+  // Показываем splash screen при первой загрузке
+  if (showSplash) {
+    return <SplashScreen onFinish={() => setShowSplash(false)} />;
+  }
+
   // Фильтрация ресторанов по категории и поисковому запросу
   const filteredRestaurants = restaurants.filter((r) => {
     // Фильтр по категории (используем связи ресторан-категория)
