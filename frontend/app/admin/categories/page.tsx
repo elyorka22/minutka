@@ -38,6 +38,8 @@ export default function CategoriesPage() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);
+  const [editingImage, setEditingImage] = useState<string | null>(null);
+  const [newImageUrl, setNewImageUrl] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const [showRestaurantModal, setShowRestaurantModal] = useState<string | null>(null);
   const [categoryRestaurants, setCategoryRestaurants] = useState<{ [key: string]: string[] }>({});
@@ -145,8 +147,49 @@ export default function CategoriesPage() {
     setShowAddForm(false);
   };
 
+  const handleEditImage = (category: Category) => {
+    setEditingImage(category.id);
+    setNewImageUrl(category.image_url);
+    setShowAddForm(false);
+    setEditing(null);
+  };
+
+  const handleSaveImage = async (categoryId: string) => {
+    if (!newImageUrl) {
+      alert('Пожалуйста, загрузите изображение');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/categories/${categoryId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ image_url: newImageUrl }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update category image');
+      }
+
+      await fetchCategories();
+      setEditingImage(null);
+      setNewImageUrl('');
+      showSuccess('Изображение категории успешно обновлено!');
+    } catch (error) {
+      console.error('Error updating category image:', error);
+      showError('Ошибка при обновлении изображения');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleCancel = () => {
     setEditing(null);
+    setEditingImage(null);
+    setNewImageUrl('');
     setShowAddForm(false);
     setFormData({
       name: '',
@@ -316,6 +359,44 @@ export default function CategoriesPage() {
         )}
       </div>
 
+      {/* Image Edit Modal */}
+      {editingImage && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Изменить картинку категории "{categories.find(c => c.id === editingImage)?.name}"
+              </h2>
+              <div className="space-y-4">
+                <ImageUpload
+                  value={newImageUrl}
+                  onChange={(url) => setNewImageUrl(url)}
+                  folder="categories"
+                  label="Новое изображение категории"
+                  required
+                />
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => handleSaveImage(editingImage)}
+                    disabled={saving || !newImageUrl}
+                    className="flex-1 px-6 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    {saving ? 'Сохранение...' : 'Сохранить'}
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    disabled={saving}
+                    className="flex-1 px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  >
+                    Отмена
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add/Edit Form */}
       {(showAddForm || editing) && (
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -426,10 +507,10 @@ export default function CategoriesPage() {
                   🏪 Рестораны ({categoryRestaurants[category.id]?.length || 0})
                 </button>
                 <button
-                  onClick={() => handleEdit(category)}
+                  onClick={() => handleEditImage(category)}
                   className="flex-1 px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm"
                 >
-                  ✏️ Редактировать
+                  🖼️ Изменить картинку
                 </button>
                 <button
                   onClick={() => handleToggleActive(category)}
