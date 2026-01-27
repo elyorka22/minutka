@@ -207,7 +207,7 @@ export const demoBanners: Banner[] = [
   {
     id: '3',
     restaurant_id: null,
-    title: 'Бесплатная доставка при заказе от 100000 сум',
+    title: 'Бесплатная доставка при заказе от 100000 so\'m',
     image_url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop',
     link_url: null,
     position: 'homepage',

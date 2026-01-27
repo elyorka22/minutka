@@ -106,7 +106,7 @@ export default function MenuItem({ item }: MenuItemProps) {
       <div className="p-3 flex flex-col flex-1">
         {/* Цена (под картинкой) */}
         <span className="text-base font-semibold text-primary-600 mb-1">
-          {item.price} сум
+          {item.price} so'm
         </span>
         
         {/* Название блюда (под ценой) */}

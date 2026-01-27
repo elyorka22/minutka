@@ -88,7 +88,7 @@ export default function RestaurantAdminDashboard() {
     },
     {
       title: 'Выручка сегодня',
-      value: `${stats.todayRevenue.toLocaleString()} сум`,
+      value: `${stats.todayRevenue.toLocaleString()} so'm`,
       subtitle: 'за сегодня',
       color: 'bg-green-500',
     },
@@ -106,13 +106,13 @@ export default function RestaurantAdminDashboard() {
     },
     {
       title: 'Общая выручка',
-      value: `${stats.totalRevenue.toLocaleString()} сум`,
+      value: `${stats.totalRevenue.toLocaleString()} so'm`,
       subtitle: 'за все время',
       color: 'bg-indigo-500',
     },
     {
       title: 'Средний чек',
-      value: `${stats.averageOrderValue} сум`,
+      value: `${stats.averageOrderValue} so'm`,
       subtitle: 'на заказ',
       color: 'bg-emerald-500',
     },

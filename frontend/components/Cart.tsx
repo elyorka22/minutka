@@ -36,7 +36,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
     let orderText = `🍽️ "${restaurantName}" restoranidan buyurtma\n\n`;
     
     items.forEach((cartItem) => {
-      orderText += `${cartItem.item.name} x${cartItem.quantity} - ${cartItem.item.price * cartItem.quantity} сум\n`;
+      orderText += `${cartItem.item.name} x${cartItem.quantity} - ${cartItem.item.price * cartItem.quantity} so'm\n`;
     });
     
     orderText += `\n💰 Jami: ${totalPrice} сум\n`;
@@ -236,7 +236,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                     )}
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900">{cartItem.item.name}</h3>
-                      <p className="text-sm text-gray-600">{cartItem.item.price} сум × {cartItem.quantity}</p>
+                      <p className="text-sm text-gray-600">{cartItem.item.price} so'm × {cartItem.quantity}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2">
@@ -257,7 +257,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                         </button>
                       </div>
                       <span className="text-lg font-bold text-primary-600 w-20 text-right">
-                        {cartItem.item.price * cartItem.quantity} сум
+                        {cartItem.item.price * cartItem.quantity} so'm
                       </span>
                       <button
                         onClick={() => removeItem(cartItem.item.id)}
@@ -275,7 +275,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
               <div className="border-t pt-4 mb-6">
                 <div className="flex justify-between items-center">
                       <span className="text-xl font-semibold text-gray-900">Jami:</span>
-                  <span className="text-2xl font-bold text-primary-600">{totalPrice} сум</span>
+                  <span className="text-2xl font-bold text-primary-600">{totalPrice} so'm</span>
                 </div>
               </div>
 

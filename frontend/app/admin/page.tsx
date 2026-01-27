@@ -79,7 +79,7 @@ export default function AdminDashboard() {
     },
     {
       title: 'Выручка сегодня',
-      value: `${stats.todayRevenue.toLocaleString()} сум`,
+      value: `${stats.todayRevenue.toLocaleString()} so'm`,
       subtitle: 'за сегодня',
       color: 'bg-emerald-500',
     },
