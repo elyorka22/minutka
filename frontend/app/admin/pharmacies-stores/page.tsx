@@ -210,10 +210,10 @@ export default function PharmaciesStoresPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Время работы
               </label>
-              <div className="space-y-2">
+              <div className="space-y-2 max-w-full">
                 {daysOfWeek.map((day) => (
-                  <div key={day} className="flex items-center gap-2">
-                    <label className="w-32 text-sm text-gray-700">{dayNames[day]}:</label>
+                  <div key={day} className="flex items-center gap-2 flex-wrap">
+                    <label className="w-28 sm:w-32 text-sm text-gray-700 flex-shrink-0">{dayNames[day]}:</label>
                     <input
                       type="text"
                       value={formData.working_hours[day] || ''}
@@ -223,7 +223,7 @@ export default function PharmaciesStoresPage() {
                           working_hours: { ...formData.working_hours, [day]: e.target.value },
                         })
                       }
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
+                      className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
                       placeholder="09:00-22:00"
                     />
                   </div>
