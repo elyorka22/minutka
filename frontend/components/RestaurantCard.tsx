@@ -2,15 +2,47 @@
 // Restaurant Card Component
 // ============================================
 
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Restaurant } from '../../shared/types';
+import { getMenuItems } from '@/lib/api';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
 }
 
 export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
+  const [dishCategories, setDishCategories] = useState<string[]>([]);
+
+  // Получаем категории блюд из меню ресторана
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const menuItems = await getMenuItems(restaurant.id, true);
+        // Извлекаем уникальные категории из меню
+        const categories = Array.from(
+          new Set(
+            menuItems
+              .map(item => item.category)
+              .filter((cat): cat is string => cat !== null && cat !== undefined)
+          )
+        );
+        setDishCategories(categories);
+      } catch (error) {
+        console.error('Error fetching menu categories:', error);
+      }
+    }
+    fetchCategories();
+  }, [restaurant.id]);
+
+  // Форматируем категории для отображения
+  const categoriesText = dishCategories.length > 0 
+    ? dishCategories.join(' • ')
+    : restaurant.category || '';
+
   return (
     <Link href={`/restaurants/${restaurant.id}`}>
       <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
@@ -33,8 +65,8 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
           <h3 className="text-lg font-bold text-gray-900 mb-2">{restaurant.name}</h3>
 
           {/* Категории блюд */}
-          {restaurant.category && (
-            <p className="text-sm text-gray-600 mb-2">{restaurant.category}</p>
+          {categoriesText && (
+            <p className="text-sm text-gray-600 mb-2">{categoriesText}</p>
           )}
 
           {/* Описание (как доставляется) */}
