@@ -19,7 +19,7 @@ export const generalLimiter = rateLimit({
   legacyHeaders: false, // Отключает заголовки `X-RateLimit-*`
   // Исключаем маршрут логина, так как на нем уже есть strictLimiter
   skip: (req) => {
-    return req.path === '/api/auth/login';
+    return req.path === '/api/auth/login' || req.originalUrl === '/api/auth/login';
   },
 });
 
