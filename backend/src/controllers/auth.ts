@@ -49,6 +49,7 @@ export async function loginStaff(req: Request, res: Response) {
     ]);
 
     // Определяем роль и проверяем пароль
+    // Приоритет: super_admin > restaurant_admin > chef
     let role: string | null = null;
     let userData: any = null;
 
@@ -68,24 +69,8 @@ export async function loginStaff(req: Request, res: Response) {
           error: 'Неверный пароль'
         });
       }
-    } else if (chefResult.data && !chefResult.error) {
-      // Проверяем пароль для повара
-      const storedPassword = chefResult.data.password;
-      const passwordMatches = isHashed(storedPassword)
-        ? await comparePassword(password, storedPassword)
-        : storedPassword === password; // Для обратной совместимости со старыми паролями
-      
-      if (passwordMatches) {
-        role = 'chef';
-        userData = chefResult.data;
-      } else {
-        return res.status(401).json({
-          success: false,
-          error: 'Неверный пароль'
-        });
-      }
     } else if (restaurantAdminResult.data && !restaurantAdminResult.error) {
-      // Проверяем пароль для админа ресторана
+      // Проверяем пароль для админа ресторана (приоритет выше, чем у повара)
       const storedPassword = restaurantAdminResult.data.password;
       const passwordMatches = isHashed(storedPassword)
         ? await comparePassword(password, storedPassword)
@@ -94,6 +79,22 @@ export async function loginStaff(req: Request, res: Response) {
       if (passwordMatches) {
         role = 'restaurant_admin';
         userData = restaurantAdminResult.data;
+      } else {
+        return res.status(401).json({
+          success: false,
+          error: 'Неверный пароль'
+        });
+      }
+    } else if (chefResult.data && !chefResult.error) {
+      // Проверяем пароль для повара (низший приоритет)
+      const storedPassword = chefResult.data.password;
+      const passwordMatches = isHashed(storedPassword)
+        ? await comparePassword(password, storedPassword)
+        : storedPassword === password; // Для обратной совместимости со старыми паролями
+      
+      if (passwordMatches) {
+        role = 'chef';
+        userData = chefResult.data;
       } else {
         return res.status(401).json({
           success: false,
@@ -177,19 +178,20 @@ export async function getCurrentUser(req: Request, res: Response) {
 
     // Определяем роль пользователя
     // Если пользователь является сотрудником, требуем пароль через /api/auth/login
+    // Приоритет: super_admin > restaurant_admin > chef
     if (superAdminResult.data && !superAdminResult.error) {
       return res.status(401).json({
         success: false,
         error: 'Для входа сотрудника требуется пароль. Используйте форму входа для сотрудников.'
       });
     }
-    if (chefResult.data && !chefResult.error) {
+    if (restaurantAdminResult.data && !restaurantAdminResult.error) {
       return res.status(401).json({
         success: false,
         error: 'Для входа сотрудника требуется пароль. Используйте форму входа для сотрудников.'
       });
     }
-    if (restaurantAdminResult.data && !restaurantAdminResult.error) {
+    if (chefResult.data && !chefResult.error) {
       return res.status(401).json({
         success: false,
         error: 'Для входа сотрудника требуется пароль. Используйте форму входа для сотрудников.'
@@ -306,6 +308,7 @@ export async function changePassword(req: Request, res: Response) {
     ]);
 
     // Определяем роль и проверяем старый пароль
+    // Приоритет: super_admin > restaurant_admin > chef
     let userData: any = null;
     let tableName: string = '';
     let userId: string = '';
@@ -326,22 +329,6 @@ export async function changePassword(req: Request, res: Response) {
       userData = superAdminResult.data;
       tableName = 'super_admins';
       userId = superAdminResult.data.id;
-    } else if (chefResult.data && !chefResult.error) {
-      const storedPassword = chefResult.data.password;
-      const passwordMatches = isHashed(storedPassword)
-        ? await comparePassword(old_password, storedPassword)
-        : storedPassword === old_password;
-      
-      if (!passwordMatches) {
-        return res.status(401).json({
-          success: false,
-          error: 'Неверный текущий пароль'
-        });
-      }
-      
-      userData = chefResult.data;
-      tableName = 'chefs';
-      userId = chefResult.data.id;
     } else if (restaurantAdminResult.data && !restaurantAdminResult.error) {
       const storedPassword = restaurantAdminResult.data.password;
       const passwordMatches = isHashed(storedPassword)
@@ -358,6 +345,22 @@ export async function changePassword(req: Request, res: Response) {
       userData = restaurantAdminResult.data;
       tableName = 'restaurant_admins';
       userId = restaurantAdminResult.data.id;
+    } else if (chefResult.data && !chefResult.error) {
+      const storedPassword = chefResult.data.password;
+      const passwordMatches = isHashed(storedPassword)
+        ? await comparePassword(old_password, storedPassword)
+        : storedPassword === old_password;
+      
+      if (!passwordMatches) {
+        return res.status(401).json({
+          success: false,
+          error: 'Неверный текущий пароль'
+        });
+      }
+      
+      userData = chefResult.data;
+      tableName = 'chefs';
+      userId = chefResult.data.id;
     } else {
       return res.status(404).json({
         success: false,
