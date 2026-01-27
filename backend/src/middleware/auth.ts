@@ -17,7 +17,7 @@ export interface AuthenticatedRequest extends Request {
 
 /**
  * Middleware для проверки аутентификации сотрудника
- * Ожидает telegram_id в query или body
+ * Ожидает telegram_id в заголовке x-telegram-id, query или body
  */
 export async function requireStaffAuth(
   req: AuthenticatedRequest,
@@ -25,12 +25,15 @@ export async function requireStaffAuth(
   next: NextFunction
 ) {
   try {
-    const telegram_id = req.query.telegram_id as string || req.body.telegram_id;
+    // Проверяем telegram_id в заголовке, query или body (в порядке приоритета)
+    const telegram_id = (req.headers['x-telegram-id'] as string) || 
+                        (req.query.telegram_id as string) || 
+                        (req.body.telegram_id as string);
 
     if (!telegram_id) {
       return res.status(401).json({
         success: false,
-        error: 'telegram_id is required'
+        error: 'telegram_id is required (in header x-telegram-id, query or body)'
       });
     }
 

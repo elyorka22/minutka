@@ -4,7 +4,7 @@
 
 import express from 'express';
 import { getBanners, createBanner, updateBanner, deleteBanner } from '../controllers/banners';
-import { requireSuperAdmin } from '../middleware/auth';
+import { requireStaffAuth, requireSuperAdmin } from '../middleware/auth';
 import { createUpdateLimiter } from '../middleware/rateLimit';
 
 const router = express.Router();
@@ -22,19 +22,19 @@ router.get('/', getBanners);
  * POST /api/banners
  * Создать новый баннер (только для супер-админов)
  */
-router.post('/', requireSuperAdmin, createUpdateLimiter, createBanner);
+router.post('/', requireStaffAuth, requireSuperAdmin, createUpdateLimiter, createBanner);
 
 /**
  * PATCH /api/banners/:id
  * Обновить баннер (только для супер-админов)
  */
-router.patch('/:id', requireSuperAdmin, createUpdateLimiter, updateBanner);
+router.patch('/:id', requireStaffAuth, requireSuperAdmin, createUpdateLimiter, updateBanner);
 
 /**
  * DELETE /api/banners/:id
  * Удалить баннер (только для супер-админов)
  */
-router.delete('/:id', requireSuperAdmin, createUpdateLimiter, deleteBanner);
+router.delete('/:id', requireStaffAuth, requireSuperAdmin, createUpdateLimiter, deleteBanner);
 
 export default router;
 
