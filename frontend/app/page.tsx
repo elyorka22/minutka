@@ -24,7 +24,18 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [categoryRestaurantMap, setCategoryRestaurantMap] = useState<{ [categoryId: string]: string[] }>({});
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(false);
+
+  // Проверяем, был ли уже показан splash screen в этой сессии
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const splashShown = sessionStorage.getItem('splashShown');
+      if (!splashShown) {
+        setShowSplash(true);
+        sessionStorage.setItem('splashShown', 'true');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
