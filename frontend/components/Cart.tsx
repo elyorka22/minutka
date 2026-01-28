@@ -22,7 +22,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
   const { showSuccess, showError } = useToast();
   const [isOpen, setIsOpen] = useState(false);
   const [address, setAddress] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState('+998');
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
   const [chatId, setChatId] = useState('');
@@ -141,7 +141,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
       clearCart();
       setIsOpen(false);
       setAddress('');
-      setPhone('');
+      setPhone('+998');
       setName('');
       setNotes('');
       setChatId('');
@@ -307,15 +307,37 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                   <label htmlFor="phone" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     Telefon *
                   </label>
-                  <input
-                    type="tel"
-                    id="phone"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="+7 (999) 123-45-67"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base text-gray-700 font-medium pointer-events-none">
+                      +998
+                    </span>
+                    <input
+                      type="tel"
+                      id="phone"
+                      value={phone.replace('+998', '')}
+                      onChange={(e) => {
+                        // Удаляем все нецифровые символы
+                        const digits = e.target.value.replace(/\D/g, '');
+                        // Ограничиваем до 9 цифр
+                        const limitedDigits = digits.slice(0, 9);
+                        // Обновляем состояние с префиксом
+                        setPhone('+998' + limitedDigits);
+                      }}
+                      onKeyDown={(e) => {
+                        // Предотвращаем удаление префикса
+                        if (e.key === 'Backspace' && phone === '+998') {
+                          e.preventDefault();
+                        }
+                      }}
+                      required
+                      maxLength={9}
+                      className="w-full pl-16 sm:pl-20 pr-3 sm:pr-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      placeholder="901234567"
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Faqat 9 ta raqam kiriting (masalan: 901234567)
+                  </p>
                 </div>
 
                 <div>
