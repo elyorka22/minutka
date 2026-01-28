@@ -216,7 +216,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {items.length === 0 ? (
             <div className="text-center py-12">
-                  <p className="text-gray-500 text-lg">Savatcha bo\'sh</p>
+                  <p className="text-gray-500 text-lg">Savatcha bo'sh</p>
             </div>
           ) : (
             <>
