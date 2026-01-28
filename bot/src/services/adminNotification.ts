@@ -121,7 +121,7 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
       Markup.button.callback('✅ Доставлен', `order:delivered:${orderId}`)
     ]);
 
-    console.log(`Sending notification to ${admins.length} restaurant admins with keyboard:`, JSON.stringify(keyboard));
+    console.log(`Sending notification to ${admins.length} restaurant admins with keyboard:`, JSON.stringify(keyboard.reply_markup));
 
     // Отправляем уведомление всем админам ресторана
     const notificationPromises = admins.map(async (admin) => {
@@ -132,7 +132,7 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
           message,
           {
             parse_mode: 'Markdown',
-            reply_markup: keyboard
+            reply_markup: keyboard.reply_markup
           }
         );
         console.log(`Successfully sent notification to restaurant admin ${admin.telegram_id}, message_id: ${result.message_id}`);
