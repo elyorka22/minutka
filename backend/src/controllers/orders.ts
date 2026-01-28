@@ -7,7 +7,6 @@ import { supabase } from '../config/supabase';
 import { Order, OrderStatus } from '../types';
 import {
   sendOrderToChef,
-  notifyRestaurantAdminsAboutNewOrder,
   notifyUserAboutOrderStatus
 } from '../services/telegramNotification';
 import { AuthenticatedRequest } from '../middleware/auth';
@@ -157,13 +156,8 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
             .update({ telegram_message_id: messageId })
             .eq('id', data.id);
         }
-      }),
-      // Уведомляем админов ресторана
-      notifyRestaurantAdminsAboutNewOrder(restaurant_id, data.id, {
-        orderText: order_text,
-        address,
-        userName
       })
+      // Уведомления админам ресторана теперь отправляются после нажатия поваром "Tayyor"
     ]).catch((error) => {
       console.error('Error sending notifications:', error);
       // Не прерываем создание заказа, если уведомления не отправились

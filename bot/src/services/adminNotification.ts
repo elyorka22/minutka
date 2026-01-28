@@ -75,15 +75,16 @@ export async function notifySuperAdminsAboutNewOrder(orderId: string, orderData:
 }
 
 /**
- * Уведомить админов ресторана о новом заказе
+ * Уведомить админов ресторана о готовом заказе (после нажатия поваром "Tayyor")
+ * Отправляет уведомление с кнопкой "Доставлен"
  */
-export async function notifyRestaurantAdminsAboutNewOrder(
+export async function notifyRestaurantAdminsAboutReadyOrder(
   restaurantId: string,
   orderId: string,
   orderData: {
     orderText: string;
     address: string | null;
-    user: any;
+    userName?: string;
   }
 ) {
   if (!botInstance) {
@@ -101,20 +102,27 @@ export async function notifyRestaurantAdminsAboutNewOrder(
       .eq('notifications_enabled', true);
 
     if (error || !admins || admins.length === 0) {
-      console.log('No active restaurant admins found');
+      console.log('No active restaurant admins with notifications enabled found');
       return;
     }
 
-    const userInfo = orderData.user.username
-      ? `@${orderData.user.username}`
-      : `${orderData.user.first_name || 'Foydalanuvchi'}`;
+    const userInfo = orderData.userName || 'Foydalanuvchi';
 
-    const message = `📋 *Yangi buyurtma yaratildi*\n\n` +
+    const message = `📋 *Buyurtma tayyor!*\n\n` +
       `🆔 Buyurtma: #${orderId.slice(0, 8)}\n` +
       `👤 Mijoz: ${userInfo}\n` +
       `📝 Buyurtma: ${orderData.orderText}\n` +
       `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
-      `Holat: ⏳ Tasdiqlanishni kutmoqda`;
+      `Holat: 🚀 Tayyor`;
+
+    // Создаем клавиатуру с кнопкой "Доставлен"
+    const keyboard = {
+      inline_keyboard: [
+        [
+          { text: '✅ Доставлен', callback_data: `order:delivered:${orderId}` }
+        ]
+      ]
+    };
 
     // Отправляем уведомление всем админам ресторана
     const notificationPromises = admins.map(async (admin) => {
@@ -122,7 +130,10 @@ export async function notifyRestaurantAdminsAboutNewOrder(
         await botInstance!.telegram.sendMessage(
           admin.telegram_id,
           message,
-          { parse_mode: 'Markdown' }
+          {
+            parse_mode: 'Markdown',
+            reply_markup: keyboard
+          }
         );
       } catch (error: any) {
         console.error(`Error sending notification to restaurant admin ${admin.telegram_id}:`, error);

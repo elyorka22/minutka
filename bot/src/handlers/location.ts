@@ -6,7 +6,7 @@ import { Context } from 'telegraf';
 import { apiRequest } from '../config/api';
 import { supabase } from '../config/supabase';
 import { sendOrderToRestaurant } from '../services/restaurantNotification';
-import { notifyRestaurantAdminsAboutNewOrder } from '../services/adminNotification';
+// Уведомления админам ресторана теперь отправляются после нажатия поваром "Tayyor"
 
 /**
  * Обработчик геолокации или текстового адреса
@@ -88,12 +88,7 @@ export async function locationHandler(ctx: Context) {
       .update({ telegram_message_id: messageId })
       .eq('id', order.id);
 
-    // Уведомляем админов ресторана о новом заказе
-    await notifyRestaurantAdminsAboutNewOrder(restaurantId, order.id, {
-      orderText,
-      address,
-      user: ctx.from
-    });
+    // Уведомления админам ресторана теперь отправляются после нажатия поваром "Tayyor"
 
     // Очищаем сессию
     (ctx as any).session = {};
