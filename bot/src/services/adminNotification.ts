@@ -4,7 +4,7 @@
 // ============================================
 
 import { Telegraf } from 'telegraf';
-import { InlineKeyboardMarkup } from 'telegraf/typings/core/types/typegram';
+import { Markup } from 'telegraf';
 import { supabase } from '../config/supabase';
 import { apiRequest } from '../config/api';
 import { Order, Restaurant } from '../types';
@@ -116,14 +116,10 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
       `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
       `Holat: 🚀 Tayyor`;
 
-    // Создаем клавиатуру с кнопкой "Доставлен"
-    const keyboard: InlineKeyboardMarkup = {
-      inline_keyboard: [
-        [
-          { text: '✅ Доставлен', callback_data: `order:delivered:${orderId}` }
-        ]
-      ]
-    };
+    // Создаем клавиатуру с кнопкой "Доставлен" используя Markup
+    const keyboard = Markup.inlineKeyboard([
+      Markup.button.callback('✅ Доставлен', `order:delivered:${orderId}`)
+    ]);
 
     console.log(`Sending notification to ${admins.length} restaurant admins with keyboard:`, JSON.stringify(keyboard));
 
