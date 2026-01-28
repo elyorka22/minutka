@@ -28,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -88,39 +88,46 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </header>
 
-      <div className="flex relative">
-        {/* Sidebar */}
-        <aside
-          className={`bg-white shadow-sm transition-all duration-300 ${
-            sidebarOpen ? 'w-64' : 'w-0'
-          } overflow-hidden z-50 relative`}
-        >
-          <nav className="p-4 space-y-2">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive
-                      ? 'bg-primary-100 text-primary-700 font-semibold'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <span className="text-xl">{item.icon}</span>
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </aside>
+      {/* Backdrop overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed top-16 left-0 right-0 bottom-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-        {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 relative z-10">
-          {children}
-        </main>
-      </div>
+      {/* Sidebar - Overlay */}
+      <aside
+        className={`fixed top-16 left-0 h-[calc(100vh-4rem)] bg-white shadow-lg transition-transform duration-300 z-50 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } w-64 overflow-y-auto`}
+      >
+        <nav className="p-4 space-y-2">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                  isActive
+                    ? 'bg-primary-100 text-primary-700 font-semibold'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                <span className="text-xl">{item.icon}</span>
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
+
+      {/* Main Content */}
+      <main className="p-4 sm:p-6">
+        {children}
+      </main>
     </div>
   );
 }
