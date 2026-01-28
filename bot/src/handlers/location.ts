@@ -6,7 +6,7 @@ import { Context } from 'telegraf';
 import { apiRequest } from '../config/api';
 import { supabase } from '../config/supabase';
 import { sendOrderToRestaurant } from '../services/restaurantNotification';
-import { notifySuperAdminsAboutNewOrder, notifyRestaurantAdminsAboutNewOrder } from '../services/adminNotification';
+import { notifyRestaurantAdminsAboutNewOrder } from '../services/adminNotification';
 
 /**
  * Обработчик геолокации или текстового адреса
@@ -87,14 +87,6 @@ export async function locationHandler(ctx: Context) {
       .from('orders')
       .update({ telegram_message_id: messageId })
       .eq('id', order.id);
-
-    // Уведомляем супер-админов о новом заказе
-    await notifySuperAdminsAboutNewOrder(order.id, {
-      restaurantName,
-      orderText,
-      address,
-      user: ctx.from
-    });
 
     // Уведомляем админов ресторана о новом заказе
     await notifyRestaurantAdminsAboutNewOrder(restaurantId, order.id, {

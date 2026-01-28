@@ -7,7 +7,6 @@ import { supabase } from '../config/supabase';
 import { Order, OrderStatus } from '../types';
 import {
   sendOrderToChef,
-  notifySuperAdminsAboutNewOrder,
   notifyRestaurantAdminsAboutNewOrder,
   notifyUserAboutOrderStatus
 } from '../services/telegramNotification';
@@ -158,13 +157,6 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
             .update({ telegram_message_id: messageId })
             .eq('id', data.id);
         }
-      }),
-      // Уведомляем супер-админов
-      notifySuperAdminsAboutNewOrder(data.id, {
-        restaurantName: restaurantInfo?.name || 'Noma\'lum restoran',
-        orderText: order_text,
-        address,
-        userName
       }),
       // Уведомляем админов ресторана
       notifyRestaurantAdminsAboutNewOrder(restaurant_id, data.id, {
