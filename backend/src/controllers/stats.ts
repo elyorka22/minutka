@@ -6,11 +6,40 @@ import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 
 /**
+ * Парсит сумму из order_text
+ * Ищет паттерны: "Jami: 10000 so'm", "💰 10000 so'm", "Jami: 10000", и т.д.
+ */
+function parseOrderTotal(orderText: string): number {
+  if (!orderText) return 0;
+  
+  const lines = orderText.split('\n');
+  for (const line of lines) {
+    // Ищем строки с "Jami:" или "💰"
+    if (line.includes('Jami:') || line.includes('💰')) {
+      // Извлекаем числа из строки
+      const match = line.match(/(\d[\d\s]*)/);
+      if (match) {
+        // Убираем пробелы и преобразуем в число
+        const amount = parseInt(match[1].replace(/\s/g, ''), 10);
+        if (!isNaN(amount) && amount > 0) {
+          return amount;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
+/**
  * GET /api/stats
  * Получить статистику для дашборда
  */
 export async function getStats(req: Request, res: Response) {
   try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayISO = today.toISOString();
+
     // Получаем все данные параллельно
     const [
       restaurantsResult,
@@ -19,7 +48,9 @@ export async function getStats(req: Request, res: Response) {
       pendingOrdersResult,
       usersResult,
       bannersResult,
-      todayOrdersResult
+      todayOrdersResult,
+      deliveredOrdersResult,
+      todayDeliveredOrdersResult
     ] = await Promise.all([
       // Всего ресторанов
       supabase.from('restaurants').select('id', { count: 'exact', head: true }),
@@ -37,7 +68,18 @@ export async function getStats(req: Request, res: Response) {
       supabase
         .from('orders')
         .select('id', { count: 'exact', head: true })
-        .gte('created_at', new Date().toISOString().split('T')[0])
+        .gte('created_at', todayISO),
+      // Доставленные заказы (для расчета общей выручки)
+      supabase
+        .from('orders')
+        .select('order_text')
+        .eq('status', 'delivered'),
+      // Доставленные заказы сегодня
+      supabase
+        .from('orders')
+        .select('order_text')
+        .eq('status', 'delivered')
+        .gte('created_at', todayISO)
     ]);
 
     // Обрабатываем ошибки
@@ -48,12 +90,31 @@ export async function getStats(req: Request, res: Response) {
       pendingOrdersResult.error,
       usersResult.error,
       bannersResult.error,
-      todayOrdersResult.error
+      todayOrdersResult.error,
+      deliveredOrdersResult.error,
+      todayDeliveredOrdersResult.error
     ].filter(Boolean);
 
     if (errors.length > 0) {
       throw errors[0];
     }
+
+    // Рассчитываем общую выручку из доставленных заказов
+    const deliveredOrders = deliveredOrdersResult.data || [];
+    const totalRevenue = deliveredOrders.reduce((sum, order) => {
+      return sum + parseOrderTotal(order.order_text);
+    }, 0);
+
+    // Рассчитываем выручку за сегодня из доставленных заказов
+    const todayDeliveredOrders = todayDeliveredOrdersResult.data || [];
+    const todayRevenue = todayDeliveredOrders.reduce((sum, order) => {
+      return sum + parseOrderTotal(order.order_text);
+    }, 0);
+
+    // Рассчитываем средний чек
+    const averageOrderValue = deliveredOrders.length > 0 
+      ? Math.round(totalRevenue / deliveredOrders.length)
+      : 0;
 
     const stats = {
       totalRestaurants: restaurantsResult.count || 0,
@@ -63,7 +124,9 @@ export async function getStats(req: Request, res: Response) {
       totalUsers: usersResult.count || 0,
       totalBanners: bannersResult.count || 0,
       todayOrders: todayOrdersResult.count || 0,
-      todayRevenue: 0 // Выручка не рассчитывается, так как в схеме нет поля total_price
+      todayRevenue,
+      totalRevenue,
+      averageOrderValue
     };
 
     res.json({
@@ -104,7 +167,8 @@ export async function getRestaurantStats(req: Request, res: Response) {
       totalOrdersResult,
       pendingOrdersResult,
       todayOrdersResult,
-      allOrdersResult
+      deliveredOrdersResult,
+      todayDeliveredOrdersResult
     ] = await Promise.all([
       // Всего заказов для ресторана
       supabase
@@ -123,13 +187,19 @@ export async function getRestaurantStats(req: Request, res: Response) {
         .select('id', { count: 'exact', head: true })
         .eq('restaurant_id', restaurantId)
         .gte('created_at', todayISO),
-      // Все заказы для расчета средней суммы (если будет поле total_price)
+      // Доставленные заказы (для расчета общей выручки)
       supabase
         .from('orders')
-        .select('id, created_at')
+        .select('order_text')
         .eq('restaurant_id', restaurantId)
-        .order('created_at', { ascending: false })
-        .limit(10)
+        .eq('status', 'delivered'),
+      // Доставленные заказы сегодня
+      supabase
+        .from('orders')
+        .select('order_text')
+        .eq('restaurant_id', restaurantId)
+        .eq('status', 'delivered')
+        .gte('created_at', todayISO)
     ]);
 
     // Обрабатываем ошибки
@@ -137,20 +207,38 @@ export async function getRestaurantStats(req: Request, res: Response) {
       totalOrdersResult.error,
       pendingOrdersResult.error,
       todayOrdersResult.error,
-      allOrdersResult.error
+      deliveredOrdersResult.error,
+      todayDeliveredOrdersResult.error
     ].filter(Boolean);
 
     if (errors.length > 0) {
       throw errors[0];
     }
 
+    // Рассчитываем общую выручку из доставленных заказов
+    const deliveredOrders = deliveredOrdersResult.data || [];
+    const totalRevenue = deliveredOrders.reduce((sum, order) => {
+      return sum + parseOrderTotal(order.order_text);
+    }, 0);
+
+    // Рассчитываем выручку за сегодня из доставленных заказов
+    const todayDeliveredOrders = todayDeliveredOrdersResult.data || [];
+    const todayRevenue = todayDeliveredOrders.reduce((sum, order) => {
+      return sum + parseOrderTotal(order.order_text);
+    }, 0);
+
+    // Рассчитываем средний чек
+    const averageOrderValue = deliveredOrders.length > 0 
+      ? Math.round(totalRevenue / deliveredOrders.length)
+      : 0;
+
     const stats = {
       todayOrders: todayOrdersResult.count || 0,
-      todayRevenue: 0, // Выручка не рассчитывается, так как в схеме нет поля total_price
+      todayRevenue,
       pendingOrders: pendingOrdersResult.count || 0,
       totalOrders: totalOrdersResult.count || 0,
-      totalRevenue: 0, // Выручка не рассчитывается, так как в схеме нет поля total_price
-      averageOrderValue: 0 // Средний чек не рассчитывается, так как в схеме нет поля total_price
+      totalRevenue,
+      averageOrderValue
     };
 
     res.json({

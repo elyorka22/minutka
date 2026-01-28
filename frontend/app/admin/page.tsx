@@ -16,6 +16,8 @@ interface Stats {
   totalBanners: number;
   todayOrders: number;
   todayRevenue: number;
+  totalRevenue: number;
+  averageOrderValue: number;
 }
 
 export default function AdminDashboard() {
@@ -82,6 +84,18 @@ export default function AdminDashboard() {
       value: `${stats.todayRevenue.toLocaleString()} so'm`,
       subtitle: 'за сегодня',
       color: 'bg-emerald-500',
+    },
+    {
+      title: 'Общая выручка',
+      value: `${stats.totalRevenue.toLocaleString()} so'm`,
+      subtitle: 'из доставленных заказов',
+      color: 'bg-teal-500',
+    },
+    {
+      title: 'Средний чек',
+      value: `${stats.averageOrderValue.toLocaleString()} so'm`,
+      subtitle: 'на заказ',
+      color: 'bg-cyan-500',
     },
   ];
 
