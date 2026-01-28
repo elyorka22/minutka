@@ -27,6 +27,16 @@ export default function RestaurantAdminSettingsPage() {
   // Получаем restaurant_id из данных пользователя
   const currentRestaurantId = (user?.user as any)?.restaurant_id;
   const currentAdminId = (user?.user as any)?.id;
+  
+  // Отладочная информация
+  useEffect(() => {
+    console.log('RestaurantAdminSettingsPage - User data:', {
+      user,
+      currentRestaurantId,
+      currentAdminId,
+      userUser: user?.user
+    });
+  }, [user, currentRestaurantId, currentAdminId]);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -134,9 +144,11 @@ export default function RestaurantAdminSettingsPage() {
   };
 
   const handleToggleNotifications = async () => {
+    console.log('handleToggleNotifications called', { currentAdminId, notificationsEnabled });
+    
     if (!currentAdminId) {
-      console.error('currentAdminId is missing:', currentAdminId);
-      showError('Не удалось определить админа');
+      console.error('currentAdminId is missing:', { currentAdminId, user: user?.user });
+      showError('Не удалось определить админа. Пожалуйста, перезагрузите страницу.');
       return;
     }
 
@@ -144,20 +156,32 @@ export default function RestaurantAdminSettingsPage() {
     try {
       const newValue = !notificationsEnabled;
       console.log(`Updating notifications_enabled for admin ${currentAdminId} to ${newValue}`);
-      const updated = await updateRestaurantAdmin(currentAdminId, {
+      
+      const updateData = {
         notifications_enabled: newValue
-      });
-      console.log('Updated admin:', updated);
-      setNotificationsEnabled(newValue);
+      };
+      console.log('Sending update request:', { id: currentAdminId, data: updateData });
+      
+      const updated = await updateRestaurantAdmin(currentAdminId, updateData);
+      console.log('Updated admin response:', updated);
+      
+      if (!updated) {
+        throw new Error('Не удалось обновить настройку');
+      }
+      
+      setNotificationsEnabled(updated.notifications_enabled ?? newValue);
       
       // Перезагружаем данные админов, чтобы убедиться, что значение обновилось
       if (currentRestaurantId) {
         try {
           const adminsData = await getRestaurantAdmins(currentRestaurantId);
+          console.log('Reloaded admins data:', adminsData);
           const currentAdmin = adminsData.find((admin: any) => admin.id === currentAdminId);
           if (currentAdmin) {
-            console.log('Reloaded admin data:', currentAdmin);
+            console.log('Reloaded current admin data:', currentAdmin);
             setNotificationsEnabled(currentAdmin.notifications_enabled ?? true);
+          } else {
+            console.warn('Current admin not found after reload');
           }
         } catch (error) {
           console.error('Error reloading admin data:', error);
@@ -165,9 +189,10 @@ export default function RestaurantAdminSettingsPage() {
       }
       
       showSuccess(newValue ? 'Уведомления включены' : 'Уведомления отключены');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating notifications:', error);
-      showError('Ошибка при обновлении настройки уведомлений');
+      const errorMessage = error?.response?.data?.error || error?.message || 'Ошибка при обновлении настройки уведомлений';
+      showError(errorMessage);
     } finally {
       setUpdatingNotifications(false);
     }
