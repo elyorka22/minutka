@@ -149,6 +149,21 @@ export default function RestaurantAdminSettingsPage() {
       });
       console.log('Updated admin:', updated);
       setNotificationsEnabled(newValue);
+      
+      // Перезагружаем данные админов, чтобы убедиться, что значение обновилось
+      if (currentRestaurantId) {
+        try {
+          const adminsData = await getRestaurantAdmins(currentRestaurantId);
+          const currentAdmin = adminsData.find((admin: any) => admin.id === currentAdminId);
+          if (currentAdmin) {
+            console.log('Reloaded admin data:', currentAdmin);
+            setNotificationsEnabled(currentAdmin.notifications_enabled ?? true);
+          }
+        } catch (error) {
+          console.error('Error reloading admin data:', error);
+        }
+      }
+      
       showSuccess(newValue ? 'Уведомления включены' : 'Уведомления отключены');
     } catch (error) {
       console.error('Error updating notifications:', error);
