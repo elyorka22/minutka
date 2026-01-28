@@ -112,9 +112,15 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
     }
 
     // Фильтруем админов с включенными уведомлениями
-    const admins = allAdmins.filter(admin => admin.notifications_enabled === true);
+    // Проверяем, что notifications_enabled === true (не null, не false)
+    const admins = allAdmins.filter(admin => {
+      const enabled = admin.notifications_enabled === true;
+      console.log(`Admin ${admin.telegram_id}: notifications_enabled = ${admin.notifications_enabled}, enabled = ${enabled}`);
+      return enabled;
+    });
 
     console.log(`Found ${allAdmins.length} active restaurant admins, ${admins.length} with notifications enabled`);
+    console.log('Admins with notifications enabled:', admins.map(a => ({ telegram_id: a.telegram_id, notifications_enabled: a.notifications_enabled })));
 
     if (admins.length === 0) {
       console.log(`No restaurant admins with notifications enabled found for restaurant ${restaurantId}`);
