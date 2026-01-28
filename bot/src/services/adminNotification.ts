@@ -94,16 +94,30 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
   }
 
   try {
-    // Получаем всех активных админов ресторана с включенными уведомлениями
-    const { data: admins, error } = await supabase
+    // Получаем всех активных админов ресторана
+    const { data: allAdmins, error: allAdminsError } = await supabase
       .from('restaurant_admins')
-      .select('telegram_id')
+      .select('telegram_id, notifications_enabled, is_active')
       .eq('restaurant_id', restaurantId)
-      .eq('is_active', true)
-      .eq('notifications_enabled', true);
+      .eq('is_active', true);
 
-    if (error || !admins || admins.length === 0) {
-      console.log('No active restaurant admins with notifications enabled found');
+    if (allAdminsError) {
+      console.error('Error fetching restaurant admins:', allAdminsError);
+      return;
+    }
+
+    if (!allAdmins || allAdmins.length === 0) {
+      console.log(`No active restaurant admins found for restaurant ${restaurantId}`);
+      return;
+    }
+
+    // Фильтруем админов с включенными уведомлениями
+    const admins = allAdmins.filter(admin => admin.notifications_enabled === true);
+
+    console.log(`Found ${allAdmins.length} active restaurant admins, ${admins.length} with notifications enabled`);
+
+    if (admins.length === 0) {
+      console.log(`No restaurant admins with notifications enabled found for restaurant ${restaurantId}`);
       return;
     }
 

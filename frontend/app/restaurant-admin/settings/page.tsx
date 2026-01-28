@@ -70,10 +70,19 @@ export default function RestaurantAdminSettingsPage() {
 
         // Находим текущего админа и загружаем настройку уведомлений
         if (currentAdminId && adminsData) {
+          console.log('Looking for admin with ID:', currentAdminId);
+          console.log('Available admins:', adminsData.map((a: any) => ({ id: a.id, notifications_enabled: a.notifications_enabled })));
           const currentAdmin = adminsData.find((admin: any) => admin.id === currentAdminId);
           if (currentAdmin) {
+            console.log('Found current admin:', currentAdmin);
             setNotificationsEnabled(currentAdmin.notifications_enabled ?? true);
+          } else {
+            console.warn('Current admin not found in admins list');
+            // Если админ не найден, используем значение по умолчанию
+            setNotificationsEnabled(true);
           }
+        } else {
+          console.warn('currentAdminId or adminsData missing:', { currentAdminId, adminsData: !!adminsData });
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -126,6 +135,7 @@ export default function RestaurantAdminSettingsPage() {
 
   const handleToggleNotifications = async () => {
     if (!currentAdminId) {
+      console.error('currentAdminId is missing:', currentAdminId);
       showError('Не удалось определить админа');
       return;
     }
@@ -133,9 +143,11 @@ export default function RestaurantAdminSettingsPage() {
     setUpdatingNotifications(true);
     try {
       const newValue = !notificationsEnabled;
-      await updateRestaurantAdmin(currentAdminId, {
+      console.log(`Updating notifications_enabled for admin ${currentAdminId} to ${newValue}`);
+      const updated = await updateRestaurantAdmin(currentAdminId, {
         notifications_enabled: newValue
       });
+      console.log('Updated admin:', updated);
       setNotificationsEnabled(newValue);
       showSuccess(newValue ? 'Уведомления включены' : 'Уведомления отключены');
     } catch (error) {

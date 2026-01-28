@@ -150,7 +150,17 @@ export async function createRestaurantAdmin(req: AuthenticatedRequest, res: Resp
 export async function updateRestaurantAdmin(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { username, first_name, last_name, phone, is_active, password } = req.body;
+    const { username, first_name, last_name, phone, is_active, password, notifications_enabled } = req.body;
+
+    console.log(`Updating restaurant admin ${id} with data:`, {
+      username,
+      first_name,
+      last_name,
+      phone,
+      is_active,
+      notifications_enabled,
+      hasPassword: !!password
+    });
 
     const updateData: any = {};
     if (username !== undefined) updateData.username = username;
@@ -158,11 +168,16 @@ export async function updateRestaurantAdmin(req: AuthenticatedRequest, res: Resp
     if (last_name !== undefined) updateData.last_name = last_name;
     if (phone !== undefined) updateData.phone = phone;
     if (is_active !== undefined) updateData.is_active = is_active;
-    if (req.body.notifications_enabled !== undefined) updateData.notifications_enabled = req.body.notifications_enabled;
+    if (notifications_enabled !== undefined) {
+      updateData.notifications_enabled = notifications_enabled;
+      console.log(`Setting notifications_enabled to ${notifications_enabled} for admin ${id}`);
+    }
     if (password !== undefined && password !== '') {
       // Хешируем пароль только если он еще не хеширован
       updateData.password = isHashed(password) ? password : await hashPassword(password);
     }
+
+    console.log('Update data:', updateData);
 
     const { data, error } = await supabase
       .from('restaurant_admins')
@@ -172,9 +187,11 @@ export async function updateRestaurantAdmin(req: AuthenticatedRequest, res: Resp
       .single();
 
     if (error) {
+      console.error('Supabase error updating restaurant admin:', error);
       throw error;
     }
 
+    console.log('Successfully updated restaurant admin:', data);
     res.json({ success: true, data: data as RestaurantAdmin });
   } catch (error: any) {
     console.error('Error updating restaurant admin:', error);
