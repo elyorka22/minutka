@@ -49,6 +49,13 @@ export async function orderStatusHandler(
           }
 
           // Уведомляем админов ресторана о готовом заказе
+          console.log('Calling notifyRestaurantAdminsAboutReadyOrder with:', {
+            restaurantId: order.restaurant_id,
+            orderId,
+            orderText: order.order_text,
+            address: order.address,
+            userName
+          });
           await notifyRestaurantAdminsAboutReadyOrder(
             order.restaurant_id,
             orderId,
@@ -58,6 +65,7 @@ export async function orderStatusHandler(
               userName
             }
           );
+          console.log('notifyRestaurantAdminsAboutReadyOrder completed');
         }
       } catch (error) {
         console.error('Error notifying restaurant admins:', error);

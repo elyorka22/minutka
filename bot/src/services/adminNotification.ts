@@ -88,10 +88,15 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
     userName?: string;
   }
 ) {
+  console.log('=== notifyRestaurantAdminsAboutReadyOrder called ===');
+  console.log('Parameters:', { restaurantId, orderId, orderData });
+  
   if (!botInstance) {
-    console.warn('Bot instance not initialized for admin notifications');
+    console.error('Bot instance not initialized for admin notifications!');
     return;
   }
+
+  console.log('Bot instance is initialized, proceeding...');
 
   try {
     // Получаем всех активных админов ресторана
