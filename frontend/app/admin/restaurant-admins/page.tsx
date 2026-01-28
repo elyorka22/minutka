@@ -274,6 +274,7 @@ function AdminFormModal({
       first_name: formData.first_name || null,
       last_name: formData.last_name || null,
       is_active: true,
+      notifications_enabled: admin?.notifications_enabled ?? true,
       created_at: admin?.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
