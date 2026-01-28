@@ -201,11 +201,11 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
         }`}
       >
         {/* Заголовок */}
-        <div className="flex items-center justify-between p-6 border-b flex-shrink-0">
-          <h2 className="text-2xl font-bold text-gray-900">Savatcha</h2>
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b flex-shrink-0">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Savatcha</h2>
           <button
             onClick={() => setIsOpen(false)}
-            className="text-gray-500 hover:text-gray-700 text-2xl"
+            className="text-gray-500 hover:text-gray-700 text-2xl sm:text-3xl"
             aria-label="Закрыть корзину"
           >
             ×
@@ -213,7 +213,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
         </div>
 
         {/* Содержимое корзины */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {items.length === 0 ? (
             <div className="text-center py-12">
                   <p className="text-gray-500 text-lg">Savatcha bo\'sh</p>
@@ -221,69 +221,76 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
           ) : (
             <>
               {/* Список товаров */}
-              <div className="space-y-4 mb-6">
+              <div className="space-y-3 mb-6">
                 {items.map((cartItem) => (
-                  <div key={cartItem.item.id} className="flex items-center gap-4 bg-gray-50 rounded-lg p-4">
-                    {cartItem.item.image_url && (
-                      <div className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden">
-                        <Image
-                          src={cartItem.item.image_url}
-                          alt={cartItem.item.name}
-                          fill
-                          className="object-cover"
-                        />
+                  <div key={cartItem.item.id} className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                      {/* Изображение и основная информация */}
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {cartItem.item.image_url && (
+                          <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 rounded-lg overflow-hidden">
+                            <Image
+                              src={cartItem.item.image_url}
+                              alt={cartItem.item.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{cartItem.item.name}</h3>
+                          <p className="text-xs sm:text-sm text-gray-600">{cartItem.item.price} so'm × {cartItem.quantity}</p>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900">{cartItem.item.name}</h3>
-                      <p className="text-sm text-gray-600">{cartItem.item.price} so'm × {cartItem.quantity}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => updateQuantity(cartItem.item.id, cartItem.quantity - 1)}
-                          className="bg-gray-200 text-gray-700 rounded-full w-8 h-8 flex items-center justify-center hover:bg-gray-300 transition-colors"
-                        >
-                          −
-                        </button>
-                        <span className="text-lg font-semibold w-8 text-center">
-                          {cartItem.quantity}
+                      
+                      {/* Кнопки управления и цена */}
+                      <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <button
+                            onClick={() => updateQuantity(cartItem.item.id, cartItem.quantity - 1)}
+                            className="bg-gray-200 text-gray-700 rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-gray-300 transition-colors text-sm sm:text-base"
+                          >
+                            −
+                          </button>
+                          <span className="text-base sm:text-lg font-semibold w-6 sm:w-8 text-center">
+                            {cartItem.quantity}
+                          </span>
+                          <button
+                            onClick={() => updateQuantity(cartItem.item.id, cartItem.quantity + 1)}
+                            className="bg-primary-500 text-white rounded-full w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-primary-600 transition-colors text-sm sm:text-base"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <span className="text-base sm:text-lg font-bold text-primary-600 text-right min-w-[70px] sm:min-w-[80px]">
+                          {cartItem.item.price * cartItem.quantity} so'm
                         </span>
                         <button
-                          onClick={() => updateQuantity(cartItem.item.id, cartItem.quantity + 1)}
-                          className="bg-primary-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-primary-600 transition-colors"
+                          onClick={() => removeItem(cartItem.item.id)}
+                          className="text-red-500 hover:text-red-700 flex-shrink-0 text-lg sm:text-xl"
+                          aria-label="Удалить товар"
                         >
-                          +
+                          🗑️
                         </button>
                       </div>
-                      <span className="text-lg font-bold text-primary-600 w-20 text-right">
-                        {cartItem.item.price * cartItem.quantity} so'm
-                      </span>
-                      <button
-                        onClick={() => removeItem(cartItem.item.id)}
-                        className="text-red-500 hover:text-red-700 ml-2"
-                        aria-label="Удалить товар"
-                      >
-                        🗑️
-                      </button>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Итого */}
-              <div className="border-t pt-4 mb-6">
+              <div className="border-t pt-4 mb-4 sm:mb-6">
                 <div className="flex justify-between items-center">
-                      <span className="text-xl font-semibold text-gray-900">Jami:</span>
-                  <span className="text-2xl font-bold text-primary-600">{totalPrice} so'm</span>
+                  <span className="text-lg sm:text-xl font-semibold text-gray-900">Jami:</span>
+                  <span className="text-xl sm:text-2xl font-bold text-primary-600">{totalPrice} so'm</span>
                 </div>
               </div>
 
               {/* Форма оформления заказа */}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                        Ism *
+                  <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Ism *
                   </label>
                   <input
                     type="text"
@@ -291,14 +298,14 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="Ismingiz"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="Ismingiz"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                        Telefon *
+                  <label htmlFor="phone" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Telefon *
                   </label>
                   <input
                     type="tel"
@@ -306,14 +313,14 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="+7 (999) 123-45-67"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                        Yetkazib berish manzili *
+                  <label htmlFor="address" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Yetkazib berish manzili *
                   </label>
                   <textarea
                     id="address"
@@ -321,35 +328,35 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                     onChange={(e) => setAddress(e.target.value)}
                     required
                     rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="Ko\'cha, uy, kvartira"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    placeholder="Ko'cha, uy, kvartira"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">
-                        Buyurtma uchun izoh
+                  <label htmlFor="notes" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Buyurtma uchun izoh
                   </label>
                   <textarea
                     id="notes"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                        placeholder="Qo\'shimcha xohishlar (ixtiyoriy)"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
+                    placeholder="Qo'shimcha xohishlar (ixtiyoriy)"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="chatId" className="block text-sm font-medium text-gray-700 mb-1">
-                        Chat ID (ixtiyoriy)
+                  <label htmlFor="chatId" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Chat ID (ixtiyoriy)
                   </label>
                   <input
                     type="text"
                     id="chatId"
                     value={chatId}
                     onChange={(e) => setChatId(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="Telegram Chat ID (xabarlar olish uchun)"
                   />
                   <p className="mt-1 text-xs text-gray-500">
@@ -360,7 +367,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full bg-primary-500 text-white py-4 rounded-lg font-semibold text-lg hover:bg-primary-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full bg-primary-500 text-white py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg hover:bg-primary-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Yuborilmoqda...' : '✅ Buyurtma berish'}
                 </button>
