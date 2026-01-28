@@ -4,6 +4,7 @@
 // ============================================
 
 import { Telegraf } from 'telegraf';
+import { InlineKeyboardMarkup } from 'telegraf/typings/core/types/typegram';
 import { supabase } from '../config/supabase';
 import { apiRequest } from '../config/api';
 import { Order, Restaurant } from '../types';
@@ -116,7 +117,7 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
       `Holat: 🚀 Tayyor`;
 
     // Создаем клавиатуру с кнопкой "Доставлен"
-    const keyboard = {
+    const keyboard: InlineKeyboardMarkup = {
       inline_keyboard: [
         [
           { text: '✅ Доставлен', callback_data: `order:delivered:${orderId}` }
@@ -124,10 +125,13 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
       ]
     };
 
+    console.log(`Sending notification to ${admins.length} restaurant admins with keyboard:`, JSON.stringify(keyboard));
+
     // Отправляем уведомление всем админам ресторана
     const notificationPromises = admins.map(async (admin) => {
       try {
-        await botInstance!.telegram.sendMessage(
+        console.log(`Sending notification to restaurant admin ${admin.telegram_id} for order ${orderId}`);
+        const result = await botInstance!.telegram.sendMessage(
           admin.telegram_id,
           message,
           {
@@ -135,6 +139,7 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
             reply_markup: keyboard
           }
         );
+        console.log(`Successfully sent notification to restaurant admin ${admin.telegram_id}, message_id: ${result.message_id}`);
       } catch (error: any) {
         console.error(`Error sending notification to restaurant admin ${admin.telegram_id}:`, error);
       }
