@@ -104,6 +104,7 @@ export interface RestaurantAdmin {
   phone: string | null;
   password: string | null;
   is_active: boolean;
+  notifications_enabled: boolean;
   created_at: string;
   updated_at: string;
 }

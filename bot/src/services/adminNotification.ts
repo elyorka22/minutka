@@ -92,12 +92,13 @@ export async function notifyRestaurantAdminsAboutNewOrder(
   }
 
   try {
-    // Получаем всех активных админов ресторана
+    // Получаем всех активных админов ресторана с включенными уведомлениями
     const { data: admins, error } = await supabase
       .from('restaurant_admins')
       .select('telegram_id')
       .eq('restaurant_id', restaurantId)
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .eq('notifications_enabled', true);
 
     if (error || !admins || admins.length === 0) {
       console.log('No active restaurant admins found');

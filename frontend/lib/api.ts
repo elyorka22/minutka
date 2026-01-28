@@ -411,6 +411,7 @@ export async function updateRestaurantAdmin(id: string, adminData: {
   last_name?: string | null;
   phone?: string | null;
   is_active?: boolean;
+  notifications_enabled?: boolean;
 }): Promise<any> {
   try {
     const response = await api.patch<{ success: boolean; data: any }>(`/api/restaurant-admins/${id}`, adminData);

@@ -158,6 +158,7 @@ export async function updateRestaurantAdmin(req: AuthenticatedRequest, res: Resp
     if (last_name !== undefined) updateData.last_name = last_name;
     if (phone !== undefined) updateData.phone = phone;
     if (is_active !== undefined) updateData.is_active = is_active;
+    if (req.body.notifications_enabled !== undefined) updateData.notifications_enabled = req.body.notifications_enabled;
     if (password !== undefined && password !== '') {
       // Хешируем пароль только если он еще не хеширован
       updateData.password = isHashed(password) ? password : await hashPassword(password);

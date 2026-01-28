@@ -101,6 +101,7 @@ export interface RestaurantAdmin {
   first_name: string | null;
   last_name: string | null;
   is_active: boolean;
+  notifications_enabled: boolean;
   created_at: string;
   updated_at: string;
 }

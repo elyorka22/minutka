@@ -6,9 +6,10 @@
 
 import { useState, useEffect } from 'react';
 import { Restaurant } from '@/lib/types';
-import { getRestaurantById, updateRestaurant } from '@/lib/api';
+import { getRestaurantById, updateRestaurant, getRestaurantAdmins, updateRestaurantAdmin } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import ImageUpload from '@/components/ImageUpload';
+import { useToast } from '@/contexts/ToastContext';
 
 const DAYS_OF_WEEK = [
   { key: 'monday', label: 'Понедельник' },
@@ -22,11 +23,15 @@ const DAYS_OF_WEEK = [
 
 export default function RestaurantAdminSettingsPage() {
   const { user } = useAuth();
+  const { showSuccess, showError } = useToast();
   // Получаем restaurant_id из данных пользователя
   const currentRestaurantId = (user?.user as any)?.restaurant_id;
+  const currentAdminId = (user?.user as any)?.id;
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [updatingNotifications, setUpdatingNotifications] = useState(false);
   
   // Состояние для формы
   const [formData, setFormData] = useState({
@@ -40,32 +45,44 @@ export default function RestaurantAdminSettingsPage() {
   });
 
   useEffect(() => {
-    async function fetchRestaurant() {
+    async function fetchData() {
       if (!currentRestaurantId) {
         setLoading(false);
         return;
       }
       try {
-        const data = await getRestaurantById(currentRestaurantId);
-        setRestaurant(data);
+        const [restaurantData, adminsData] = await Promise.all([
+          getRestaurantById(currentRestaurantId),
+          currentAdminId ? getRestaurantAdmins(currentRestaurantId) : Promise.resolve([])
+        ]);
+        
+        setRestaurant(restaurantData);
         // Инициализируем форму данными ресторана
         setFormData({
-          name: data.name || '',
-          description: data.description || '',
-          phone: data.phone || '',
-          image_url: data.image_url || '',
-          is_active: data.is_active ?? true,
-          is_featured: data.is_featured ?? false,
-          working_hours: (data.working_hours as Record<string, string>) || {},
+          name: restaurantData.name || '',
+          description: restaurantData.description || '',
+          phone: restaurantData.phone || '',
+          image_url: restaurantData.image_url || '',
+          is_active: restaurantData.is_active ?? true,
+          is_featured: restaurantData.is_featured ?? false,
+          working_hours: (restaurantData.working_hours as Record<string, string>) || {},
         });
+
+        // Находим текущего админа и загружаем настройку уведомлений
+        if (currentAdminId && adminsData) {
+          const currentAdmin = adminsData.find((admin: any) => admin.id === currentAdminId);
+          if (currentAdmin) {
+            setNotificationsEnabled(currentAdmin.notifications_enabled ?? true);
+          }
+        }
       } catch (error) {
-        console.error('Error fetching restaurant:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     }
-    fetchRestaurant();
-  }, [currentRestaurantId]);
+    fetchData();
+  }, [currentRestaurantId, currentAdminId]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -105,6 +122,28 @@ export default function RestaurantAdminSettingsPage() {
         [day]: from && to ? `${from}-${to}` : '',
       },
     }));
+  };
+
+  const handleToggleNotifications = async () => {
+    if (!currentAdminId) {
+      showError('Не удалось определить админа');
+      return;
+    }
+
+    setUpdatingNotifications(true);
+    try {
+      const newValue = !notificationsEnabled;
+      await updateRestaurantAdmin(currentAdminId, {
+        notifications_enabled: newValue
+      });
+      setNotificationsEnabled(newValue);
+      showSuccess(newValue ? 'Уведомления включены' : 'Уведомления отключены');
+    } catch (error) {
+      console.error('Error updating notifications:', error);
+      showError('Ошибка при обновлении настройки уведомлений');
+    } finally {
+      setUpdatingNotifications(false);
+    }
   };
 
   if (loading) {
@@ -237,6 +276,37 @@ export default function RestaurantAdminSettingsPage() {
                 />
                 <span className="text-sm text-gray-700">Топ ресторан</span>
               </label>
+            </div>
+          </div>
+
+          {/* Bot Notifications */}
+          <div>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Уведомления в боте</h2>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-900 mb-1">
+                    Уведомления о новых заказах
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Получать уведомления о новых заказах в Telegram-боте
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleToggleNotifications}
+                  disabled={updatingNotifications}
+                  className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                    notificationsEnabled ? 'bg-primary-500' : 'bg-gray-200'
+                  } ${updatingNotifications ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      notificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
             </div>
           </div>
 
