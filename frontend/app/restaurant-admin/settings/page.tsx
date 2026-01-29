@@ -13,13 +13,13 @@ import ImageUpload from '@/components/ImageUpload';
 import { useToast } from '@/contexts/ToastContext';
 
 const DAYS_OF_WEEK = [
-  { key: 'monday', label: 'Понедельник' },
-  { key: 'tuesday', label: 'Вторник' },
-  { key: 'wednesday', label: 'Среда' },
-  { key: 'thursday', label: 'Четверг' },
-  { key: 'friday', label: 'Пятница' },
-  { key: 'saturday', label: 'Суббота' },
-  { key: 'sunday', label: 'Воскресенье' },
+  { key: 'Dushanba', label: 'Dushanba' },
+  { key: 'Seshanba', label: 'Seshanba' },
+  { key: 'Chorshanba', label: 'Chorshanba' },
+  { key: 'Payshanba', label: 'Payshanba' },
+  { key: 'Juma', label: 'Juma' },
+  { key: 'Shanba', label: 'Shanba' },
+  { key: 'Yakshanba', label: 'Yakshanba' },
 ];
 
 export default function RestaurantAdminSettingsPage() {
@@ -52,7 +52,13 @@ export default function RestaurantAdminSettingsPage() {
     delivery_text: '',
     is_active: true,
     is_featured: false,
-    working_hours: {} as Record<string, string>,
+    working_hours: {
+      start_day: '',
+      end_day: '',
+      start_time: '',
+      end_time: '',
+      closed_days: [] as string[],
+    },
   });
 
   useEffect(() => {
@@ -69,6 +75,14 @@ export default function RestaurantAdminSettingsPage() {
         
         setRestaurant(restaurantData);
         // Инициализируем форму данными ресторана
+        const workingHours = restaurantData.working_hours || {
+          start_day: '',
+          end_day: '',
+          start_time: '',
+          end_time: '',
+          closed_days: [],
+        };
+        
         setFormData({
           name: restaurantData.name || '',
           description: restaurantData.description || '',
@@ -77,7 +91,13 @@ export default function RestaurantAdminSettingsPage() {
           delivery_text: restaurantData.delivery_text || 'Telegram-bot orqali buyurtma bering',
           is_active: restaurantData.is_active ?? true,
           is_featured: restaurantData.is_featured ?? false,
-          working_hours: (restaurantData.working_hours as Record<string, string>) || {},
+          working_hours: {
+            start_day: workingHours.start_day || '',
+            end_day: workingHours.end_day || '',
+            start_time: workingHours.start_time || '',
+            end_time: workingHours.end_time || '',
+            closed_days: workingHours.closed_days || [],
+          },
         });
 
         // Находим текущего админа и загружаем настройку уведомлений
@@ -136,14 +156,20 @@ export default function RestaurantAdminSettingsPage() {
     }
   };
 
-  const handleWorkingHoursChange = (day: string, from: string, to: string) => {
-    setFormData(prev => ({
-      ...prev,
-      working_hours: {
-        ...prev.working_hours,
-        [day]: from && to ? `${from}-${to}` : '',
-      },
-    }));
+  const handleClosedDayToggle = (day: string) => {
+    setFormData(prev => {
+      const closedDays = prev.working_hours.closed_days || [];
+      const isClosed = closedDays.includes(day);
+      return {
+        ...prev,
+        working_hours: {
+          ...prev.working_hours,
+          closed_days: isClosed
+            ? closedDays.filter(d => d !== day)
+            : [...closedDays, day],
+        },
+      };
+    });
   };
 
   const handleToggleNotifications = async () => {
@@ -286,42 +312,101 @@ export default function RestaurantAdminSettingsPage() {
 
           {/* Working Hours */}
           <div>
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Часы работы</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4">Ish vaqti</h2>
             <div className="space-y-4">
-              {DAYS_OF_WEEK.map(({ key, label }) => {
-                const hours = formData.working_hours[key] || '';
-                const [from = '', to = ''] = hours.split('-');
-                
-                return (
-                  <div key={key} className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
-                    <div className="sm:col-span-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        {label}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Boshlanish kuni
+                  </label>
+                  <select
+                    value={formData.working_hours.start_day}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      working_hours: { ...prev.working_hours, start_day: e.target.value }
+                    }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
+                  >
+                    <option value="">Tanlang</option>
+                    {DAYS_OF_WEEK.map(({ key, label }) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tugash kuni
+                  </label>
+                  <select
+                    value={formData.working_hours.end_day}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      working_hours: { ...prev.working_hours, end_day: e.target.value }
+                    }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
+                  >
+                    <option value="">Tanlang</option>
+                    {DAYS_OF_WEEK.map(({ key, label }) => (
+                      <option key={key} value={key}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Boshlanish vaqti
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.working_hours.start_time}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      working_hours: { ...prev.working_hours, start_time: e.target.value }
+                    }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
+                    style={{ color: '#111827' }}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Tugash vaqti
+                  </label>
+                  <input
+                    type="time"
+                    value={formData.working_hours.end_time}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      working_hours: { ...prev.working_hours, end_time: e.target.value }
+                    }))}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
+                    style={{ color: '#111827' }}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Yopiq kunlar
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {DAYS_OF_WEEK.map(({ key, label }) => {
+                    const isClosed = formData.working_hours.closed_days?.includes(key) || false;
+                    return (
+                      <label key={key} className="flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isClosed}
+                          onChange={() => handleClosedDayToggle(key)}
+                          className="mr-2"
+                        />
+                        <span className="text-sm text-gray-700">{label}</span>
                       </label>
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">От</label>
-                      <input
-                        type="time"
-                        value={from}
-                        onChange={(e) => handleWorkingHoursChange(key, e.target.value, to)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-gray-900 bg-white"
-                        style={{ color: '#111827' }}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-500 mb-1">До</label>
-                      <input
-                        type="time"
-                        value={to}
-                        onChange={(e) => handleWorkingHoursChange(key, from, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm text-gray-900 bg-white"
-                        style={{ color: '#111827' }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </div>
 

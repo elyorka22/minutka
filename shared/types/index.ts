@@ -20,13 +20,11 @@ export interface Restaurant {
 }
 
 export interface WorkingHours {
-  monday?: string;
-  tuesday?: string;
-  wednesday?: string;
-  thursday?: string;
-  friday?: string;
-  saturday?: string;
-  sunday?: string;
+  start_day?: string; // День начала работы (например, "Dushanba")
+  end_day?: string; // День окончания работы (например, "Yakshanba")
+  start_time?: string; // Время начала (например, "09:00")
+  end_time?: string; // Время окончания (например, "22:00")
+  closed_days?: string[]; // Массив закрытых дней (например, ["Dushanba"])
 }
 
 // User types

@@ -64,26 +64,26 @@ export default async function RestaurantPage({ params }: PageProps) {
     }
   }
 
-    // Получаем текущее время и определяем, когда ресторан закроется
-    const getClosingTime = () => {
+    // Форматируем время работы для отображения
+    const formatWorkingHours = () => {
       if (!restaurant.working_hours) return null;
       
-      const today = new Date();
-      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-      const currentDay = dayNames[today.getDay()];
-      const todayHours = restaurant.working_hours[currentDay as keyof typeof restaurant.working_hours];
+      const { start_day, end_day, start_time, end_time, closed_days } = restaurant.working_hours;
       
-      if (todayHours && typeof todayHours === 'string') {
-        // Формат: "09:00-22:00"
-        const parts = todayHours.split('-');
-        if (parts.length === 2) {
-          return parts[1]; // Возвращаем время закрытия
-        }
+      if (!start_day || !end_day || !start_time || !end_time) {
+        return null;
       }
-      return null;
+      
+      let result = `${start_day} dan ${end_day} gacha ${start_time} dan ${end_time} gacha`;
+      
+      if (closed_days && closed_days.length > 0) {
+        result += `. ${closed_days.join(', ')} yopiq`;
+      }
+      
+      return result;
     };
 
-    const closingTime = getClosingTime();
+    const workingHoursText = formatWorkingHours();
 
     return (
       <div className="min-h-screen bg-gray-50">
@@ -117,11 +117,11 @@ export default async function RestaurantPage({ params }: PageProps) {
             </p>
           )}
 
-          {/* Closing Time - до скольки открыто */}
-          {closingTime && (
+          {/* Working Hours - время работы над описанием о доставке */}
+          {workingHoursText && (
             <div className="mb-4 text-center">
               <p className="text-sm md:text-base text-gray-600">
-                <span className="font-medium">Ochiladi:</span> {closingTime} gacha
+                {workingHoursText}
               </p>
             </div>
           )}
