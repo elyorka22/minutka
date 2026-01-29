@@ -42,11 +42,25 @@ export default function RestaurantAdminLayout({ children }: { children: React.Re
         // Проверяем, выбран ли ресторан (кроме страницы выбора ресторана)
         if (pathname !== '/restaurant-admin/select-restaurant') {
           const selectedRestaurantId = localStorage.getItem('selected_restaurant_id');
+          console.log('[Layout] Checking restaurant selection:', {
+            pathname,
+            selectedRestaurantId,
+            user: user?.user
+          });
+          
           if (!selectedRestaurantId) {
             // Если ресторан не выбран, проверяем, есть ли у админа несколько ресторанов
             const telegramId = localStorage.getItem('telegram_id');
+            const hasMultipleRestaurants = (user?.user as any)?.hasMultipleRestaurants;
+            
+            console.log('[Layout] No restaurant selected, checking if multiple restaurants:', {
+              telegramId,
+              hasMultipleRestaurants
+            });
+            
             if (telegramId) {
               // Редиректим на страницу выбора ресторана
+              console.log('[Layout] Redirecting to select-restaurant page');
               router.push('/restaurant-admin/select-restaurant');
             }
           }
