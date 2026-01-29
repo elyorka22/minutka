@@ -257,20 +257,23 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
     }
     // Для restaurant_admin: если обновляется is_available, разрешаем без проверок
     else if (req.user.role === 'restaurant_admin') {
-      // ВРЕМЕННО: разрешаем всем restaurant_admin обновлять is_available без проверок
-      // Это безопасно, так как они видят только свои товары в интерфейсе
+      // Если обновляется is_available (независимо от других полей), разрешаем без проверок
       if (is_available !== undefined) {
         console.log('Allowing is_available update for restaurant_admin:', {
           telegramId: req.user.telegram_id,
           menuItemId: id,
           is_available,
           userRestaurantId: req.user.restaurant_id,
-          itemRestaurantId: menuItem.restaurant_id
+          itemRestaurantId: menuItem.restaurant_id,
+          bodyKeys: Object.keys(req.body)
         });
         // Разрешаем без проверок - просто продолжаем выполнение
-      } else {
+      } 
+      // Если is_available НЕ обновляется, но обновляются другие поля - проверяем права
+      else if (name !== undefined || description !== undefined || price !== undefined || category !== undefined || image_url !== undefined) {
         // Для полного обновления (без is_available) используем строгую проверку
         if (!req.user.restaurant_id) {
+          console.error('Restaurant admin has no restaurant_id for full update');
           return res.status(403).json({
             success: false,
             error: 'Forbidden: Restaurant admin has no restaurant_id assigned'
@@ -280,6 +283,12 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
         const userRestaurantId = String(req.user.restaurant_id || '').trim().toLowerCase();
         const itemRestaurantId = String(menuItem.restaurant_id || '').trim().toLowerCase();
         
+        console.log('Checking restaurant_id for full update:', {
+          userRestaurantId,
+          itemRestaurantId,
+          match: userRestaurantId === itemRestaurantId
+        });
+        
         if (userRestaurantId !== itemRestaurantId) {
           return res.status(403).json({
             success: false,
@@ -287,6 +296,7 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
           });
         }
       }
+      // Если ничего не обновляется - это странно, но разрешаем
     }
     // Повары не могут обновлять блюда
     else if (req.user.role === 'chef') {
