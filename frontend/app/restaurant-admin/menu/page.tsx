@@ -60,14 +60,15 @@ export default function RestaurantAdminMenuPage() {
   };
 
   const handleToggleAvailable = async (id: string) => {
+    // Получаем текущий элемент
     const item = menuItems.find((i) => i.id === id);
     if (!item) return;
 
     const newAvailability = !item.is_available;
     
-    // Оптимистичное обновление UI
-    setMenuItems(
-      menuItems.map((i) =>
+    // Оптимистичное обновление UI с функциональной формой
+    setMenuItems((prevItems) =>
+      prevItems.map((i) =>
         i.id === id ? { ...i, is_available: newAvailability } : i
       )
     );
@@ -78,9 +79,17 @@ export default function RestaurantAdminMenuPage() {
         is_available: newAvailability,
       });
       
-      // Обновляем состояние с данными с сервера
-      setMenuItems(
-        menuItems.map((i) => (i.id === id ? updated : i))
+      // Проверяем, что сервер вернул правильное значение
+      if (updated.is_available !== newAvailability) {
+        console.warn('Server returned different availability value:', {
+          expected: newAvailability,
+          received: updated.is_available,
+        });
+      }
+      
+      // Обновляем состояние с данными с сервера, используя функциональную форму
+      setMenuItems((prevItems) =>
+        prevItems.map((i) => (i.id === id ? updated : i))
       );
       
       showSuccess(
@@ -89,9 +98,9 @@ export default function RestaurantAdminMenuPage() {
           : 'Блюдо помечено как недоступное'
       );
     } catch (error) {
-      // Откатываем изменения при ошибке
-      setMenuItems(
-        menuItems.map((i) =>
+      // Откатываем изменения при ошибке, используя функциональную форму
+      setMenuItems((prevItems) =>
+        prevItems.map((i) =>
           i.id === id ? { ...i, is_available: !newAvailability } : i
         )
       );
@@ -202,7 +211,7 @@ export default function RestaurantAdminMenuPage() {
                   image_url: item.image_url,
                   is_available: item.is_available,
                 });
-                setMenuItems(menuItems.map((i) => (i.id === item.id ? updated : i)));
+                setMenuItems((prevItems) => prevItems.map((i) => (i.id === item.id ? updated : i)));
                 showSuccess('Блюдо успешно обновлено!');
               } else {
                 // Создание нового блюда
