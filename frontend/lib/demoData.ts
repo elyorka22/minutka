@@ -52,13 +52,11 @@ export const demoRestaurants: Restaurant[] = [
     image_url: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1200&h=600&fit=crop',
     category: 'italian',
     working_hours: {
-      monday: '10:00-23:00',
-      tuesday: '10:00-23:00',
-      wednesday: '10:00-23:00',
-      thursday: '10:00-23:00',
-      friday: '10:00-24:00',
-      saturday: '11:00-24:00',
-      sunday: '11:00-23:00'
+      start_day: 'Dushanba',
+      end_day: 'Yakshanba',
+      start_time: '10:00',
+      end_time: '23:00',
+      closed_days: []
     },
     telegram_chat_id: null,
     phone: '+7 (999) 123-45-67',
@@ -75,13 +73,11 @@ export const demoRestaurants: Restaurant[] = [
     image_url: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=1200&h=600&fit=crop',
     category: 'japanese',
     working_hours: {
-      monday: '11:00-22:00',
-      tuesday: '11:00-22:00',
-      wednesday: '11:00-22:00',
-      thursday: '11:00-22:00',
-      friday: '11:00-23:00',
-      saturday: '12:00-23:00',
-      sunday: '12:00-22:00'
+      start_day: 'Dushanba',
+      end_day: 'Yakshanba',
+      start_time: '11:00',
+      end_time: '22:00',
+      closed_days: []
     },
     telegram_chat_id: null,
     phone: '+7 (999) 234-56-78',
@@ -98,13 +94,11 @@ export const demoRestaurants: Restaurant[] = [
     image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=1200&h=600&fit=crop',
     category: 'burger',
     working_hours: {
-      monday: '12:00-22:00',
-      tuesday: '12:00-22:00',
-      wednesday: '12:00-22:00',
-      thursday: '12:00-22:00',
-      friday: '12:00-23:00',
-      saturday: '12:00-23:00',
-      sunday: '12:00-22:00'
+      start_day: 'Dushanba',
+      end_day: 'Yakshanba',
+      start_time: '12:00',
+      end_time: '22:00',
+      closed_days: []
     },
     telegram_chat_id: null,
     phone: '+7 (999) 345-67-89',
@@ -121,13 +115,11 @@ export const demoRestaurants: Restaurant[] = [
     image_url: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&h=600&fit=crop',
     category: 'caucasian',
     working_hours: {
-      monday: '11:00-23:00',
-      tuesday: '11:00-23:00',
-      wednesday: '11:00-23:00',
-      thursday: '11:00-23:00',
-      friday: '11:00-24:00',
-      saturday: '11:00-24:00',
-      sunday: '11:00-23:00'
+      start_day: 'Dushanba',
+      end_day: 'Yakshanba',
+      start_time: '11:00',
+      end_time: '23:00',
+      closed_days: []
     },
     telegram_chat_id: null,
     phone: '+7 (999) 456-78-90',
@@ -144,13 +136,11 @@ export const demoRestaurants: Restaurant[] = [
     image_url: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=1200&h=600&fit=crop',
     category: 'cafe',
     working_hours: {
-      monday: '08:00-20:00',
-      tuesday: '08:00-20:00',
-      wednesday: '08:00-20:00',
-      thursday: '08:00-20:00',
-      friday: '08:00-21:00',
-      saturday: '09:00-21:00',
-      sunday: '09:00-20:00'
+      start_day: 'Dushanba',
+      end_day: 'Yakshanba',
+      start_time: '08:00',
+      end_time: '20:00',
+      closed_days: []
     },
     telegram_chat_id: null,
     phone: '+7 (999) 567-89-01',
@@ -167,13 +157,11 @@ export const demoRestaurants: Restaurant[] = [
     image_url: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1200&h=600&fit=crop',
     category: 'asian',
     working_hours: {
-      monday: '12:00-22:00',
-      tuesday: '12:00-22:00',
-      wednesday: '12:00-22:00',
-      thursday: '12:00-22:00',
-      friday: '12:00-23:00',
-      saturday: '12:00-23:00',
-      sunday: '12:00-22:00'
+      start_day: 'Dushanba',
+      end_day: 'Yakshanba',
+      start_time: '12:00',
+      end_time: '22:00',
+      closed_days: []
     },
     telegram_chat_id: null,
     phone: '+7 (999) 678-90-12',
