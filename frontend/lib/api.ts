@@ -3,7 +3,7 @@
 // ============================================
 
 import axios from 'axios';
-import { Restaurant, Order, Banner } from '../../shared/types';
+import { Restaurant, Order, Banner, WorkingHours } from '../../shared/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
@@ -119,7 +119,7 @@ export async function updateRestaurant(id: string, restaurantData: {
   delivery_text?: string;
   is_active?: boolean;
   is_featured?: boolean;
-  working_hours?: Record<string, string>;
+  working_hours?: WorkingHours | null;
 }): Promise<Restaurant> {
   const response = await api.patch<{ success: boolean; data: Restaurant }>(`/api/restaurants/${id}`, restaurantData);
   return response.data.data;
