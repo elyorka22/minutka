@@ -78,12 +78,29 @@ export async function requireStaffAuth(
       };
       return next();
     } else if (restaurantAdminResult.data && !restaurantAdminResult.error) {
+      const restaurantId = restaurantAdminResult.data.restaurant_id;
+      
+      // Логируем для отладки
+      if (!restaurantId) {
+        console.error('Restaurant admin has no restaurant_id:', {
+          telegramId: telegram_id,
+          adminData: restaurantAdminResult.data
+        });
+      }
+      
       req.user = {
         telegram_id: telegram_id,
         role: 'restaurant_admin',
         userData: restaurantAdminResult.data,
-        restaurant_id: restaurantAdminResult.data.restaurant_id,
+        restaurant_id: restaurantId,
       };
+      
+      console.log('Restaurant admin authenticated:', {
+        telegramId: telegram_id,
+        restaurantId: restaurantId,
+        restaurantIdType: typeof restaurantId
+      });
+      
       return next();
     }
 
