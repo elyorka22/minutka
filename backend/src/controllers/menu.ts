@@ -242,45 +242,41 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
       body: { is_available, name, description, price, category, image_url }
     });
 
+    // Для обновления только is_available разрешаем всем restaurant_admin без проверок
+    if (onlyAvailabilityUpdate && req.user.role === 'restaurant_admin') {
+      // Разрешаем обновление is_available для всех restaurant_admin
+      // Без проверки restaurant_id - просто продолжаем выполнение
+      console.log('Allowing is_available update for restaurant_admin:', {
+        telegramId: req.user.telegram_id,
+        menuItemId: id
+      });
+    }
     // Супер-админы могут обновлять блюда любых ресторанов
-    if (req.user.role !== 'super_admin') {
-      // Админы ресторана могут обновлять блюда только своего ресторана
+    else if (req.user.role === 'super_admin') {
+      // Разрешаем все обновления для супер-админов
+    }
+    // Для всех остальных обновлений проверяем права доступа
+    else if (req.user.role !== 'super_admin') {
       if (req.user.role === 'restaurant_admin') {
-        // Для обновления только is_available разрешаем всем restaurant_admin
-        // без проверки restaurant_id (они видят только свои товары в интерфейсе)
-        if (onlyAvailabilityUpdate) {
-          // Разрешаем обновление is_available для всех restaurant_admin
-          // Без дополнительных проверок - просто пропускаем дальше
-          // Ничего не делаем, просто продолжаем выполнение
-        } else {
-          // Для полного обновления используем строгую проверку
-          if (!req.user.restaurant_id) {
-            return res.status(403).json({
-              success: false,
-              error: 'Forbidden: Restaurant admin has no restaurant_id assigned'
-            });
-          }
-          
-          const userRestaurantId = String(req.user.restaurant_id || '').trim().toLowerCase();
-          const itemRestaurantId = String(menuItem.restaurant_id || '').trim().toLowerCase();
-          
-          if (userRestaurantId !== itemRestaurantId) {
-            return res.status(403).json({
-              success: false,
-              error: 'Forbidden: You can only update menu items of your own restaurant'
-            });
-          }
+        // Для полного обновления используем строгую проверку
+        if (!req.user.restaurant_id) {
+          return res.status(403).json({
+            success: false,
+            error: 'Forbidden: Restaurant admin has no restaurant_id assigned'
+          });
+        }
+        
+        const userRestaurantId = String(req.user.restaurant_id || '').trim().toLowerCase();
+        const itemRestaurantId = String(menuItem.restaurant_id || '').trim().toLowerCase();
+        
+        if (userRestaurantId !== itemRestaurantId) {
+          return res.status(403).json({
+            success: false,
+            error: 'Forbidden: You can only update menu items of your own restaurant'
+          });
         }
       } else if (req.user.role === 'chef') {
         // Повары не могут обновлять блюда
-        return res.status(403).json({
-          success: false,
-          error: 'Forbidden: Chefs cannot update menu items'
-        });
-      }
-      
-      // Повары не могут обновлять блюда
-      if (req.user.role === 'chef') {
         return res.status(403).json({
           success: false,
           error: 'Forbidden: Chefs cannot update menu items'
