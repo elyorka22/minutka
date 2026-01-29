@@ -27,7 +27,7 @@ export default function RestaurantAdminChefsPage() {
         return;
       }
       try {
-        const data = await getChefs(currentRestaurantId);
+        const data = await getChefs(currentRestaurantId!);
         setChefs(data);
       } catch (error) {
         console.error('Error fetching chefs:', error);

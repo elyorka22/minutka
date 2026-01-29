@@ -63,8 +63,8 @@ export default function RestaurantAdminSettingsPage() {
       }
       try {
         const [restaurantData, adminsData] = await Promise.all([
-          getRestaurantById(currentRestaurantId),
-          currentAdminId ? getRestaurantAdmins(currentRestaurantId) : Promise.resolve([])
+          getRestaurantById(currentRestaurantId!),
+          currentAdminId ? getRestaurantAdmins(currentRestaurantId!) : Promise.resolve([])
         ]);
         
         setRestaurant(restaurantData);
@@ -177,7 +177,7 @@ export default function RestaurantAdminSettingsPage() {
       // Перезагружаем данные админов, чтобы убедиться, что значение обновилось
       if (currentRestaurantId) {
         try {
-          const adminsData = await getRestaurantAdmins(currentRestaurantId);
+          const adminsData = await getRestaurantAdmins(currentRestaurantId!);
           console.log('Reloaded admins data:', adminsData);
           const currentAdmin = adminsData.find((admin: any) => admin.id === currentAdminId);
           if (currentAdmin) {

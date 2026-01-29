@@ -48,7 +48,7 @@ export default function RestaurantAdminOrdersPage() {
       }
       try {
         setLoading(true);
-        const result = await getOrders(currentRestaurantId, false, currentPage, pageSize);
+        const result = await getOrders(currentRestaurantId!, false, currentPage, pageSize);
         setOrders(result.data);
         setPagination(result.pagination);
       } catch (error) {

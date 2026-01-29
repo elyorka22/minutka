@@ -51,8 +51,8 @@ export default function RestaurantAdminDashboard() {
 
       try {
         const [statsData, ordersData] = await Promise.all([
-          getRestaurantStats(currentRestaurantId),
-          getOrders(currentRestaurantId).then(result => result.data)
+          getRestaurantStats(currentRestaurantId!),
+          getOrders(currentRestaurantId!).then(result => result.data)
         ]);
 
         if (statsData) {

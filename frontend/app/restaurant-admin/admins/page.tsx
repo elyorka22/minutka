@@ -22,8 +22,12 @@ export default function RestaurantAdminAdminsPage() {
 
   useEffect(() => {
     async function fetchAdmins() {
+      if (!currentRestaurantId) {
+        setLoading(false);
+        return;
+      }
       try {
-        const data = await getRestaurantAdmins(currentRestaurantId);
+        const data = await getRestaurantAdmins(currentRestaurantId!);
         setAdmins(data);
       } catch (error) {
         console.error('Error fetching admins:', error);

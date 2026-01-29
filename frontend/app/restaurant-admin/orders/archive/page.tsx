@@ -39,7 +39,7 @@ export default function RestaurantAdminOrdersArchivePage() {
         return;
       }
       try {
-        const result = await getOrders(currentRestaurantId, true); // archived = true
+        const result = await getOrders(currentRestaurantId!, true); // archived = true
         setOrders(result.data);
       } catch (error) {
         console.error('Error fetching archived orders:', error);

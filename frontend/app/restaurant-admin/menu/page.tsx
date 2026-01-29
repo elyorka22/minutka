@@ -31,7 +31,7 @@ export default function RestaurantAdminMenuPage() {
       }
       try {
         // В админ-панели показываем все блюда, включая недоступные
-        const items = await getMenuItems(currentRestaurantId, true);
+        const items = await getMenuItems(currentRestaurantId!, true);
         setMenuItems(items);
       } catch (error) {
         console.error('Error fetching menu items:', error);
@@ -203,7 +203,7 @@ export default function RestaurantAdminMenuPage() {
                   return;
                 }
                 const created = await createMenuItem({
-                  restaurant_id: currentRestaurantId,
+                  restaurant_id: currentRestaurantId!,
                   name: item.name,
                   description: item.description,
                   price: item.price,
