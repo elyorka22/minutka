@@ -177,7 +177,7 @@ export default function RestaurantAdminMenuPage() {
       {showForm && (
         <MenuItemFormModal
           item={editingItem}
-          restaurantId={currentRestaurantId}
+          restaurantId={currentRestaurantId ?? undefined}
           onClose={() => {
             setShowForm(false);
             setEditingItem(null);
