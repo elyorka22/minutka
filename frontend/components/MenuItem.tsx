@@ -59,7 +59,7 @@ export default function MenuItem({ item }: MenuItemProps) {
     <div
       className={`bg-white rounded-lg shadow-md overflow-hidden transition-all flex flex-col ${
         !item.is_available
-          ? 'opacity-60 grayscale cursor-not-allowed'
+          ? 'opacity-75 grayscale-[0.3] cursor-not-allowed'
           : 'hover:shadow-lg'
       }`}
     >
@@ -128,10 +128,10 @@ export default function MenuItem({ item }: MenuItemProps) {
           {item.name}
         </h3>
         
-        {/* Статус доступности - надпись "Hoziq mavjud emas" */}
+        {/* Статус доступности - надпись "Hozir mavjud emas" */}
         {item.is_available === false && (
           <p className="text-xs text-red-600 font-semibold mb-2">
-            Hoziq mavjud emas
+            Hozir mavjud emas
           </p>
         )}
         
