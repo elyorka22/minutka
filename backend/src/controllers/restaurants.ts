@@ -248,44 +248,93 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
 
         if (isNaN(telegramId) || telegramId <= 0) {
           console.error('Invalid admin_telegram_id value:', admin_telegram_id, '->', telegramId);
-        } else {
-          console.log(`Creating restaurant admin for restaurant ${restaurant.id} with telegram_id ${telegramId}`);
-          
-          // Хешируем пароль если он указан
-          const hashedPassword = admin_password ? await hashPassword(admin_password) : null;
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid admin Telegram ID'
+          });
+        }
 
-          const { data: adminData, error: adminError } = await supabase
-            .from('restaurant_admins')
-            .insert({
-              restaurant_id: restaurant.id,
-              telegram_id: telegramId,
-              username: null,
-              first_name: null,
-              last_name: null,
-              phone: admin_phone || null,
-              password: hashedPassword,
-              is_active: true
-            })
-            .select()
-            .single();
+        console.log(`Creating restaurant admin for restaurant ${restaurant.id} with telegram_id ${telegramId}`);
+        
+        // Проверяем, существует ли уже админ с таким telegram_id для другого ресторана
+        const { data: existingAdmin, error: checkError } = await supabase
+          .from('restaurant_admins')
+          .select('id, password')
+          .eq('telegram_id', telegramId)
+          .eq('is_active', true)
+          .limit(1)
+          .maybeSingle();
 
-          if (adminError) {
-            console.error('Error creating restaurant admin:', adminError);
-            console.error('Admin error details:', {
-              message: adminError.message,
-              code: adminError.code,
-              details: adminError.details,
-              hint: adminError.hint
-            });
-            // Не прерываем создание ресторана, только логируем ошибку
+        if (checkError && checkError.code !== 'PGRST116') {
+          console.error('Error checking existing admin:', checkError);
+          return res.status(500).json({
+            success: false,
+            error: 'Failed to check existing admin',
+            message: checkError.message
+          });
+        }
+
+        // Определяем пароль: если админ существует, используем существующий пароль, если указан новый - хешируем его
+        let hashedPassword: string | null = null;
+        if (existingAdmin) {
+          // Админ уже существует - используем существующий пароль, если новый не указан
+          if (admin_password) {
+            hashedPassword = await hashPassword(admin_password);
           } else {
-            console.log(`Restaurant admin created successfully:`, adminData);
+            // Используем существующий пароль
+            hashedPassword = existingAdmin.password;
           }
+          console.log(`Admin with telegram_id ${telegramId} already exists, using ${admin_password ? 'new' : 'existing'} password`);
+        } else {
+          // Новый админ - пароль обязателен
+          if (!admin_password) {
+            return res.status(400).json({
+              success: false,
+              error: 'Password is required for new admin'
+            });
+          }
+          hashedPassword = await hashPassword(admin_password);
+        }
+
+        const { data: adminData, error: adminError } = await supabase
+          .from('restaurant_admins')
+          .insert({
+            restaurant_id: restaurant.id,
+            telegram_id: telegramId,
+            username: null,
+            first_name: null,
+            last_name: null,
+            phone: admin_phone || null,
+            password: hashedPassword,
+            is_active: true
+          })
+          .select()
+          .single();
+
+        if (adminError) {
+          console.error('Error creating restaurant admin:', adminError);
+          console.error('Admin error details:', {
+            message: adminError.message,
+            code: adminError.code,
+            details: adminError.details,
+            hint: adminError.hint
+          });
+          return res.status(400).json({
+            success: false,
+            error: 'Failed to create restaurant admin',
+            message: adminError.message
+          });
+        } else {
+          console.log(`Restaurant admin created successfully:`, adminData);
         }
       } catch (adminErr: any) {
         console.error('Exception creating restaurant admin:', adminErr);
         console.error('Exception stack:', adminErr.stack);
-        // Не прерываем создание ресторана
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to create restaurant admin',
+          message: adminErr.message
+        });
       }
     }
 
