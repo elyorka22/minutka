@@ -224,14 +224,14 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
       });
     }
 
-    // Логируем информацию для отладки
-    console.log('updateMenuItem - Authorization check:', {
-      userId: req.user?.telegram_id,
-      userRole: req.user?.role,
-      userRestaurantId: req.user?.restaurant_id,
-      menuItemRestaurantId: menuItem.restaurant_id,
-      menuItemId: id
-    });
+    // Определяем, обновляется ли только is_available
+    const onlyAvailabilityUpdate = 
+      is_available !== undefined && 
+      name === undefined && 
+      description === undefined && 
+      price === undefined && 
+      category === undefined && 
+      image_url === undefined;
 
     // Супер-админы могут обновлять блюда любых ресторанов
     if (req.user.role !== 'super_admin') {
@@ -249,40 +249,36 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
           });
         }
 
-        // Приводим к строкам в нижнем регистре для сравнения, так как UUID могут быть в разных форматах
-        const userRestaurantId = String(req.user.restaurant_id || '').trim().toLowerCase();
-        const itemRestaurantId = String(menuItem.restaurant_id || '').trim().toLowerCase();
-        
-        console.log('Comparing restaurant IDs:', {
-          userRestaurantId,
-          itemRestaurantId,
-          areEqual: userRestaurantId === itemRestaurantId,
-          userRestaurantIdLength: userRestaurantId.length,
-          itemRestaurantIdLength: itemRestaurantId.length,
-          userRole: req.user.role,
-          menuItemId: id,
-          userTelegramId: req.user.telegram_id
-        });
-        
-        if (userRestaurantId !== itemRestaurantId) {
-          console.error('Restaurant ID mismatch - Access denied:', {
-            userRestaurantId,
-            itemRestaurantId,
-            userRole: req.user.role,
-            menuItemId: id,
-            userTelegramId: req.user.telegram_id
-          });
-          return res.status(403).json({
-            success: false,
-            error: 'Forbidden: You can only update menu items of your own restaurant',
-            details: {
+        // Для обновления только is_available используем более мягкую проверку
+        if (onlyAvailabilityUpdate) {
+          // Проверяем, что пункт меню принадлежит ресторану админа
+          // Используем нормализацию UUID для надежного сравнения
+          const userRestaurantId = String(req.user.restaurant_id || '').trim().toLowerCase().replace(/-/g, '');
+          const itemRestaurantId = String(menuItem.restaurant_id || '').trim().toLowerCase().replace(/-/g, '');
+          
+          if (userRestaurantId && itemRestaurantId && userRestaurantId !== itemRestaurantId) {
+            console.error('Restaurant ID mismatch for availability update:', {
               userRestaurantId,
-              itemRestaurantId
-            }
-          });
+              itemRestaurantId,
+              menuItemId: id
+            });
+            return res.status(403).json({
+              success: false,
+              error: 'Forbidden: You can only update menu items of your own restaurant'
+            });
+          }
+        } else {
+          // Для полного обновления используем строгую проверку
+          const userRestaurantId = String(req.user.restaurant_id || '').trim().toLowerCase();
+          const itemRestaurantId = String(menuItem.restaurant_id || '').trim().toLowerCase();
+          
+          if (userRestaurantId !== itemRestaurantId) {
+            return res.status(403).json({
+              success: false,
+              error: 'Forbidden: You can only update menu items of your own restaurant'
+            });
+          }
         }
-        
-        console.log('Restaurant ID match - Access granted');
       }
       
       // Повары не могут обновлять блюда

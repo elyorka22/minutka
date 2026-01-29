@@ -59,13 +59,51 @@ export default function RestaurantAdminMenuPage() {
     }
   };
 
-  const handleToggleAvailable = (id: string) => {
-    // Простое локальное переключение без вызова бэкенда
+  const handleToggleAvailable = async (id: string) => {
+    // Получаем текущий элемент
+    const item = menuItems.find((i) => i.id === id);
+    if (!item) return;
+
+    const newAvailability = !item.is_available;
+    
+    // Оптимистичное обновление UI
     setMenuItems((prevItems) =>
       prevItems.map((i) =>
-        i.id === id ? { ...i, is_available: !i.is_available } : i
+        i.id === id ? { ...i, is_available: newAvailability } : i
       )
     );
+
+    try {
+      // Сохраняем изменения в базе данных
+      // Используем только is_available, чтобы избежать проблем с правами доступа
+      const updated = await updateMenuItem(id, {
+        is_available: newAvailability,
+      });
+      
+      // Обновляем состояние с данными с сервера
+      setMenuItems((prevItems) =>
+        prevItems.map((i) => (i.id === id ? updated : i))
+      );
+      
+      showSuccess(
+        newAvailability
+          ? 'Блюдо теперь в наличии'
+          : 'Блюдо помечено как недоступное'
+      );
+    } catch (error: any) {
+      // Откатываем изменения при ошибке
+      setMenuItems((prevItems) =>
+        prevItems.map((i) =>
+          i.id === id ? { ...i, is_available: !newAvailability } : i
+        )
+      );
+      
+      console.error('Error toggling availability:', error);
+      
+      // Показываем понятное сообщение об ошибке
+      const errorMessage = error.response?.data?.error || error.message || 'Ошибка при обновлении статуса';
+      showError(`Не удалось изменить статус: ${errorMessage}`);
+    }
   };
 
   const filteredItems = menuItems;
