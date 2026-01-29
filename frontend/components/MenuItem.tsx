@@ -129,7 +129,7 @@ export default function MenuItem({ item }: MenuItemProps) {
         </h3>
         
         {/* Статус доступности - надпись "Hoziq mavjud emas" */}
-        {!item.is_available && (
+        {item.is_available === false && (
           <p className="text-xs text-red-600 font-semibold mb-2">
             Hoziq mavjud emas
           </p>
