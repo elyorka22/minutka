@@ -53,6 +53,23 @@ export async function loginStaff(req: Request, res: Response) {
     let role: string | null = null;
     let userData: any = null;
 
+    console.log(`[Auth] Login attempt for telegram_id: ${telegramId}`, {
+      superAdmin: !!superAdminResult.data,
+      chef: !!chefResult.data,
+      restaurantAdmin: !!restaurantAdminResult.data,
+      errors: {
+        superAdmin: superAdminResult.error,
+        chef: chefResult.error,
+        restaurantAdmin: restaurantAdminResult.error
+      }
+    });
+
+    // Если пользователь найден и как restaurant_admin, и как chef, 
+    // приоритет должен быть у restaurant_admin
+    if (restaurantAdminResult.data && !restaurantAdminResult.error && chefResult.data && !chefResult.error) {
+      console.log(`[Auth] WARNING: User ${telegramId} found in both restaurant_admins and chefs tables. Prioritizing restaurant_admin.`);
+    }
+
     if (superAdminResult.data && !superAdminResult.error) {
       // Проверяем пароль для супер-админа
       const storedPassword = superAdminResult.data.password;
@@ -71,10 +88,13 @@ export async function loginStaff(req: Request, res: Response) {
       }
     } else if (restaurantAdminResult.data && !restaurantAdminResult.error) {
       // Проверяем пароль для админа ресторана (приоритет выше, чем у повара)
+      console.log(`[Auth] Found restaurant_admin record for ${telegramId}, checking password`);
       const storedPassword = restaurantAdminResult.data.password;
       const passwordMatches = isHashed(storedPassword)
         ? await comparePassword(password, storedPassword)
         : storedPassword === password; // Для обратной совместимости со старыми паролями
+      
+      console.log(`[Auth] Password match for restaurant_admin: ${passwordMatches}`);
       
       if (passwordMatches) {
         // Проверяем, сколько ресторанов у этого админа
@@ -116,12 +136,16 @@ export async function loginStaff(req: Request, res: Response) {
       }
     } else if (chefResult.data && !chefResult.error) {
       // Проверяем пароль для повара (низший приоритет)
+      console.log(`[Auth] Found chef record for ${telegramId}, checking password (restaurant_admin was not found or password didn't match)`);
       const storedPassword = chefResult.data.password;
       const passwordMatches = isHashed(storedPassword)
         ? await comparePassword(password, storedPassword)
         : storedPassword === password; // Для обратной совместимости со старыми паролями
       
+      console.log(`[Auth] Password match for chef: ${passwordMatches}`);
+      
       if (passwordMatches) {
+        console.log(`[Auth] Setting role to chef for ${telegramId}`);
         role = 'chef';
         userData = chefResult.data;
       } else {
@@ -136,6 +160,12 @@ export async function loginStaff(req: Request, res: Response) {
         error: 'Сотрудник с таким Telegram ID не найден'
       });
     }
+
+    console.log(`[Auth] Final role determination for ${telegramId}:`, {
+      role,
+      hasUserData: !!userData,
+      userDataId: userData?.id
+    });
 
     res.json({
       success: true,
