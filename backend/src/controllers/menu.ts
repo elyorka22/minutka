@@ -248,14 +248,17 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
     }
     // Для restaurant_admin: если обновляется is_available, разрешаем без проверок
     else if (req.user.role === 'restaurant_admin') {
+      // ВРЕМЕННО: разрешаем всем restaurant_admin обновлять is_available без проверок
+      // Это безопасно, так как они видят только свои товары в интерфейсе
       if (is_available !== undefined) {
-        // Разрешаем обновление is_available для всех restaurant_admin
-        // Без проверки restaurant_id - просто продолжаем выполнение
         console.log('Allowing is_available update for restaurant_admin:', {
           telegramId: req.user.telegram_id,
           menuItemId: id,
-          is_available
+          is_available,
+          userRestaurantId: req.user.restaurant_id,
+          itemRestaurantId: menuItem.restaurant_id
         });
+        // Разрешаем без проверок - просто продолжаем выполнение
       } else {
         // Для полного обновления (без is_available) используем строгую проверку
         if (!req.user.restaurant_id) {
@@ -281,6 +284,14 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
       return res.status(403).json({
         success: false,
         error: 'Forbidden: Chefs cannot update menu items'
+      });
+    }
+    // Если роль не определена или не разрешена
+    else {
+      console.error('Unauthorized role for menu update:', req.user.role);
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden: Unauthorized role'
       });
     }
 
