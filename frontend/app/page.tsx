@@ -22,7 +22,7 @@ export default function Home() {
   const [banners, setBanners] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [appSlogan, setAppSlogan] = useState('Telegram orqali ovqat yetkazib berish');
+  const [appSlogan, setAppSlogan] = useState('Tez va oson, uydan chiqmasdan');
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [categoryRestaurantMap, setCategoryRestaurantMap] = useState<{ [categoryId: string]: string[] }>({});
