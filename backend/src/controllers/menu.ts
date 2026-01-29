@@ -241,11 +241,8 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
         // без проверки restaurant_id (они видят только свои товары в интерфейсе)
         if (onlyAvailabilityUpdate) {
           // Разрешаем обновление is_available для всех restaurant_admin
-          // Без дополнительных проверок
-          console.log('Allowing is_available update for restaurant_admin:', {
-            telegramId: req.user.telegram_id,
-            menuItemId: id
-          });
+          // Без дополнительных проверок - просто пропускаем дальше
+          // Ничего не делаем, просто продолжаем выполнение
         } else {
           // Для полного обновления используем строгую проверку
           if (!req.user.restaurant_id) {
@@ -265,6 +262,12 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
             });
           }
         }
+      } else if (req.user.role === 'chef') {
+        // Повары не могут обновлять блюда
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: Chefs cannot update menu items'
+        });
       }
       
       // Повары не могут обновлять блюда
