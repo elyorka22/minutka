@@ -51,7 +51,7 @@ export default function RestaurantAdminMenuPage() {
     if (confirm('Вы уверены, что хотите удалить этот пункт меню?')) {
       try {
         await deleteMenuItem(id);
-        setMenuItems(menuItems.filter((item) => item.id !== id));
+        setMenuItems((prevItems) => prevItems.filter((item) => item.id !== id));
       } catch (error) {
         console.error('Error deleting menu item:', error);
         showError(handleApiError(error));
@@ -228,7 +228,7 @@ export default function RestaurantAdminMenuPage() {
                   image_url: item.image_url,
                   is_available: item.is_available,
                 });
-                setMenuItems([...menuItems, created]);
+                setMenuItems((prevItems) => [...prevItems, created]);
                 showSuccess('Блюдо успешно создано!');
               }
               setShowForm(false);
