@@ -128,6 +128,13 @@ export default function MenuItem({ item }: MenuItemProps) {
           {item.name}
         </h3>
         
+        {/* Статус доступности - надпись "Hoziq mavjud emas" */}
+        {!item.is_available && (
+          <p className="text-xs text-red-600 font-medium mb-2">
+            Hoziq mavjud emas
+          </p>
+        )}
+        
         {/* Описание (опционально, маленькими буквами) */}
         {item.description && (
           <p
@@ -137,13 +144,6 @@ export default function MenuItem({ item }: MenuItemProps) {
           >
             {item.description}
           </p>
-        )}
-        
-        {/* Статус доступности */}
-        {!item.is_available && (
-          <span className="inline-block text-xs text-red-600 font-medium mt-auto">
-            Mavjud emas
-          </span>
         )}
       </div>
     </div>
