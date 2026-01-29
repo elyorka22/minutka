@@ -54,6 +54,7 @@ export async function getMyRestaurants(req: AuthenticatedRequest, res: Response)
     }
 
     const telegramId = BigInt(telegram_id as string);
+    console.log(`[getMyRestaurants] Fetching restaurants for telegram_id: ${telegramId}`);
 
     // Получаем все записи админа с информацией о ресторанах
     const { data: adminRecords, error: adminError } = await supabase
@@ -77,8 +78,11 @@ export async function getMyRestaurants(req: AuthenticatedRequest, res: Response)
       .order('created_at', { ascending: false });
 
     if (adminError) {
+      console.error('[getMyRestaurants] Error fetching admin records:', adminError);
       throw adminError;
     }
+
+    console.log(`[getMyRestaurants] Found ${adminRecords?.length || 0} admin records:`, adminRecords);
 
     // Формируем список ресторанов
     const restaurants = (adminRecords || [])
@@ -89,9 +93,11 @@ export async function getMyRestaurants(req: AuthenticatedRequest, res: Response)
         restaurant: record.restaurants
       }));
 
+    console.log(`[getMyRestaurants] Returning ${restaurants.length} active restaurants:`, restaurants);
+
     res.json({ success: true, data: restaurants });
   } catch (error: any) {
-    console.error('Error fetching my restaurants:', error);
+    console.error('[getMyRestaurants] Error fetching my restaurants:', error);
     res.status(500).json({ success: false, error: 'Failed to fetch restaurants', message: error.message });
   }
 }

@@ -197,6 +197,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         router.push('/admin');
       } else if (role === 'restaurant_admin') {
         // Проверяем, есть ли у админа несколько ресторанов
+        console.log('AuthContext: Restaurant admin login data:', {
+          hasMultipleRestaurants: data.data.user?.hasMultipleRestaurants,
+          restaurant_id: data.data.user?.restaurant_id,
+          restaurantCount: data.data.user?.restaurantCount,
+          userData: data.data.user
+        });
+        
         if (data.data.user?.hasMultipleRestaurants) {
           console.log('AuthContext: Admin has multiple restaurants, redirecting to select-restaurant');
           router.push('/restaurant-admin/select-restaurant');
@@ -204,6 +211,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Сохраняем restaurant_id для админа с одним рестораном
           if (data.data.user?.restaurant_id) {
             localStorage.setItem('selected_restaurant_id', data.data.user.restaurant_id);
+            console.log('AuthContext: Saved restaurant_id to localStorage:', data.data.user.restaurant_id);
           }
           console.log('AuthContext: Redirecting to /restaurant-admin');
           router.push('/restaurant-admin');

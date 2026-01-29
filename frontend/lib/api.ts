@@ -434,12 +434,15 @@ export async function deleteRestaurantAdmin(id: string): Promise<void> {
 
 export async function getMyRestaurants(telegramId: string): Promise<any[]> {
   try {
+    console.log('[API] getMyRestaurants called with telegram_id:', telegramId);
     const response = await api.get<{ success: boolean; data: any[] }>('/api/restaurant-admins/my-restaurants', {
       params: { telegram_id: telegramId }
     });
+    console.log('[API] getMyRestaurants response:', response.data);
     return response.data.data || [];
-  } catch (error) {
-    console.error('Error fetching my restaurants:', error);
+  } catch (error: any) {
+    console.error('[API] Error fetching my restaurants:', error);
+    console.error('[API] Error details:', error.response?.data || error.message);
     return [];
   }
 }

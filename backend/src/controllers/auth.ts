@@ -84,8 +84,15 @@ export async function loginStaff(req: Request, res: Response) {
           .eq('telegram_id', telegramId)
           .eq('is_active', true);
         
+        console.log(`[Auth] Checking restaurants for admin ${telegramId}:`, {
+          count: allAdminRecords?.length || 0,
+          records: allAdminRecords,
+          error: countError
+        });
+        
         if (!countError && allAdminRecords && allAdminRecords.length > 1) {
           // У админа несколько ресторанов - возвращаем флаг для выбора ресторана
+          console.log(`[Auth] Admin has ${allAdminRecords.length} restaurants, setting hasMultipleRestaurants flag`);
           role = 'restaurant_admin';
           userData = {
             ...restaurantAdminResult.data,
@@ -94,6 +101,7 @@ export async function loginStaff(req: Request, res: Response) {
           };
         } else {
           // У админа один ресторан - возвращаем как обычно с restaurant_id
+          console.log(`[Auth] Admin has 1 restaurant, setting restaurant_id: ${restaurantAdminResult.data.restaurant_id}`);
           role = 'restaurant_admin';
           userData = {
             ...restaurantAdminResult.data,

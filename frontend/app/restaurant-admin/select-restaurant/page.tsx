@@ -51,17 +51,23 @@ export default function SelectRestaurantPage() {
 
       try {
         setLoadingRestaurants(true);
+        console.log('[SelectRestaurant] Fetching restaurants for telegram_id:', telegramId);
         const data = await getMyRestaurants(telegramId);
+        console.log('[SelectRestaurant] Received restaurants:', data);
         setRestaurants(data);
         
         // Если только один ресторан, автоматически выбираем его
         if (data.length === 1) {
+          console.log('[SelectRestaurant] Only one restaurant, auto-selecting:', data[0].restaurant_id);
           handleSelectRestaurant(data[0].restaurant_id);
         } else if (data.length === 0) {
+          console.error('[SelectRestaurant] No restaurants found');
           setError('У вас нет доступных ресторанов');
+        } else {
+          console.log(`[SelectRestaurant] Found ${data.length} restaurants, showing selection page`);
         }
       } catch (err: any) {
-        console.error('Error fetching restaurants:', err);
+        console.error('[SelectRestaurant] Error fetching restaurants:', err);
         setError('Ошибка при загрузке ресторанов');
       } finally {
         setLoadingRestaurants(false);
