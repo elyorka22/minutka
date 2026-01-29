@@ -311,7 +311,7 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
 export async function updateRestaurant(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, phone, image_url, is_active, is_featured, working_hours } = req.body;
+    const { name, description, phone, image_url, delivery_text, is_active, is_featured, working_hours } = req.body;
 
     // Валидация ID
     if (!id || !validateString(id, 1, 100)) {
@@ -382,6 +382,7 @@ export async function updateRestaurant(req: AuthenticatedRequest, res: Response)
     if (description !== undefined) updateData.description = description;
     if (phone !== undefined) updateData.phone = phone;
     if (image_url !== undefined) updateData.image_url = image_url;
+    if (delivery_text !== undefined) updateData.delivery_text = delivery_text;
     if (is_active !== undefined) updateData.is_active = is_active;
     if (is_featured !== undefined) updateData.is_featured = is_featured;
     if (working_hours !== undefined) updateData.working_hours = working_hours;

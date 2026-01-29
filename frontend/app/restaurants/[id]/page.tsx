@@ -127,11 +127,13 @@ export default async function RestaurantPage({ params }: PageProps) {
           )}
 
           {/* Delivery Info - как доставляется */}
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 text-center">
-            <p className="text-sm md:text-base text-gray-700">
-              <span className="font-medium">Yetkazib berish:</span> Telegram-bot orqali buyurtma bering
-            </p>
-          </div>
+          {restaurant.delivery_text && (
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 text-center">
+              <p className="text-sm md:text-base text-gray-700">
+                <span className="font-medium">Yetkazib berish:</span> {restaurant.delivery_text}
+              </p>
+            </div>
+          )}
 
           {/* Menu Section */}
           {menuByCategory.length > 0 && (

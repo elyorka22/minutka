@@ -116,6 +116,7 @@ export async function updateRestaurant(id: string, restaurantData: {
   description?: string;
   phone?: string;
   image_url?: string;
+  delivery_text?: string;
   is_active?: boolean;
   is_featured?: boolean;
   working_hours?: Record<string, string>;

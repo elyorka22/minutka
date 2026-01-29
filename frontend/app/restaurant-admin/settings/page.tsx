@@ -49,6 +49,7 @@ export default function RestaurantAdminSettingsPage() {
     description: '',
     phone: '',
     image_url: '',
+    delivery_text: '',
     is_active: true,
     is_featured: false,
     working_hours: {} as Record<string, string>,
@@ -73,6 +74,7 @@ export default function RestaurantAdminSettingsPage() {
           description: restaurantData.description || '',
           phone: restaurantData.phone || '',
           image_url: restaurantData.image_url || '',
+          delivery_text: restaurantData.delivery_text || 'Telegram-bot orqali buyurtma bering',
           is_active: restaurantData.is_active ?? true,
           is_featured: restaurantData.is_featured ?? false,
           working_hours: (restaurantData.working_hours as Record<string, string>) || {},
@@ -118,6 +120,7 @@ export default function RestaurantAdminSettingsPage() {
         description: formData.description || undefined,
         phone: formData.phone || undefined,
         image_url: formData.image_url || undefined,
+        delivery_text: formData.delivery_text || undefined,
         is_active: formData.is_active,
         is_featured: formData.is_featured,
         working_hours: formData.working_hours,
@@ -239,6 +242,22 @@ export default function RestaurantAdminSettingsPage() {
                   rows={4}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Текст о доставке
+                </label>
+                <textarea
+                  value={formData.delivery_text}
+                  onChange={(e) => setFormData(prev => ({ ...prev, delivery_text: e.target.value }))}
+                  rows={2}
+                  placeholder="Telegram-bot orqali buyurtma bering"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Этот текст будет отображаться на странице ресторана под описанием
+                </p>
               </div>
 
               <div>

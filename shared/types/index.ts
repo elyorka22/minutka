@@ -12,6 +12,7 @@ export interface Restaurant {
   working_hours: WorkingHours | null;
   telegram_chat_id: number | null;
   phone: string | null;
+  delivery_text: string | null;
   is_active: boolean;
   is_featured: boolean;
   created_at: string;
