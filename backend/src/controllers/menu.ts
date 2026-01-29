@@ -232,6 +232,15 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
       price === undefined && 
       category === undefined && 
       image_url === undefined;
+    
+    // Логируем для отладки
+    console.log('updateMenuItem - Request details:', {
+      menuItemId: id,
+      userId: req.user?.telegram_id,
+      userRole: req.user?.role,
+      onlyAvailabilityUpdate,
+      body: { is_available, name, description, price, category, image_url }
+    });
 
     // Супер-админы могут обновлять блюда любых ресторанов
     if (req.user.role !== 'super_admin') {
