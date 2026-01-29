@@ -59,13 +59,34 @@ export default function RestaurantAdminMenuPage() {
     }
   };
 
-  const handleToggleAvailable = (id: string) => {
-    // Простое локальное переключение без вызова бэкенда
+  const handleToggleAvailable = async (id: string) => {
+    const item = menuItems.find((i) => i.id === id);
+    if (!item) return;
+
+    const newAvailability = !item.is_available;
+    
+    // Оптимистичное обновление UI
     setMenuItems((prevItems) =>
       prevItems.map((i) =>
-        i.id === id ? { ...i, is_available: !i.is_available } : i
+        i.id === id ? { ...i, is_available: newAvailability } : i
       )
     );
+
+    try {
+      // Сохраняем только is_available в базу данных
+      await updateMenuItem(id, {
+        is_available: newAvailability,
+      });
+    } catch (error: any) {
+      // Откатываем изменения при ошибке
+      setMenuItems((prevItems) =>
+        prevItems.map((i) =>
+          i.id === id ? { ...i, is_available: !newAvailability } : i
+        )
+      );
+      console.error('Error toggling availability:', error);
+      // Не показываем ошибку пользователю, просто откатываем
+    }
   };
 
   const filteredItems = menuItems;
