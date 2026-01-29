@@ -83,6 +83,7 @@ export default function AdminRestaurantsPage() {
           description: restaurant.description || undefined,
           phone: restaurant.phone || undefined,
           image_url: restaurant.image_url || undefined,
+          delivery_text: restaurant.delivery_text || undefined,
           is_active: restaurant.is_active,
           is_featured: restaurant.is_featured,
         });
@@ -98,6 +99,7 @@ export default function AdminRestaurantsPage() {
           description: restaurant.description || undefined,
           phone: restaurant.phone || undefined,
           image_url: restaurant.image_url || undefined,
+          delivery_text: restaurant.delivery_text || 'Telegram-bot orqali buyurtma bering',
           is_active: restaurant.is_active,
           is_featured: restaurant.is_featured,
         };
@@ -319,6 +321,7 @@ function RestaurantFormModal({
     description: restaurant?.description || '',
     phone: restaurant?.phone || '',
     image_url: restaurant?.image_url || '',
+    delivery_text: restaurant?.delivery_text || 'Telegram-bot orqali buyurtma bering',
     is_active: restaurant?.is_active ?? true,
     is_featured: restaurant?.is_featured ?? false,
     admin_telegram_id: '', // Поле для Telegram ID админа (только при создании)
@@ -327,6 +330,24 @@ function RestaurantFormModal({
   });
   
   const [loadingAdmin, setLoadingAdmin] = useState(false);
+
+  // Обновляем formData при изменении restaurant
+  useEffect(() => {
+    if (restaurant) {
+      setFormData({
+        name: restaurant.name || '',
+        description: restaurant.description || '',
+        phone: restaurant.phone || '',
+        image_url: restaurant.image_url || '',
+        delivery_text: restaurant.delivery_text || 'Telegram-bot orqali buyurtma bering',
+        is_active: restaurant.is_active ?? true,
+        is_featured: restaurant.is_featured ?? false,
+        admin_telegram_id: '',
+        admin_phone: '',
+        admin_password: '',
+      });
+    }
+  }, [restaurant]);
 
   // Загружаем данные админа при редактировании
   useEffect(() => {
@@ -361,6 +382,7 @@ function RestaurantFormModal({
       description: formData.description || null,
       phone: formData.phone || null,
       image_url: formData.image_url || null,
+      delivery_text: formData.delivery_text || 'Telegram-bot orqali buyurtma bering',
       is_active: formData.is_active,
       is_featured: formData.is_featured,
       working_hours: restaurant?.working_hours || null,

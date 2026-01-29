@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Restaurant } from '@/lib/types';
 import { getRestaurantById, updateRestaurant, getRestaurantAdmins, updateRestaurantAdmin } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRestaurantId } from '@/hooks/useRestaurantId';
 import ImageUpload from '@/components/ImageUpload';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -24,8 +25,7 @@ const DAYS_OF_WEEK = [
 export default function RestaurantAdminSettingsPage() {
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
-  // Получаем restaurant_id из данных пользователя
-  const currentRestaurantId = (user?.user as any)?.restaurant_id;
+  const currentRestaurantId = useRestaurantId();
   const currentAdminId = (user?.user as any)?.id;
   
   // Отладочная информация

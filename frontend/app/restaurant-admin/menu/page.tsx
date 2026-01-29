@@ -10,14 +10,14 @@ import { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem } from '@/
 import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRestaurantId } from '@/hooks/useRestaurantId';
 import { handleApiError } from '@/lib/errorHandler';
 import { useToast } from '@/contexts/ToastContext';
 
 export default function RestaurantAdminMenuPage() {
   const { user } = useAuth();
   const { showSuccess, showError } = useToast();
-  // Получаем restaurant_id из данных пользователя
-  const currentRestaurantId = (user?.user as any)?.restaurant_id;
+  const currentRestaurantId = useRestaurantId();
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

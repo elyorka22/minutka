@@ -3,7 +3,7 @@
 // ============================================
 
 import express from 'express';
-import { getRestaurantAdmins, getRestaurantAdminById, createRestaurantAdmin, updateRestaurantAdmin, deleteRestaurantAdmin } from '../controllers/restaurant-admins';
+import { getRestaurantAdmins, getRestaurantAdminById, createRestaurantAdmin, updateRestaurantAdmin, deleteRestaurantAdmin, getMyRestaurants } from '../controllers/restaurant-admins';
 import { requireStaffAuth, requireSuperAdmin } from '../middleware/auth';
 
 const router = express.Router();
@@ -15,6 +15,14 @@ const router = express.Router();
  * Только для сотрудников
  */
 router.get('/', requireStaffAuth, getRestaurantAdmins);
+
+/**
+ * GET /api/restaurant-admins/my-restaurants
+ * Получить все рестораны админа по telegram_id
+ * Query params: telegram_id (required)
+ * Публичный доступ (для выбора ресторана при входе)
+ */
+router.get('/my-restaurants', getMyRestaurants);
 
 /**
  * GET /api/restaurant-admins/:id

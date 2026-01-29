@@ -9,12 +9,12 @@ import { useState, useEffect } from 'react';
 import { Chef } from '@/lib/types';
 import { getChefs, createChef, updateChef, deleteChef } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRestaurantId } from '@/hooks/useRestaurantId';
 import { handleApiError } from '@/lib/errorHandler';
 
 export default function RestaurantAdminChefsPage() {
   const { user } = useAuth();
-  // Получаем restaurant_id из данных пользователя
-  const currentRestaurantId = (user?.user as any)?.restaurant_id;
+  const currentRestaurantId = useRestaurantId();
   const [chefs, setChefs] = useState<Chef[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

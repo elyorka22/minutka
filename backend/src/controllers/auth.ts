@@ -77,8 +77,29 @@ export async function loginStaff(req: Request, res: Response) {
         : storedPassword === password; // Для обратной совместимости со старыми паролями
       
       if (passwordMatches) {
-        role = 'restaurant_admin';
-        userData = restaurantAdminResult.data;
+        // Проверяем, сколько ресторанов у этого админа
+        const { data: allAdminRecords, error: countError } = await supabase
+          .from('restaurant_admins')
+          .select('restaurant_id')
+          .eq('telegram_id', telegramId)
+          .eq('is_active', true);
+        
+        if (!countError && allAdminRecords && allAdminRecords.length > 1) {
+          // У админа несколько ресторанов - возвращаем флаг для выбора ресторана
+          role = 'restaurant_admin';
+          userData = {
+            ...restaurantAdminResult.data,
+            hasMultipleRestaurants: true,
+            restaurantCount: allAdminRecords.length
+          };
+        } else {
+          // У админа один ресторан - возвращаем как обычно с restaurant_id
+          role = 'restaurant_admin';
+          userData = {
+            ...restaurantAdminResult.data,
+            restaurant_id: restaurantAdminResult.data.restaurant_id
+          };
+        }
       } else {
         return res.status(401).json({
           success: false,

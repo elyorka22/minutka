@@ -41,6 +41,62 @@ export async function getRestaurantAdmins(req: AuthenticatedRequest, res: Respon
 }
 
 /**
+ * GET /api/restaurant-admins/my-restaurants
+ * Получить все рестораны админа по telegram_id
+ * Query params: telegram_id (required)
+ */
+export async function getMyRestaurants(req: AuthenticatedRequest, res: Response) {
+  try {
+    const { telegram_id } = req.query;
+
+    if (!telegram_id) {
+      return res.status(400).json({ success: false, error: 'telegram_id is required' });
+    }
+
+    const telegramId = BigInt(telegram_id as string);
+
+    // Получаем все записи админа с информацией о ресторанах
+    const { data: adminRecords, error: adminError } = await supabase
+      .from('restaurant_admins')
+      .select(`
+        id,
+        restaurant_id,
+        is_active,
+        created_at,
+        restaurants (
+          id,
+          name,
+          description,
+          image_url,
+          is_active,
+          is_featured
+        )
+      `)
+      .eq('telegram_id', telegramId)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (adminError) {
+      throw adminError;
+    }
+
+    // Формируем список ресторанов
+    const restaurants = (adminRecords || [])
+      .filter((record: any) => record.restaurants && record.restaurants.is_active)
+      .map((record: any) => ({
+        restaurant_id: record.restaurant_id,
+        admin_id: record.id,
+        restaurant: record.restaurants
+      }));
+
+    res.json({ success: true, data: restaurants });
+  } catch (error: any) {
+    console.error('Error fetching my restaurants:', error);
+    res.status(500).json({ success: false, error: 'Failed to fetch restaurants', message: error.message });
+  }
+}
+
+/**
  * GET /api/restaurant-admins/:id
  * Получить админа по ID
  */

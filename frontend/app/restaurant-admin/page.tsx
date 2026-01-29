@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { getRestaurantStats, getOrders } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRestaurantId } from '@/hooks/useRestaurantId';
 import { Order } from '@/lib/types';
 
 interface RestaurantStats {
@@ -36,7 +37,7 @@ const statusColors: Record<string, string> = {
 
 export default function RestaurantAdminDashboard() {
   const { user } = useAuth();
-  const currentRestaurantId = (user?.user as any)?.restaurant_id;
+  const currentRestaurantId = useRestaurantId();
   const [stats, setStats] = useState<RestaurantStats | null>(null);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);

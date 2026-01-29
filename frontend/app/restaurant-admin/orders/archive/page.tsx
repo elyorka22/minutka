@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
 import { getOrders } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRestaurantId } from '@/hooks/useRestaurantId';
 
 const statusLabels: Record<OrderStatus, string> = {
   pending: 'В ожидании',
@@ -27,7 +28,7 @@ const statusColors: Record<OrderStatus, string> = {
 
 export default function RestaurantAdminOrdersArchivePage() {
   const { user } = useAuth();
-  const currentRestaurantId = (user?.user as any)?.restaurant_id;
+  const currentRestaurantId = useRestaurantId();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 

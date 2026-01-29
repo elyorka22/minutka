@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
 import { getOrders, updateOrderStatus } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRestaurantId } from '@/hooks/useRestaurantId';
 import { handleApiError } from '@/lib/errorHandler';
 import { useToast } from '@/contexts/ToastContext';
 import Pagination from '@/components/Pagination';
@@ -30,8 +31,7 @@ const statusColors: Record<OrderStatus, string> = {
 
 export default function RestaurantAdminOrdersPage() {
   const { user } = useAuth();
-  // Получаем restaurant_id из данных пользователя
-  const currentRestaurantId = (user?.user as any)?.restaurant_id;
+  const currentRestaurantId = useRestaurantId();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<OrderStatus | 'all'>('all');

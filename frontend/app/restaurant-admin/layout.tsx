@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { getMyRestaurants } from '@/lib/api';
 
 const navigation = [
   { name: 'Дашборд', href: '/restaurant-admin', icon: '📊' },
@@ -24,6 +25,7 @@ export default function RestaurantAdminLayout({ children }: { children: React.Re
   const router = useRouter();
   const { user, loading, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [hasMultipleRestaurants, setHasMultipleRestaurants] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -36,9 +38,40 @@ export default function RestaurantAdminLayout({ children }: { children: React.Re
         } else {
           router.push('/');
         }
+      } else {
+        // Проверяем, выбран ли ресторан (кроме страницы выбора ресторана)
+        if (pathname !== '/restaurant-admin/select-restaurant') {
+          const selectedRestaurantId = localStorage.getItem('selected_restaurant_id');
+          if (!selectedRestaurantId) {
+            // Если ресторан не выбран, проверяем, есть ли у админа несколько ресторанов
+            const telegramId = localStorage.getItem('telegram_id');
+            if (telegramId) {
+              // Редиректим на страницу выбора ресторана
+              router.push('/restaurant-admin/select-restaurant');
+            }
+          }
+        }
       }
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, pathname]);
+
+  // Проверяем, есть ли у админа несколько ресторанов
+  useEffect(() => {
+    const checkMultipleRestaurants = async () => {
+      if (user && user.role === 'restaurant_admin' && pathname !== '/restaurant-admin/select-restaurant') {
+        const telegramId = localStorage.getItem('telegram_id');
+        if (telegramId) {
+          try {
+            const restaurants = await getMyRestaurants(telegramId);
+            setHasMultipleRestaurants(restaurants.length > 1);
+          } catch (error) {
+            console.error('Error checking restaurants:', error);
+          }
+        }
+      }
+    };
+    checkMultipleRestaurants();
+  }, [user, pathname]);
 
   if (loading) {
     return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Загрузка...</div>;
@@ -66,6 +99,14 @@ export default function RestaurantAdminLayout({ children }: { children: React.Re
               </Link>
             </div>
             <div className="flex items-center gap-2 sm:gap-4">
+              {hasMultipleRestaurants && (
+                <button
+                  onClick={() => router.push('/restaurant-admin/select-restaurant')}
+                  className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium"
+                >
+                  Сменить ресторан
+                </button>
+              )}
               <button
                 onClick={logout}
                 className="text-red-600 hover:text-red-700 text-xs sm:text-sm font-medium"

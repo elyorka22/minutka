@@ -432,6 +432,18 @@ export async function deleteRestaurantAdmin(id: string): Promise<void> {
   }
 }
 
+export async function getMyRestaurants(telegramId: string): Promise<any[]> {
+  try {
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/restaurant-admins/my-restaurants', {
+      params: { telegram_id: telegramId }
+    });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching my restaurants:', error);
+    return [];
+  }
+}
+
 // Super Admins API
 export async function getSuperAdmins(): Promise<any[]> {
   try {
