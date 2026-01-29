@@ -242,23 +242,22 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
       body: { is_available, name, description, price, category, image_url }
     });
 
-    // Для обновления только is_available разрешаем всем restaurant_admin без проверок
-    if (onlyAvailabilityUpdate && req.user.role === 'restaurant_admin') {
-      // Разрешаем обновление is_available для всех restaurant_admin
-      // Без проверки restaurant_id - просто продолжаем выполнение
-      console.log('Allowing is_available update for restaurant_admin:', {
-        telegramId: req.user.telegram_id,
-        menuItemId: id
-      });
-    }
     // Супер-админы могут обновлять блюда любых ресторанов
-    else if (req.user.role === 'super_admin') {
+    if (req.user.role === 'super_admin') {
       // Разрешаем все обновления для супер-админов
     }
-    // Для всех остальных обновлений проверяем права доступа
-    else if (req.user.role !== 'super_admin') {
-      if (req.user.role === 'restaurant_admin') {
-        // Для полного обновления используем строгую проверку
+    // Для restaurant_admin: если обновляется is_available, разрешаем без проверок
+    else if (req.user.role === 'restaurant_admin') {
+      if (is_available !== undefined) {
+        // Разрешаем обновление is_available для всех restaurant_admin
+        // Без проверки restaurant_id - просто продолжаем выполнение
+        console.log('Allowing is_available update for restaurant_admin:', {
+          telegramId: req.user.telegram_id,
+          menuItemId: id,
+          is_available
+        });
+      } else {
+        // Для полного обновления (без is_available) используем строгую проверку
         if (!req.user.restaurant_id) {
           return res.status(403).json({
             success: false,
@@ -275,13 +274,14 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
             error: 'Forbidden: You can only update menu items of your own restaurant'
           });
         }
-      } else if (req.user.role === 'chef') {
-        // Повары не могут обновлять блюда
-        return res.status(403).json({
-          success: false,
-          error: 'Forbidden: Chefs cannot update menu items'
-        });
       }
+    }
+    // Повары не могут обновлять блюда
+    else if (req.user.role === 'chef') {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden: Chefs cannot update menu items'
+      });
     }
 
     const updateData: any = {};
