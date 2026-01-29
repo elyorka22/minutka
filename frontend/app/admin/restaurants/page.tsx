@@ -466,9 +466,34 @@ function RestaurantFormModal({
               <input
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => {
+                  let value = e.target.value;
+                  // Автоматически добавляем +998 если его нет
+                  if (value && !value.startsWith('+998')) {
+                    // Если начинается с цифр, добавляем +998
+                    if (/^\d/.test(value)) {
+                      value = '+998' + value.replace(/^998/, '');
+                    } else if (!value.startsWith('+')) {
+                      value = '+998' + value;
+                    }
+                  }
+                  // Ограничиваем ввод только цифрами после +998
+                  if (value.startsWith('+998')) {
+                    const digits = value.slice(4).replace(/\D/g, '');
+                    if (digits.length <= 9) {
+                      value = '+998' + digits;
+                    } else {
+                      value = '+998' + digits.slice(0, 9);
+                    }
+                  }
+                  setFormData({ ...formData, phone: value });
+                }}
+                placeholder="+998901234567"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
+              <p className="mt-1 text-xs text-gray-500">
+                Формат: +998 и 9 цифр (например: +998901234567)
+              </p>
             </div>
 
             <ImageUpload
@@ -512,10 +537,34 @@ function RestaurantFormModal({
                         <input
                           type="tel"
                           value={formData.admin_phone}
-                          onChange={(e) => setFormData({ ...formData, admin_phone: e.target.value })}
-                          placeholder="Введите телефон админа"
+                          onChange={(e) => {
+                            let value = e.target.value;
+                            // Автоматически добавляем +998 если его нет
+                            if (value && !value.startsWith('+998')) {
+                              // Если начинается с цифр, добавляем +998
+                              if (/^\d/.test(value)) {
+                                value = '+998' + value.replace(/^998/, '');
+                              } else if (!value.startsWith('+')) {
+                                value = '+998' + value;
+                              }
+                            }
+                            // Ограничиваем ввод только цифрами после +998
+                            if (value.startsWith('+998')) {
+                              const digits = value.slice(4).replace(/\D/g, '');
+                              if (digits.length <= 9) {
+                                value = '+998' + digits;
+                              } else {
+                                value = '+998' + digits.slice(0, 9);
+                              }
+                            }
+                            setFormData({ ...formData, admin_phone: value });
+                          }}
+                          placeholder="+998901234567"
                           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                         />
+                        <p className="mt-1 text-xs text-gray-500">
+                          Формат: +998 и 9 цифр (например: +998901234567)
+                        </p>
                       </div>
                       <div className="mt-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -547,10 +596,34 @@ function RestaurantFormModal({
                   <input
                     type="tel"
                     value={formData.admin_phone}
-                    onChange={(e) => setFormData({ ...formData, admin_phone: e.target.value })}
-                    placeholder="Введите телефон админа"
+                    onChange={(e) => {
+                      let value = e.target.value;
+                      // Автоматически добавляем +998 если его нет
+                      if (value && !value.startsWith('+998')) {
+                        // Если начинается с цифр, добавляем +998
+                        if (/^\d/.test(value)) {
+                          value = '+998' + value.replace(/^998/, '');
+                        } else if (!value.startsWith('+')) {
+                          value = '+998' + value;
+                        }
+                      }
+                      // Ограничиваем ввод только цифрами после +998
+                      if (value.startsWith('+998')) {
+                        const digits = value.slice(4).replace(/\D/g, '');
+                        if (digits.length <= 9) {
+                          value = '+998' + digits;
+                        } else {
+                          value = '+998' + digits.slice(0, 9);
+                        }
+                      }
+                      setFormData({ ...formData, admin_phone: value });
+                    }}
+                    placeholder="+998901234567"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                   />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Формат: +998 и 9 цифр (например: +998901234567)
+                  </p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

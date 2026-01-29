@@ -175,42 +175,42 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
     if (!name || !validateString(name, 1, 255)) {
       return res.status(400).json({
         success: false,
-        error: 'Name is required and must be between 1 and 255 characters'
+        error: 'Название ресторана обязательно и должно содержать от 1 до 255 символов'
       });
     }
 
     if (description && !validateString(description, 0, 2000)) {
       return res.status(400).json({
         success: false,
-        error: 'Description must be less than 2000 characters'
+        error: 'Описание не должно превышать 2000 символов'
       });
     }
 
     if (phone && !validatePhone(phone)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid phone number format'
+        error: 'Неверный формат телефона ресторана. Телефон должен начинаться с +998 и содержать 9 цифр после префикса (например: +998901234567)'
       });
     }
 
     if (image_url && !validateUrl(image_url)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid image URL format'
+        error: 'Неверный формат URL изображения. Укажите корректную ссылку на изображение'
       });
     }
 
     if (admin_telegram_id && !validateTelegramId(admin_telegram_id)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid admin Telegram ID format'
+        error: 'Неверный формат Telegram ID админа. Telegram ID должен быть положительным числом'
       });
     }
 
     if (admin_phone && !validatePhone(admin_phone)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid admin phone number format'
+        error: 'Неверный формат телефона админа. Телефон должен начинаться с +998 и содержать 9 цифр после префикса (например: +998901234567)'
       });
     }
 
@@ -401,28 +401,28 @@ export async function updateRestaurant(req: AuthenticatedRequest, res: Response)
     if (name !== undefined && !validateString(name, 1, 255)) {
       return res.status(400).json({
         success: false,
-        error: 'Name must be between 1 and 255 characters'
+        error: 'Название ресторана должно содержать от 1 до 255 символов'
       });
     }
 
     if (description !== undefined && description !== null && !validateString(description, 0, 2000)) {
       return res.status(400).json({
         success: false,
-        error: 'Description must be less than 2000 characters'
+        error: 'Описание не должно превышать 2000 символов'
       });
     }
 
     if (phone !== undefined && phone !== null && !validatePhone(phone)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid phone number format'
+        error: 'Неверный формат телефона ресторана. Телефон должен начинаться с +998 и содержать 9 цифр после префикса (например: +998901234567)'
       });
     }
 
     if (image_url !== undefined && image_url !== null && !validateUrl(image_url)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid image URL format'
+        error: 'Неверный формат URL изображения. Укажите корректную ссылку на изображение'
       });
     }
 
