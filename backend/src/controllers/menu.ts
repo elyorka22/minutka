@@ -255,11 +255,11 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
     if (req.user.role === 'super_admin') {
       // Разрешаем все обновления для супер-админов
     }
-    // Для restaurant_admin: если обновляется is_available, разрешаем без проверок
-    else if (req.user.role === 'restaurant_admin') {
+    // Для restaurant_admin и chef: если обновляется is_available, разрешаем без проверок
+    else if (req.user.role === 'restaurant_admin' || req.user.role === 'chef') {
       // Если обновляется is_available (независимо от других полей), разрешаем без проверок
       if (is_available !== undefined) {
-        console.log('Allowing is_available update for restaurant_admin:', {
+        console.log(`Allowing is_available update for ${req.user.role}:`, {
           telegramId: req.user.telegram_id,
           menuItemId: id,
           is_available,
@@ -273,10 +273,10 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
       else if (name !== undefined || description !== undefined || price !== undefined || category !== undefined || image_url !== undefined) {
         // Для полного обновления (без is_available) используем строгую проверку
         if (!req.user.restaurant_id) {
-          console.error('Restaurant admin has no restaurant_id for full update');
+          console.error(`${req.user.role} has no restaurant_id for full update`);
           return res.status(403).json({
             success: false,
-            error: 'Forbidden: Restaurant admin has no restaurant_id assigned'
+            error: `Forbidden: ${req.user.role} has no restaurant_id assigned`
           });
         }
         
@@ -297,13 +297,6 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
         }
       }
       // Если ничего не обновляется - это странно, но разрешаем
-    }
-    // Повары не могут обновлять блюда
-    else if (req.user.role === 'chef') {
-      return res.status(403).json({
-        success: false,
-        error: 'Forbidden: Chefs cannot update menu items'
-      });
     }
     // Если роль не определена или не разрешена
     else {
