@@ -59,54 +59,13 @@ export default function RestaurantAdminMenuPage() {
     }
   };
 
-  const handleToggleAvailable = async (id: string) => {
-    // Получаем текущий элемент
-    const item = menuItems.find((i) => i.id === id);
-    if (!item) return;
-
-    const newAvailability = !item.is_available;
-    
-    // Оптимистичное обновление UI с функциональной формой
+  const handleToggleAvailable = (id: string) => {
+    // Простое локальное переключение без вызова бэкенда
     setMenuItems((prevItems) =>
       prevItems.map((i) =>
-        i.id === id ? { ...i, is_available: newAvailability } : i
+        i.id === id ? { ...i, is_available: !i.is_available } : i
       )
     );
-
-    try {
-      // Сохраняем изменения в базе данных
-      const updated = await updateMenuItem(id, {
-        is_available: newAvailability,
-      });
-      
-      // Проверяем, что сервер вернул правильное значение
-      if (updated.is_available !== newAvailability) {
-        console.warn('Server returned different availability value:', {
-          expected: newAvailability,
-          received: updated.is_available,
-        });
-      }
-      
-      // Обновляем состояние с данными с сервера, используя функциональную форму
-      setMenuItems((prevItems) =>
-        prevItems.map((i) => (i.id === id ? updated : i))
-      );
-      
-      showSuccess(
-        newAvailability
-          ? 'Блюдо теперь в наличии'
-          : 'Блюдо помечено как недоступное'
-      );
-    } catch (error) {
-      // Откатываем изменения при ошибке, используя функциональную форму
-      setMenuItems((prevItems) =>
-        prevItems.map((i) =>
-          i.id === id ? { ...i, is_available: !newAvailability } : i
-        )
-      );
-      console.error('Error toggling availability:', error);
-      showError(handleApiError(error));
-    }
   };
 
   const filteredItems = menuItems;
