@@ -121,7 +121,7 @@ export default function MenuItem({ item }: MenuItemProps) {
         
         {/* Название блюда (под ценой) */}
         <h3
-          className={`text-sm font-bold mb-2 line-clamp-2 ${
+          className={`text-sm font-bold mb-1 line-clamp-2 ${
             !item.is_available ? 'text-gray-400' : 'text-gray-900'
           }`}
         >
@@ -130,7 +130,7 @@ export default function MenuItem({ item }: MenuItemProps) {
         
         {/* Статус доступности - надпись "Hoziq mavjud emas" */}
         {!item.is_available && (
-          <p className="text-xs text-red-600 font-medium mb-2">
+          <p className="text-xs text-red-600 font-semibold mb-2">
             Hoziq mavjud emas
           </p>
         )}
