@@ -108,6 +108,9 @@ export default function RestaurantAdminMenuPage() {
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                  {!item.is_available && (
+                    <p className="text-sm text-red-600 font-medium mt-1">Hoziq mavjud emas</p>
+                  )}
                 </div>
                 <span className="text-lg font-bold text-primary-600">{item.price} so'm</span>
               </div>
