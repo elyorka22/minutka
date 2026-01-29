@@ -224,20 +224,42 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
       });
     }
 
+    // Логируем информацию для отладки
+    console.log('updateMenuItem - Authorization check:', {
+      userId: req.user?.telegram_id,
+      userRole: req.user?.role,
+      userRestaurantId: req.user?.restaurant_id,
+      menuItemRestaurantId: menuItem.restaurant_id,
+      menuItemId: id
+    });
+
     // Супер-админы могут обновлять блюда любых ресторанов
     if (req.user.role !== 'super_admin') {
       // Админы ресторана могут обновлять блюда только своего ресторана
       if (req.user.role === 'restaurant_admin') {
+        // Проверяем, что restaurant_id установлен
+        if (!req.user.restaurant_id) {
+          console.error('Restaurant admin has no restaurant_id:', {
+            telegramId: req.user.telegram_id,
+            userData: req.user.userData
+          });
+          return res.status(403).json({
+            success: false,
+            error: 'Forbidden: Restaurant admin has no restaurant_id assigned'
+          });
+        }
+
         // Приводим к строкам для сравнения, так как UUID могут быть в разных форматах
-        const userRestaurantId = String(req.user.restaurant_id || '');
-        const itemRestaurantId = String(menuItem.restaurant_id || '');
+        const userRestaurantId = String(req.user.restaurant_id || '').trim();
+        const itemRestaurantId = String(menuItem.restaurant_id || '').trim();
         
         if (userRestaurantId !== itemRestaurantId) {
           console.log('Restaurant ID mismatch:', {
             userRestaurantId,
             itemRestaurantId,
             userRole: req.user.role,
-            menuItemId: id
+            menuItemId: id,
+            userTelegramId: req.user.telegram_id
           });
           return res.status(403).json({
             success: false,
