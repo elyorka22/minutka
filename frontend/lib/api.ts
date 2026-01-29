@@ -103,11 +103,16 @@ export async function createRestaurant(restaurantData: {
   description?: string;
   phone?: string;
   image_url?: string;
+  delivery_text?: string;
   is_active?: boolean;
   is_featured?: boolean;
   admin_telegram_id?: number;
+  admin_phone?: string;
+  admin_password?: string;
 }): Promise<Restaurant> {
+  console.log('[API] createRestaurant called with:', restaurantData);
   const response = await api.post<{ success: boolean; data: Restaurant }>('/api/restaurants', restaurantData);
+  console.log('[API] createRestaurant response:', response.data);
   return response.data.data;
 }
 

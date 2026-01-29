@@ -119,15 +119,20 @@ export default function AdminRestaurantsPage() {
           restaurantData.admin_password = adminPassword;
         }
         
+        console.log('Creating restaurant with data:', restaurantData);
         const created = await createRestaurant(restaurantData);
+        console.log('Restaurant created successfully:', created);
         setRestaurants([...restaurants, created]);
         showSuccess('Ресторан успешно создан!');
       }
       setShowForm(false);
       setEditingRestaurant(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving restaurant:', error);
-      showError(handleApiError(error));
+      console.error('Error response:', error.response?.data);
+      console.error('Error message:', error.message);
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Ошибка при сохранении ресторана';
+      showError(errorMessage);
     }
   };
 
