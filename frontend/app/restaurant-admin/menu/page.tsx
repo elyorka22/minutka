@@ -59,12 +59,45 @@ export default function RestaurantAdminMenuPage() {
     }
   };
 
-  const handleToggleAvailable = (id: string) => {
+  const handleToggleAvailable = async (id: string) => {
+    const item = menuItems.find((i) => i.id === id);
+    if (!item) return;
+
+    const newAvailability = !item.is_available;
+    
+    // Оптимистичное обновление UI
     setMenuItems(
-      menuItems.map((item) =>
-        item.id === id ? { ...item, is_available: !item.is_available } : item
+      menuItems.map((i) =>
+        i.id === id ? { ...i, is_available: newAvailability } : i
       )
     );
+
+    try {
+      // Сохраняем изменения в базе данных
+      const updated = await updateMenuItem(id, {
+        is_available: newAvailability,
+      });
+      
+      // Обновляем состояние с данными с сервера
+      setMenuItems(
+        menuItems.map((i) => (i.id === id ? updated : i))
+      );
+      
+      showSuccess(
+        newAvailability
+          ? 'Блюдо теперь в наличии'
+          : 'Блюдо помечено как недоступное'
+      );
+    } catch (error) {
+      // Откатываем изменения при ошибке
+      setMenuItems(
+        menuItems.map((i) =>
+          i.id === id ? { ...i, is_available: !newAvailability } : i
+        )
+      );
+      console.error('Error toggling availability:', error);
+      showError(handleApiError(error));
+    }
   };
 
   const filteredItems = menuItems;

@@ -56,7 +56,13 @@ export default function MenuItem({ item }: MenuItemProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow flex flex-col">
+    <div
+      className={`bg-white rounded-lg shadow-md overflow-hidden transition-all flex flex-col ${
+        !item.is_available
+          ? 'opacity-60 grayscale cursor-not-allowed'
+          : 'hover:shadow-lg'
+      }`}
+    >
       {/* Картинка с плюсиком в правом нижнем углу */}
       {item.image_url && (
         <div className="relative w-full h-40 md:h-48">
@@ -64,7 +70,7 @@ export default function MenuItem({ item }: MenuItemProps) {
             src={item.image_url}
             alt={item.name}
             fill
-            className="object-cover"
+            className={`object-cover ${!item.is_available ? 'opacity-50' : ''}`}
             sizes="(max-width: 768px) 50vw, 33vw"
           />
           {/* Плюсик в правом нижнем углу картинки */}
@@ -105,16 +111,32 @@ export default function MenuItem({ item }: MenuItemProps) {
       {/* Контент под картинкой */}
       <div className="p-3 flex flex-col flex-1">
         {/* Цена (под картинкой) */}
-        <span className="text-base font-semibold text-primary-600 mb-1">
+        <span
+          className={`text-base font-semibold mb-1 ${
+            !item.is_available ? 'text-gray-400' : 'text-primary-600'
+          }`}
+        >
           {item.price} so'm
         </span>
         
         {/* Название блюда (под ценой) */}
-        <h3 className="text-sm font-bold text-gray-900 mb-2 line-clamp-2">{item.name}</h3>
+        <h3
+          className={`text-sm font-bold mb-2 line-clamp-2 ${
+            !item.is_available ? 'text-gray-400' : 'text-gray-900'
+          }`}
+        >
+          {item.name}
+        </h3>
         
         {/* Описание (опционально, маленькими буквами) */}
         {item.description && (
-          <p className="text-xs text-gray-600 mb-2 leading-relaxed line-clamp-2">{item.description}</p>
+          <p
+            className={`text-xs mb-2 leading-relaxed line-clamp-2 ${
+              !item.is_available ? 'text-gray-400' : 'text-gray-600'
+            }`}
+          >
+            {item.description}
+          </p>
         )}
         
         {/* Статус доступности */}

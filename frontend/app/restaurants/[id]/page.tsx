@@ -21,10 +21,11 @@ interface PageProps {
 
 export default async function RestaurantPage({ params }: PageProps) {
   // Загружаем данные из API
+  // Получаем все товары, включая недоступные, чтобы показать их серыми
   const [restaurant, recommendedBanners, menuItems] = await Promise.all([
     getRestaurantById(params.id).catch(() => null),
     getBanners('recommended'),
-    getMenuItems(params.id)
+    getMenuItems(params.id, true) // includeUnavailable = true
   ]);
 
   if (!restaurant) {
