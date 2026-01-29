@@ -166,7 +166,9 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
       is_active,
       is_featured,
       admin_telegram_id,
-      admin_telegram_id_type: typeof admin_telegram_id
+      admin_telegram_id_type: typeof admin_telegram_id,
+      admin_phone,
+      has_admin_password: !!admin_password
     });
 
     // Валидация данных
@@ -256,76 +258,101 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
 
         console.log(`Creating restaurant admin for restaurant ${restaurant.id} with telegram_id ${telegramId}`);
         
-        // Проверяем, существует ли уже админ с таким telegram_id для другого ресторана
-        const { data: existingAdmin, error: checkError } = await supabase
+        // Проверяем, существует ли уже админ с таким telegram_id для этого ресторана
+        const { data: existingLink, error: linkCheckError } = await supabase
           .from('restaurant_admins')
-          .select('id, password')
+          .select('id')
+          .eq('restaurant_id', restaurant.id)
           .eq('telegram_id', telegramId)
-          .eq('is_active', true)
-          .limit(1)
           .maybeSingle();
 
-        if (checkError && checkError.code !== 'PGRST116') {
-          console.error('Error checking existing admin:', checkError);
+        if (linkCheckError && linkCheckError.code !== 'PGRST116') {
+          console.error('Error checking existing link:', linkCheckError);
           return res.status(500).json({
             success: false,
-            error: 'Failed to check existing admin',
-            message: checkError.message
+            error: 'Failed to check existing admin link',
+            message: linkCheckError.message
           });
         }
 
-        // Определяем пароль: если админ существует, используем существующий пароль, если указан новый - хешируем его
-        let hashedPassword: string | null = null;
-        if (existingAdmin) {
-          // Админ уже существует - используем существующий пароль, если новый не указан
-          if (admin_password) {
-            hashedPassword = await hashPassword(admin_password);
-          } else {
-            // Используем существующий пароль
-            hashedPassword = existingAdmin.password;
-          }
-          console.log(`Admin with telegram_id ${telegramId} already exists, using ${admin_password ? 'new' : 'existing'} password`);
+        if (existingLink) {
+          console.log(`Admin ${telegramId} is already linked to restaurant ${restaurant.id}`);
+          // Админ уже связан с этим рестораном - это нормально, просто пропускаем создание
         } else {
-          // Новый админ - пароль обязателен
-          if (!admin_password) {
-            return res.status(400).json({
+          // Проверяем, существует ли уже админ с таким telegram_id для другого ресторана
+          const { data: existingAdmin, error: checkError } = await supabase
+            .from('restaurant_admins')
+            .select('id, password')
+            .eq('telegram_id', telegramId)
+            .eq('is_active', true)
+            .limit(1)
+            .maybeSingle();
+
+          if (checkError && checkError.code !== 'PGRST116') {
+            console.error('Error checking existing admin:', checkError);
+            return res.status(500).json({
               success: false,
-              error: 'Password is required for new admin'
+              error: 'Failed to check existing admin',
+              message: checkError.message
             });
           }
-          hashedPassword = await hashPassword(admin_password);
-        }
 
-        const { data: adminData, error: adminError } = await supabase
-          .from('restaurant_admins')
-          .insert({
-            restaurant_id: restaurant.id,
-            telegram_id: telegramId,
-            username: null,
-            first_name: null,
-            last_name: null,
-            phone: admin_phone || null,
-            password: hashedPassword,
-            is_active: true
-          })
-          .select()
-          .single();
+          // Определяем пароль: если админ существует, используем существующий пароль, если указан новый - хешируем его
+          let hashedPassword: string | null = null;
+          if (existingAdmin) {
+            // Админ уже существует - используем существующий пароль, если новый не указан
+            if (admin_password && admin_password.trim() !== '') {
+              hashedPassword = await hashPassword(admin_password);
+              console.log(`Admin with telegram_id ${telegramId} already exists, updating password`);
+            } else {
+              // Используем существующий пароль
+              hashedPassword = existingAdmin.password;
+              console.log(`Admin with telegram_id ${telegramId} already exists, using existing password`);
+            }
+          } else {
+            // Новый админ - пароль обязателен
+            if (!admin_password || admin_password.trim() === '') {
+              return res.status(400).json({
+                success: false,
+                error: 'Password is required for new admin'
+              });
+            }
+            hashedPassword = await hashPassword(admin_password);
+            console.log(`Creating new admin with telegram_id ${telegramId}`);
+          }
 
-        if (adminError) {
-          console.error('Error creating restaurant admin:', adminError);
-          console.error('Admin error details:', {
-            message: adminError.message,
-            code: adminError.code,
-            details: adminError.details,
-            hint: adminError.hint
-          });
-          return res.status(400).json({
-            success: false,
-            error: 'Failed to create restaurant admin',
-            message: adminError.message
-          });
-        } else {
-          console.log(`Restaurant admin created successfully:`, adminData);
+          const { data: adminData, error: adminError } = await supabase
+            .from('restaurant_admins')
+            .insert({
+              restaurant_id: restaurant.id,
+              telegram_id: telegramId,
+              username: null,
+              first_name: null,
+              last_name: null,
+              phone: admin_phone || null,
+              password: hashedPassword,
+              is_active: true
+            })
+            .select()
+            .single();
+
+          if (adminError) {
+            console.error('Error creating restaurant admin:', adminError);
+            console.error('Admin error details:', {
+              message: adminError.message,
+              code: adminError.code,
+              details: adminError.details,
+              hint: adminError.hint
+            });
+            return res.status(400).json({
+              success: false,
+              error: 'Failed to create restaurant admin',
+              message: adminError.message,
+              code: adminError.code
+            });
+          } else {
+            console.log(`Restaurant admin created successfully:`, adminData);
+          }
         }
       } catch (adminErr: any) {
         console.error('Exception creating restaurant admin:', adminErr);
