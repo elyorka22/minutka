@@ -249,12 +249,23 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
           });
         }
 
-        // Приводим к строкам для сравнения, так как UUID могут быть в разных форматах
-        const userRestaurantId = String(req.user.restaurant_id || '').trim();
-        const itemRestaurantId = String(menuItem.restaurant_id || '').trim();
+        // Приводим к строкам в нижнем регистре для сравнения, так как UUID могут быть в разных форматах
+        const userRestaurantId = String(req.user.restaurant_id || '').trim().toLowerCase();
+        const itemRestaurantId = String(menuItem.restaurant_id || '').trim().toLowerCase();
+        
+        console.log('Comparing restaurant IDs:', {
+          userRestaurantId,
+          itemRestaurantId,
+          areEqual: userRestaurantId === itemRestaurantId,
+          userRestaurantIdLength: userRestaurantId.length,
+          itemRestaurantIdLength: itemRestaurantId.length,
+          userRole: req.user.role,
+          menuItemId: id,
+          userTelegramId: req.user.telegram_id
+        });
         
         if (userRestaurantId !== itemRestaurantId) {
-          console.log('Restaurant ID mismatch:', {
+          console.error('Restaurant ID mismatch - Access denied:', {
             userRestaurantId,
             itemRestaurantId,
             userRole: req.user.role,
@@ -263,9 +274,15 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
           });
           return res.status(403).json({
             success: false,
-            error: 'Forbidden: You can only update menu items of your own restaurant'
+            error: 'Forbidden: You can only update menu items of your own restaurant',
+            details: {
+              userRestaurantId,
+              itemRestaurantId
+            }
           });
         }
+        
+        console.log('Restaurant ID match - Access granted');
       }
       
       // Повары не могут обновлять блюда
