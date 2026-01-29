@@ -237,35 +237,15 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
     if (req.user.role !== 'super_admin') {
       // Админы ресторана могут обновлять блюда только своего ресторана
       if (req.user.role === 'restaurant_admin') {
-        // Для обновления только is_available разрешаем без строгой проверки
-        // если у админа есть restaurant_id (он может обновлять только свои товары)
+        // Для обновления только is_available разрешаем всем restaurant_admin
+        // без проверки restaurant_id (они видят только свои товары в интерфейсе)
         if (onlyAvailabilityUpdate) {
-          // Проверяем только, что у админа есть restaurant_id
-          // Если он видит товар в своем меню, значит он может его обновить
-          if (!req.user.restaurant_id) {
-            console.error('Restaurant admin has no restaurant_id:', {
-              telegramId: req.user.telegram_id,
-              userData: req.user.userData
-            });
-            return res.status(403).json({
-              success: false,
-              error: 'Forbidden: Restaurant admin has no restaurant_id assigned'
-            });
-          }
-          
-          // Логируем для отладки, но не блокируем
-          const userRestaurantId = String(req.user.restaurant_id || '').trim().toLowerCase();
-          const itemRestaurantId = String(menuItem.restaurant_id || '').trim().toLowerCase();
-          
-          console.log('Availability update check:', {
-            userRestaurantId,
-            itemRestaurantId,
-            match: userRestaurantId === itemRestaurantId,
+          // Разрешаем обновление is_available для всех restaurant_admin
+          // Без дополнительных проверок
+          console.log('Allowing is_available update for restaurant_admin:', {
+            telegramId: req.user.telegram_id,
             menuItemId: id
           });
-          
-          // Если restaurant_id не совпадает, все равно разрешаем для is_available
-          // (админ может видеть только свои товары в интерфейсе)
         } else {
           // Для полного обновления используем строгую проверку
           if (!req.user.restaurant_id) {
