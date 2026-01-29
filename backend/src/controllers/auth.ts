@@ -44,8 +44,7 @@ export async function loginStaff(req: Request, res: Response) {
         .from('restaurant_admins')
         .select('*')
         .eq('telegram_id', telegramId)
-        .eq('is_active', true)
-        .maybeSingle(),
+        .eq('is_active', true),
     ]);
 
     // Определяем роль и проверяем пароль
@@ -56,7 +55,8 @@ export async function loginStaff(req: Request, res: Response) {
     console.log(`[Auth] Login attempt for telegram_id: ${telegramId}`, {
       superAdmin: !!superAdminResult.data,
       chef: !!chefResult.data,
-      restaurantAdmin: !!restaurantAdminResult.data,
+      restaurantAdmin: !!(restaurantAdminResult.data && restaurantAdminResult.data.length > 0),
+      restaurantAdminCount: restaurantAdminResult.data?.length || 0,
       errors: {
         superAdmin: superAdminResult.error,
         chef: chefResult.error,
@@ -66,7 +66,7 @@ export async function loginStaff(req: Request, res: Response) {
 
     // Если пользователь найден и как restaurant_admin, и как chef, 
     // приоритет должен быть у restaurant_admin
-    if (restaurantAdminResult.data && !restaurantAdminResult.error && chefResult.data && !chefResult.error) {
+    if (restaurantAdminResult.data && restaurantAdminResult.data.length > 0 && !restaurantAdminResult.error && chefResult.data && !chefResult.error) {
       console.log(`[Auth] WARNING: User ${telegramId} found in both restaurant_admins and chefs tables. Prioritizing restaurant_admin.`);
     }
 
@@ -86,10 +86,14 @@ export async function loginStaff(req: Request, res: Response) {
           error: 'Неверный пароль'
         });
       }
-    } else if (restaurantAdminResult.data && !restaurantAdminResult.error) {
+    } else if (restaurantAdminResult.data && restaurantAdminResult.data.length > 0 && !restaurantAdminResult.error) {
       // Проверяем пароль для админа ресторана (приоритет выше, чем у повара)
-      console.log(`[Auth] Found restaurant_admin record for ${telegramId}, checking password`);
-      const storedPassword = restaurantAdminResult.data.password;
+      // У админа может быть несколько записей (для разных ресторанов), проверяем пароль в любой из них
+      console.log(`[Auth] Found ${restaurantAdminResult.data.length} restaurant_admin record(s) for ${telegramId}, checking password`);
+      
+      // Проверяем пароль в первой записи (пароль должен быть одинаковым для всех ресторанов одного админа)
+      const firstAdminRecord = restaurantAdminResult.data[0];
+      const storedPassword = firstAdminRecord.password;
       const passwordMatches = isHashed(storedPassword)
         ? await comparePassword(password, storedPassword)
         : storedPassword === password; // Для обратной совместимости со старыми паролями
@@ -97,35 +101,30 @@ export async function loginStaff(req: Request, res: Response) {
       console.log(`[Auth] Password match for restaurant_admin: ${passwordMatches}`);
       
       if (passwordMatches) {
-        // Проверяем, сколько ресторанов у этого админа
-        const { data: allAdminRecords, error: countError } = await supabase
-          .from('restaurant_admins')
-          .select('restaurant_id')
-          .eq('telegram_id', telegramId)
-          .eq('is_active', true);
+        // У админа может быть несколько ресторанов
+        const adminRecords = restaurantAdminResult.data;
         
-        console.log(`[Auth] Checking restaurants for admin ${telegramId}:`, {
-          count: allAdminRecords?.length || 0,
-          records: allAdminRecords,
-          error: countError
+        console.log(`[Auth] Admin has ${adminRecords.length} restaurant(s):`, {
+          count: adminRecords.length,
+          restaurant_ids: adminRecords.map((r: any) => r.restaurant_id)
         });
         
-        if (!countError && allAdminRecords && allAdminRecords.length > 1) {
+        if (adminRecords.length > 1) {
           // У админа несколько ресторанов - возвращаем флаг для выбора ресторана
-          console.log(`[Auth] Admin has ${allAdminRecords.length} restaurants, setting hasMultipleRestaurants flag`);
+          console.log(`[Auth] Admin has ${adminRecords.length} restaurants, setting hasMultipleRestaurants flag`);
           role = 'restaurant_admin';
           userData = {
-            ...restaurantAdminResult.data,
+            ...firstAdminRecord,
             hasMultipleRestaurants: true,
-            restaurantCount: allAdminRecords.length
+            restaurantCount: adminRecords.length
           };
         } else {
           // У админа один ресторан - возвращаем как обычно с restaurant_id
-          console.log(`[Auth] Admin has 1 restaurant, setting restaurant_id: ${restaurantAdminResult.data.restaurant_id}`);
+          console.log(`[Auth] Admin has 1 restaurant, setting restaurant_id: ${firstAdminRecord.restaurant_id}`);
           role = 'restaurant_admin';
           userData = {
-            ...restaurantAdminResult.data,
-            restaurant_id: restaurantAdminResult.data.restaurant_id
+            ...firstAdminRecord,
+            restaurant_id: firstAdminRecord.restaurant_id
           };
         }
       } else {
