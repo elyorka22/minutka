@@ -175,6 +175,15 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
     const { name, description, price, category, image_url, is_available } = req.body;
+    
+    // Логируем входящий запрос
+    console.log('updateMenuItem called:', {
+      menuItemId: id,
+      userId: req.user?.telegram_id,
+      userRole: req.user?.role,
+      body: req.body,
+      is_available
+    });
 
     // Валидация ID
     if (!validateUuid(id)) {
