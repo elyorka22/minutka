@@ -227,11 +227,23 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
     // Супер-админы могут обновлять блюда любых ресторанов
     if (req.user.role !== 'super_admin') {
       // Админы ресторана могут обновлять блюда только своего ресторана
-      if (req.user.role === 'restaurant_admin' && req.user.restaurant_id !== menuItem.restaurant_id) {
-        return res.status(403).json({
-          success: false,
-          error: 'Forbidden: You can only update menu items of your own restaurant'
-        });
+      if (req.user.role === 'restaurant_admin') {
+        // Приводим к строкам для сравнения, так как UUID могут быть в разных форматах
+        const userRestaurantId = String(req.user.restaurant_id || '');
+        const itemRestaurantId = String(menuItem.restaurant_id || '');
+        
+        if (userRestaurantId !== itemRestaurantId) {
+          console.log('Restaurant ID mismatch:', {
+            userRestaurantId,
+            itemRestaurantId,
+            userRole: req.user.role,
+            menuItemId: id
+          });
+          return res.status(403).json({
+            success: false,
+            error: 'Forbidden: You can only update menu items of your own restaurant'
+          });
+        }
       }
       
       // Повары не могут обновлять блюда
