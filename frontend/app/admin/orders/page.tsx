@@ -157,7 +157,7 @@ export default function AdminOrdersPage() {
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[order.status]}`}>
                       {statusLabels[order.status]}
                     </span>
-                    {(order.status === 'ready' || order.status === 'accepted') && (
+                    {order.status !== 'delivered' && order.status !== 'cancelled' && (
                       <button
                         onClick={() => handleAssignToCourier(order.id)}
                         className="px-3 py-1 bg-purple-500 text-white rounded text-xs font-semibold hover:bg-purple-600 transition-colors shadow-sm"
@@ -172,17 +172,15 @@ export default function AdminOrdersPage() {
                   {new Date(order.created_at).toLocaleString('ru-RU')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {order.status === 'ready' || order.status === 'accepted' ? (
+                  {order.status !== 'delivered' && order.status !== 'cancelled' ? (
                     <button
                       onClick={() => handleAssignToCourier(order.id)}
                       className="px-4 py-2 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors text-sm shadow-md"
                     >
                       🚚 Передать курьеру
                     </button>
-                  ) : order.status === 'delivered' || order.status === 'cancelled' ? (
-                    <span className="text-gray-400">—</span>
                   ) : (
-                    <span className="text-gray-400 text-xs">Ожидает готовности</span>
+                    <span className="text-gray-400">—</span>
                   )}
                 </td>
               </tr>
@@ -212,7 +210,7 @@ export default function AdminOrdersPage() {
                 </p>
               </div>
             </div>
-            {(order.status === 'ready' || order.status === 'accepted') && (
+            {order.status !== 'delivered' && order.status !== 'cancelled' && (
               <div className="pt-3 border-t border-gray-200">
                 <button
                   onClick={() => handleAssignToCourier(order.id)}

@@ -225,12 +225,12 @@ export default function RestaurantAdminOrdersPage() {
                   </p>
                 </div>
                 
-                {/* Кнопка "Передать курьеру" для заказов со статусом "ready" */}
-                {order.status === 'ready' && (
-                  <div className="w-full sm:w-auto sm:ml-4">
+                {/* Кнопка "Передать курьеру" для активных заказов */}
+                {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                  <div className="w-full sm:w-auto sm:ml-4 mt-4 sm:mt-0">
                     <button
                       onClick={() => handleAssignToCourier(order.id)}
-                      className="w-full sm:w-auto px-4 py-2.5 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors text-sm"
+                      className="w-full sm:w-auto px-4 py-2.5 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors text-sm shadow-md"
                     >
                       🚚 Передать курьеру
                     </button>
