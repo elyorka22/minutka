@@ -49,7 +49,7 @@ export async function courierToggleActiveHandler(ctx: Context) {
     }
 
     const statusText = newStatus ? '✅ Faollashtirildi' : '❌ O\'chirildi';
-    const keyboard = createCourierMenuKeyboard(newStatus);
+    const keyboard = await createCourierMenuKeyboard(newStatus);
     
     await ctx.reply(
       `🚚 *Kuryer paneli*\n\n` +

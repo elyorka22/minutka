@@ -49,7 +49,7 @@ bot.start(async (ctx) => {
     if (courier) {
       // Показываем меню курьера с reply keyboard
       const statusText = courier.is_active ? '✅ Faol' : '❌ Nofaol';
-      const courierKeyboard = createCourierMenuKeyboard(courier.is_active);
+      const courierKeyboard = await createCourierMenuKeyboard(courier.is_active);
       await ctx.reply(
         `🚚 *Kuryer paneli*\n\n` +
         `Holat: ${statusText}\n\n` +
