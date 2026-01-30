@@ -17,7 +17,6 @@ const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || '
 
 export default function Home() {
   const [restaurants, setRestaurants] = useState<any[]>([]);
-  const [featuredRestaurants, setFeaturedRestaurants] = useState<any[]>([]);
   const [banners, setBanners] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -40,7 +39,6 @@ export default function Home() {
         const fetchedRestaurants = restaurantsResult.data;
         setCategories(fetchedCategories);
         setRestaurants(fetchedRestaurants);
-        setFeaturedRestaurants(fetchedRestaurants.filter(r => r.is_featured));
         
         // Загружаем все связи категорий и ресторанов одним запросом (исправление N+1 проблемы)
         const allRelations = await getRestaurantCategoryRelations(undefined, undefined);
@@ -77,7 +75,6 @@ export default function Home() {
         // В случае ошибки оставляем пустые массивы
         setCategories([]);
         setRestaurants([]);
-        setFeaturedRestaurants([]);
         setBanners([]);
         setLoading(false);
       }
@@ -248,26 +245,6 @@ export default function Home() {
           />
         )}
       </section>
-
-      {/* Featured Restaurants (TOP) */}
-      {!selectedCategory && !searchQuery && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">⭐ Top restoranlar</h2>
-          {loading ? (
-            <div className="grid grid-cols-1 gap-4 md:gap-6">
-              {[1, 2, 3].map((i) => (
-                <SkeletonCard key={i} />
-              ))}
-            </div>
-          ) : featuredRestaurants.length > 0 ? (
-            <div className="grid grid-cols-1 gap-4 md:gap-6">
-              {featuredRestaurants.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-              ))}
-            </div>
-          ) : null}
-        </section>
-      )}
 
       {/* All Restaurants or Filtered by Category */}
       {selectedCategory !== 'pharmacies-stores' && 
