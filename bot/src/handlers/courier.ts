@@ -6,6 +6,7 @@ import { Context } from 'telegraf';
 import { supabase } from '../config/supabase';
 import { apiRequest } from '../config/api';
 import { removeOrderFromOtherCouriers } from '../services/adminNotification';
+import { createCourierMenuKeyboard } from '../keyboards/courierMenu';
 
 // Хранилище для сообщений курьеров о заказах
 // В production лучше использовать Redis или БД
@@ -48,8 +49,7 @@ export async function courierToggleActiveHandler(ctx: Context) {
     }
 
     const statusText = newStatus ? '✅ Faollashtirildi' : '❌ O\'chirildi';
-    const courierKeyboard = await import('../keyboards/courierMenu');
-    const keyboard = courierKeyboard.createCourierMenuKeyboard(newStatus);
+    const keyboard = createCourierMenuKeyboard(newStatus);
     
     await ctx.reply(
       `🚚 *Kuryer paneli*\n\n` +
