@@ -29,6 +29,20 @@ const statusColors: Record<OrderStatus, string> = {
   cancelled: 'bg-red-100 text-red-800',
 };
 
+// Функция для передачи заказа курьеру (меняет статус на assigned_to_courier, затем автоматически на delivered)
+async function assignOrderToCourier(orderId: string): Promise<void> {
+  try {
+    // Сначала меняем статус на assigned_to_courier (это уведомит курьеров)
+    await updateOrderStatus(orderId, 'assigned_to_courier');
+    
+    // Затем сразу меняем на delivered (как просил пользователь)
+    await updateOrderStatus(orderId, 'delivered');
+  } catch (error) {
+    console.error('Error assigning order to courier:', error);
+    throw error;
+  }
+}
+
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
