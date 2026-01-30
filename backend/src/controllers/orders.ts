@@ -429,7 +429,7 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
         supabase.from('restaurants').select('name').eq('id', existingOrder.restaurant_id).single(),
         supabase.from('users').select('phone').eq('id', existingOrder.user_id).single(),
         supabase.from('orders').select('order_text, address').eq('id', id).single()
-      ]).then(([restaurantResult, userResult, orderResult]) => {
+      ]).then(async ([restaurantResult, userResult, orderResult]) => {
         const restaurant = restaurantResult.data;
         const user = userResult.data;
         const order = orderResult.data;
@@ -439,13 +439,16 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
           const totalMatch = order.order_text.match(/Jami:\s*(\d+)/i) || order.order_text.match(/Total:\s*(\d+)/i);
           const total = totalMatch ? `${totalMatch[1]} so'm` : 'Ko\'rsatilmagan';
 
-          // Импортируем функцию уведомления курьеров из бота (она там определена)
-          // Но так как это backend, нужно создать аналогичную функцию здесь
-          // Пока просто логируем - уведомления курьеров будут через бот
-          console.log('Order assigned to courier, should notify couriers:', {
-            orderId: id,
-            restaurantName: restaurant?.name,
+          // Уведомляем курьеров
+          const { notifyCouriersAboutOrder } = await import('../services/courierNotification');
+          await notifyCouriersAboutOrder(id, {
+            restaurantName: restaurant?.name || 'Restoran',
+            orderText: order.order_text,
+            address: order.address,
+            userPhone: user?.phone || null,
             total
+          }).catch((error) => {
+            console.error('Error notifying couriers about order:', error);
           });
         }
       }).catch((error) => {
