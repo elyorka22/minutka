@@ -79,6 +79,9 @@ export async function getRestaurants(req: AuthenticatedRequest, res: Response) {
 
     const totalPages = Math.ceil((count || 0) / limitNum);
 
+    // Добавляем заголовки кеширования для публичных данных (кеш на 1 минуту)
+    res.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+    
     res.json({
       success: true,
       data: restaurantsWithAdmins as any[],

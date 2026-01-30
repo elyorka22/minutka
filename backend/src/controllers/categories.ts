@@ -28,6 +28,9 @@ export async function getCategories(req: Request, res: Response) {
       return res.status(500).json({ error: 'Failed to fetch categories' });
     }
 
+    // Добавляем заголовки кеширования для публичных данных (кеш на 5 минут)
+    res.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    
     res.json({ data });
   } catch (error: any) {
     console.error('Error in getCategories:', error);

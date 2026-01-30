@@ -46,6 +46,9 @@ export async function getRestaurantCategoryRelations(req: AuthenticatedRequest, 
       throw error;
     }
 
+    // Добавляем заголовки кеширования для публичных данных (кеш на 2 минуты)
+    res.set('Cache-Control', 'public, s-maxage=120, stale-while-revalidate=300');
+    
     res.json({ success: true, data });
   } catch (error: any) {
     Logger.error('Error fetching restaurant-category relations', error, { userId: req.user?.telegram_id, userRole: req.user?.role, ip: req.ip });
