@@ -67,11 +67,11 @@ export async function notifyCouriersAboutOrder(
     console.log(`[Courier Notification] Starting notification for order ${orderId}`);
     
     // Получаем всех активных курьеров
+    // Сначала получаем всех активных курьеров, даже без telegram_chat_id
     const { data: couriers, error } = await supabase
       .from('couriers')
       .select('telegram_id, telegram_chat_id, first_name, is_active')
-      .eq('is_active', true)
-      .not('telegram_chat_id', 'is', null);
+      .eq('is_active', true);
 
     if (error) {
       console.error('[Courier Notification] Error fetching active couriers:', error);
@@ -85,8 +85,16 @@ export async function notifyCouriersAboutOrder(
       return null;
     }
 
+    // Фильтруем курьеров - нужен хотя бы telegram_id или telegram_chat_id
+    const validCouriers = couriers.filter(courier => courier.telegram_id || courier.telegram_chat_id);
+    
+    if (validCouriers.length === 0) {
+      console.log('[Courier Notification] No valid couriers found (no telegram_id or telegram_chat_id)');
+      return null;
+    }
+
     // Логируем информацию о курьерах
-    couriers.forEach(courier => {
+    validCouriers.forEach(courier => {
       console.log(`[Courier Notification] Courier: telegram_id=${courier.telegram_id}, telegram_chat_id=${courier.telegram_chat_id}, is_active=${courier.is_active}`);
     });
 
@@ -112,7 +120,7 @@ export async function notifyCouriersAboutOrder(
     };
 
     // Отправляем уведомление всем активным курьерам
-    const notificationPromises = couriers.map(async (courier) => {
+    const notificationPromises = validCouriers.map(async (courier) => {
       try {
         const chatId = courier.telegram_chat_id || courier.telegram_id;
         console.log(`[Courier Notification] Attempting to send message to courier ${courier.telegram_id}, chat_id: ${chatId}`);
@@ -140,7 +148,7 @@ export async function notifyCouriersAboutOrder(
 
     const results = await Promise.all(notificationPromises);
     const successful = results.filter(r => r !== null) as Array<{ courier_id: number; message_id: number }>;
-    console.log(`[Courier Notification] Successfully notified ${successful.length} out of ${couriers.length} couriers about order ${orderId}`);
+    console.log(`[Courier Notification] Successfully notified ${successful.length} out of ${validCouriers.length} couriers about order ${orderId}`);
     
     if (successful.length === 0) {
       console.warn(`[Courier Notification] No couriers were successfully notified about order ${orderId}`);
