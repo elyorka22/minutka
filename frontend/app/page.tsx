@@ -10,7 +10,6 @@ import { getRestaurants, getBanners, getCategories, getRestaurantCategoryRelatio
 import RestaurantCard from '@/components/RestaurantCard';
 import BannerCarousel from '@/components/BannerCarousel';
 import RestaurantCategories from '@/components/RestaurantCategories';
-import SplashScreen from '@/components/SplashScreen';
 import PharmacyStoreCard from '@/components/PharmacyStoreCard';
 import { getPharmaciesStores } from '@/lib/api';
 
@@ -26,54 +25,53 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [categoryRestaurantMap, setCategoryRestaurantMap] = useState<{ [categoryId: string]: string[] }>({});
-  const [showSplash, setShowSplash] = useState(false);
   const [pharmaciesStores, setPharmaciesStores] = useState<any[]>([]);
-
-  // Проверяем, был ли уже показан splash screen в этой сессии
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const splashShown = sessionStorage.getItem('splashShown');
-      if (!splashShown) {
-        setShowSplash(true);
-        sessionStorage.setItem('splashShown', 'true');
-      }
-    }
-  }, []);
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       try {
-        // Загружаем все данные из API
-        const [fetchedCategories, restaurantsResult, fetchedBanners, botSettingsResponse, fetchedPharmaciesStores] = await Promise.all([
+        // Загружаем критичные данные первыми (категории и рестораны)
+        const [fetchedCategories, restaurantsResult] = await Promise.all([
           getCategories(),
-          getRestaurants(),
-          getBanners('homepage'),
-          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}/api/bot-settings`).then(r => r.json()).catch(() => ({ data: [] })),
-          getPharmaciesStores(true).catch(() => [])
+          getRestaurants()
         ]);
 
         const fetchedRestaurants = restaurantsResult.data;
         setCategories(fetchedCategories);
         setRestaurants(fetchedRestaurants);
         setFeaturedRestaurants(fetchedRestaurants.filter(r => r.is_featured));
-        setBanners(fetchedBanners);
-        setPharmaciesStores(fetchedPharmaciesStores);
         
-        // Получаем слоган приложения
-        const appSloganSetting = botSettingsResponse.data?.find((s: any) => s.key === 'app_slogan');
-        
-        if (appSloganSetting?.value) {
-          setAppSlogan(appSloganSetting.value);
-        }
-
-        // Загружаем связи категорий и ресторанов
+        // Загружаем все связи категорий и ресторанов одним запросом (исправление N+1 проблемы)
+        const allRelations = await getRestaurantCategoryRelations(undefined, undefined);
         const relationsMap: { [categoryId: string]: string[] } = {};
-        for (const category of fetchedCategories || []) {
-          const relations = await getRestaurantCategoryRelations(undefined, category.id);
-          relationsMap[category.id] = relations.map((rel: any) => rel.restaurant_id);
+        if (allRelations && Array.isArray(allRelations)) {
+          allRelations.forEach((rel: any) => {
+            if (!relationsMap[rel.category_id]) {
+              relationsMap[rel.category_id] = [];
+            }
+            relationsMap[rel.category_id].push(rel.restaurant_id);
+          });
         }
         setCategoryRestaurantMap(relationsMap);
+        
+        // Помечаем что основные данные загружены
+        setLoading(false);
+        
+        // Загружаем некритичные данные параллельно (баннеры, настройки, аптеки)
+        Promise.all([
+          getBanners('homepage').then(b => setBanners(b)).catch(() => setBanners([])),
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}/api/bot-settings`)
+            .then(r => r.json())
+            .then(botSettingsResponse => {
+              const appSloganSetting = botSettingsResponse.data?.find((s: any) => s.key === 'app_slogan');
+              if (appSloganSetting?.value) {
+                setAppSlogan(appSloganSetting.value);
+              }
+            })
+            .catch(() => {}),
+          getPharmaciesStores(true).then(ps => setPharmaciesStores(ps)).catch(() => setPharmaciesStores([]))
+        ]);
       } catch (error) {
         console.error('Error loading data:', error);
         // В случае ошибки оставляем пустые массивы
@@ -81,17 +79,11 @@ export default function Home() {
         setRestaurants([]);
         setFeaturedRestaurants([]);
         setBanners([]);
-      } finally {
         setLoading(false);
       }
     }
     fetchData();
   }, []);
-
-  // Показываем splash screen при первой загрузке
-  if (showSplash) {
-    return <SplashScreen onFinish={() => setShowSplash(false)} isLoading={loading} />;
-  }
 
   // Используем категории из базы данных
   const allCategories = categories;
@@ -142,6 +134,21 @@ export default function Home() {
     }
     return true;
   });
+
+  // Skeleton компоненты для загрузки
+  const SkeletonCard = () => (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
+      <div className="w-full h-48 bg-gray-200"></div>
+      <div className="p-4">
+        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+      </div>
+    </div>
+  );
+
+  const SkeletonCategory = () => (
+    <div className="flex-shrink-0 w-24 h-24 bg-gray-200 rounded-lg animate-pulse"></div>
+  );
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -214,31 +221,51 @@ export default function Home() {
       </section>
 
       {/* Top Banners Carousel */}
-      {banners.length > 0 && (
+      {loading ? (
+        <section className="px-4 sm:px-6 lg:px-8 pt-2 pb-2">
+          <div className="h-48 bg-gray-200 rounded-lg animate-pulse"></div>
+        </section>
+      ) : banners.length > 0 ? (
         <section className="px-4 sm:px-6 lg:px-8 pt-2 pb-2">
           <BannerCarousel banners={banners} />
         </section>
-      )}
+      ) : null}
 
       {/* Restaurant Categories Carousel */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
-        <RestaurantCategories
-          categories={allCategories}
-          selectedCategory={selectedCategory}
-          onCategorySelect={setSelectedCategory}
-          allCategoryImage={categories.find(c => c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all')?.image_url}
-        />
+        {loading ? (
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <SkeletonCategory key={i} />
+            ))}
+          </div>
+        ) : (
+          <RestaurantCategories
+            categories={allCategories}
+            selectedCategory={selectedCategory}
+            onCategorySelect={setSelectedCategory}
+            allCategoryImage={categories.find(c => c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all')?.image_url}
+          />
+        )}
       </section>
 
       {/* Featured Restaurants (TOP) */}
-      {!selectedCategory && !searchQuery && featuredRestaurants.length > 0 && (
+      {!selectedCategory && !searchQuery && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">⭐ Top restoranlar</h2>
-          <div className="grid grid-cols-1 gap-4 md:gap-6">
-            {featuredRestaurants.map((restaurant) => (
-              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 gap-4 md:gap-6">
+              {[1, 2, 3].map((i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : featuredRestaurants.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 md:gap-6">
+              {featuredRestaurants.map((restaurant) => (
+                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+              ))}
+            </div>
+          ) : null}
         </section>
       )}
 
@@ -254,7 +281,13 @@ export default function Home() {
               ? `${categories.find(c => c.id === selectedCategory)?.name || 'Restoranlar'}`
               : '📋 Barcha restoranlar'}
           </h2>
-          {filteredRestaurants.length === 0 ? (
+          {loading ? (
+            <div className="grid grid-cols-1 gap-4 md:gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          ) : filteredRestaurants.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
               Restoranlar topilmadi
             </div>
