@@ -33,13 +33,17 @@ async function sendTelegramMessage(chatId: number, message: string, options?: {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+    const errorData = await response.json().catch(() => ({})) as { description?: string };
     throw new Error(`Telegram API error: ${response.status} - ${JSON.stringify(errorData)}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as { ok: boolean; result?: { message_id: number }; description?: string };
   if (!data.ok) {
     throw new Error(`Telegram API error: ${data.description || 'Unknown error'}`);
+  }
+
+  if (!data.result) {
+    throw new Error('Telegram API error: No result in response');
   }
 
   return data.result.message_id;
