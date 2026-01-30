@@ -3,7 +3,7 @@
 // ============================================
 
 import axios from 'axios';
-import { Restaurant, Order, Banner, WorkingHours } from '../../shared/types';
+import { Restaurant, Order, Banner, WorkingHours, Courier } from '../../shared/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
@@ -628,6 +628,59 @@ export async function getRestaurantStats(restaurantId: string): Promise<any> {
   } catch (error) {
     console.error('Error fetching restaurant stats:', error);
     return null;
+  }
+}
+
+// Couriers API
+export async function getCouriers(): Promise<Courier[]> {
+  try {
+    const response = await api.get<{ success: boolean; data: Courier[] }>('/api/couriers');
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching couriers:', error);
+    throw error;
+  }
+}
+
+export async function createCourier(courier: {
+  telegram_id: number;
+  username?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  phone?: string | null;
+}): Promise<Courier> {
+  try {
+    const response = await api.post<{ success: boolean; data: Courier }>('/api/couriers', courier);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error creating courier:', error);
+    throw error;
+  }
+}
+
+export async function updateCourier(id: string, courier: {
+  telegram_id?: number;
+  username?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  phone?: string | null;
+  is_active?: boolean;
+}): Promise<Courier> {
+  try {
+    const response = await api.put<{ success: boolean; data: Courier }>(`/api/couriers/${id}`, courier);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error updating courier:', error);
+    throw error;
+  }
+}
+
+export async function deleteCourier(id: string): Promise<void> {
+  try {
+    await api.delete(`/api/couriers/${id}`);
+  } catch (error) {
+    console.error('Error deleting courier:', error);
+    throw error;
   }
 }
 

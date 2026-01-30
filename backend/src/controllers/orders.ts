@@ -349,7 +349,7 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
     const { status, changed_by = 'restaurant', telegram_id } = req.body;
 
     // Валидация статуса
-    const validStatuses: OrderStatus[] = ['pending', 'accepted', 'ready', 'delivered', 'cancelled'];
+    const validStatuses: OrderStatus[] = ['pending', 'accepted', 'ready', 'assigned_to_courier', 'delivered', 'cancelled'];
     if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
@@ -386,10 +386,17 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
       }
     }
 
-    // Обновление статуса
+    // Обновление статуса (и courier_id, если статус assigned_to_courier)
+    const updateData: any = { status };
+    
+    // Если статус assigned_to_courier и передан courier_id, обновляем courier_id
+    if (status === 'assigned_to_courier' && req.body.courier_id) {
+      updateData.courier_id = req.body.courier_id;
+    }
+
     const { data, error } = await supabase
       .from('orders')
-      .update({ status })
+      .update(updateData)
       .eq('id', id)
       .select()
       .single();

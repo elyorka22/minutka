@@ -9,6 +9,7 @@ import { restaurantHandler } from './handlers/restaurant';
 import { orderHandler } from './handlers/order';
 import { locationHandler } from './handlers/location';
 import { orderStatusHandler } from './handlers/orderStatus';
+import { courierHandler } from './handlers/courier';
 import { botInfoHandler, partnershipHandler, chatIdHandler } from './handlers/botInfo';
 import { initBot as initRestaurantNotification } from './services/restaurantNotification';
 import { initBot as initUserNotification } from './services/userNotification';
@@ -34,6 +35,39 @@ initAdminNotification(bot);
 // Register handlers
 bot.start(async (ctx) => {
   await startHandler(ctx);
+  
+  // Проверяем, является ли пользователь курьером, и показываем ему специальное меню
+  const telegramId = ctx.from?.id;
+  if (telegramId) {
+    const { data: courier } = await supabase
+      .from('couriers')
+      .select('id, is_active')
+      .eq('telegram_id', telegramId)
+      .single();
+    
+    if (courier) {
+      // Показываем меню курьера
+      const statusText = courier.is_active ? '✅ Faol' : '❌ Nofaol';
+      await ctx.reply(
+        `🚚 *Kuryer paneli*\n\n` +
+        `Holat: ${statusText}\n\n` +
+        `${courier.is_active ? 'Siz buyurtmalarni olishingiz mumkin.' : 'Buyurtmalarni olish uchun faollashtiring.'}`,
+        {
+          parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: courier.is_active ? '❌ O\'chirish' : '✅ Faollashtirish',
+                  callback_data: 'courier:toggle_active'
+                }
+              ]
+            ]
+          }
+        }
+      );
+    }
+  }
 });
 // Команда /restaurants удалена, так как рестораны доступны на сайте
 
@@ -53,6 +87,15 @@ bot.on('callback_query', async (ctx: Context) => {
   if (data.startsWith('order:')) {
     const [action, orderId] = data.split(':').slice(1);
     await orderStatusHandler(ctx, orderId, action);
+    return;
+  }
+
+  // Обработка действий курьера
+  if (data.startsWith('courier:')) {
+    const parts = data.split(':');
+    const action = parts[1];
+    const orderId = parts[2]; // Может быть undefined для toggle_active
+    await courierHandler(ctx, orderId || '', action);
     return;
   }
 });

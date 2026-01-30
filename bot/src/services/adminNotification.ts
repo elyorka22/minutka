@@ -77,7 +77,7 @@ export async function notifySuperAdminsAboutNewOrder(orderId: string, orderData:
 
 /**
  * Уведомить админов ресторана о готовом заказе (после нажатия поваром "Tayyor")
- * Отправляет уведомление с кнопкой "Доставлен"
+ * Отправляет уведомление с кнопкой "Передать курьеру"
  */
 export async function notifyRestaurantAdminsAboutReadyOrder(
   restaurantId: string,
@@ -141,9 +141,9 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
       `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
       `Holat: 🚀 Tayyor`;
 
-    // Создаем клавиатуру с кнопкой "Доставлен" используя Markup
+    // Создаем клавиатуру с кнопкой "Передать курьеру" используя Markup
     const keyboard = Markup.inlineKeyboard([
-      Markup.button.callback('✅ Доставлен', `order:delivered:${orderId}`)
+      Markup.button.callback('🚚 Передать курьеру', `order:assign_courier:${orderId}`)
     ]);
 
     console.log(`Sending notification to ${admins.length} restaurant admins with keyboard:`, JSON.stringify(keyboard.reply_markup));
@@ -200,6 +200,7 @@ export async function notifySuperAdminsAboutOrderStatusChange(
     const statusMessages: Record<string, string> = {
       accepted: '✅ Qabul qilindi',
       ready: '🚀 Tayyor',
+      assigned_to_courier: '🚚 Kuryerga yuborildi',
       delivered: '✅ Yetkazildi',
       cancelled: '❌ Bekor qilindi'
     };
@@ -230,4 +231,131 @@ export async function notifySuperAdminsAboutOrderStatusChange(
   }
 }
 
+/**
+ * Уведомить всех активных курьеров о заказе
+ * Кто первый нажмет кнопку "Взять заказ" - тот получит заказ, у остальных заказ исчезнет
+ */
+export async function notifyCouriersAboutOrder(
+  orderId: string,
+  orderData: {
+    restaurantName: string;
+    orderText: string;
+    address: string | null;
+    userPhone: string | null;
+    total: string;
+  }
+) {
+  if (!botInstance) {
+    console.error('Bot instance not initialized for courier notifications');
+    return;
+  }
+
+  try {
+    // Получаем всех активных курьеров
+    const { data: couriers, error } = await supabase
+      .from('couriers')
+      .select('telegram_id, telegram_chat_id, first_name')
+      .eq('is_active', true)
+      .not('telegram_chat_id', 'is', null);
+
+    if (error) {
+      console.error('Error fetching active couriers:', error);
+      return;
+    }
+
+    if (!couriers || couriers.length === 0) {
+      console.log('No active couriers found');
+      return;
+    }
+
+    const userPhone = orderData.userPhone || 'Ko\'rsatilmagan';
+    const address = orderData.address || 'Ko\'rsatilmagan';
+
+    const message = `📦 *Yangi buyurtma*\n\n` +
+      `🆔 Buyurtma: #${orderId.slice(0, 8)}\n` +
+      `🍽️ Restoran: ${orderData.restaurantName}\n` +
+      `💰 Narx: ${orderData.total}\n` +
+      `📍 Manzil: ${address}\n` +
+      `📝 Buyurtma: ${orderData.orderText}\n` +
+      `📞 Mijoz: \`${userPhone}\`\n\n` +
+      `⚠️ *Kim birinchi olsa, shu buyurtmani oladi!*`;
+
+    // Создаем клавиатуру с кнопкой "Взять заказ"
+    const keyboard = Markup.inlineKeyboard([
+      Markup.button.callback('✅ Olmoq', `courier:take:${orderId}`)
+    ]);
+
+    // Отправляем уведомление всем активным курьерам
+    const notificationPromises = couriers.map(async (courier) => {
+      try {
+        const chatId = courier.telegram_chat_id || courier.telegram_id;
+        const result = await botInstance!.telegram.sendMessage(
+          chatId,
+          message,
+          {
+            parse_mode: 'Markdown',
+            reply_markup: keyboard.reply_markup
+          }
+        );
+        console.log(`Sent order notification to courier ${courier.telegram_id}, message_id: ${result.message_id}`);
+        return { courier_id: courier.telegram_id, message_id: result.message_id };
+      } catch (error: any) {
+        console.error(`Error sending notification to courier ${courier.telegram_id}:`, error);
+        return null;
+      }
+    });
+
+    const results = await Promise.all(notificationPromises);
+    const successful = results.filter(r => r !== null) as Array<{ courier_id: number; message_id: number }>;
+    console.log(`Successfully notified ${successful.length} couriers about order ${orderId}`);
+    
+    // Сохраняем информацию о сообщениях для последующего удаления
+    const { saveCourierOrderMessages } = await import('../handlers/courier');
+    saveCourierOrderMessages(orderId, successful);
+    
+    return successful;
+  } catch (error: any) {
+    console.error('Error notifying couriers:', error);
+  }
+}
+
+/**
+ * Удалить сообщение о заказе у всех курьеров, кроме того, кто взял заказ
+ */
+export async function removeOrderFromOtherCouriers(
+  orderId: string,
+  takenByCourierId: number,
+  courierMessages: Array<{ courier_id: number; message_id: number }>
+) {
+  if (!botInstance) {
+    return;
+  }
+
+  try {
+    // Удаляем сообщения у всех курьеров, кроме того, кто взял заказ
+    const deletePromises = courierMessages
+      .filter(msg => msg.courier_id !== takenByCourierId)
+      .map(async (msg) => {
+        try {
+          const courier = await supabase
+            .from('couriers')
+            .select('telegram_chat_id, telegram_id')
+            .eq('telegram_id', msg.courier_id)
+            .single();
+
+          if (courier.data) {
+            const chatId = courier.data.telegram_chat_id || courier.data.telegram_id;
+            await botInstance!.telegram.deleteMessage(chatId, msg.message_id);
+            console.log(`Removed order notification from courier ${msg.courier_id}`);
+          }
+        } catch (error: any) {
+          console.error(`Error removing message from courier ${msg.courier_id}:`, error);
+        }
+      });
+
+    await Promise.all(deletePromises);
+  } catch (error: any) {
+    console.error('Error removing order from other couriers:', error);
+  }
+}
 
