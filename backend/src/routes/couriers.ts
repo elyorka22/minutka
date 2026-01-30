@@ -10,16 +10,16 @@ import {
   deleteCourier,
   getActiveCouriers
 } from '../controllers/couriers';
-import { requireSuperAdminAuth } from '../middleware/auth';
+import { requireSuperAdmin } from '../middleware/auth';
 
 const router = Router();
 
 // Все маршруты требуют аутентификации super_admin
-router.get('/', requireSuperAdminAuth, getCouriers);
-router.get('/active', requireSuperAdminAuth, getActiveCouriers);
-router.post('/', requireSuperAdminAuth, createCourier);
-router.put('/:id', requireSuperAdminAuth, updateCourier);
-router.delete('/:id', requireSuperAdminAuth, deleteCourier);
+router.get('/', requireSuperAdmin, getCouriers);
+router.get('/active', requireSuperAdmin, getActiveCouriers);
+router.post('/', requireSuperAdmin, createCourier);
+router.put('/:id', requireSuperAdmin, updateCourier);
+router.delete('/:id', requireSuperAdmin, deleteCourier);
 
 export default router;
 
