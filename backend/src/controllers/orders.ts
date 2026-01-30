@@ -422,6 +422,37 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
       });
     }
 
+    // Если статус изменился на "assigned_to_courier", уведомляем курьеров
+    if (status === 'assigned_to_courier' && existingOrder.status !== 'assigned_to_courier') {
+      // Получаем информацию о ресторане, пользователе и заказе для уведомления курьеров
+      Promise.all([
+        supabase.from('restaurants').select('name').eq('id', existingOrder.restaurant_id).single(),
+        supabase.from('users').select('phone').eq('id', existingOrder.user_id).single(),
+        supabase.from('orders').select('order_text, address').eq('id', id).single()
+      ]).then(([restaurantResult, userResult, orderResult]) => {
+        const restaurant = restaurantResult.data;
+        const user = userResult.data;
+        const order = orderResult.data;
+
+        if (order) {
+          // Парсим общую сумму из order_text
+          const totalMatch = order.order_text.match(/Jami:\s*(\d+)/i) || order.order_text.match(/Total:\s*(\d+)/i);
+          const total = totalMatch ? `${totalMatch[1]} so'm` : 'Ko\'rsatilmagan';
+
+          // Импортируем функцию уведомления курьеров из бота (она там определена)
+          // Но так как это backend, нужно создать аналогичную функцию здесь
+          // Пока просто логируем - уведомления курьеров будут через бот
+          console.log('Order assigned to courier, should notify couriers:', {
+            orderId: id,
+            restaurantName: restaurant?.name,
+            total
+          });
+        }
+      }).catch((error) => {
+        console.error('Error fetching order details for courier notification:', error);
+      });
+    }
+
     res.json({
       success: true,
       data: data as Order

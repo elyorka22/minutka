@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
-import { getOrders, updateOrderStatus } from '@/lib/api';
+import { getOrders, updateOrderStatus, getOrderById } from '@/lib/api';
 import { handleApiError } from '@/lib/errorHandler';
 import { useToast } from '@/contexts/ToastContext';
 import Pagination from '@/components/Pagination';
@@ -54,17 +54,21 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, [currentPage]);
 
-  const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+  const handleAssignToCourier = async (orderId: string) => {
     try {
-      const updatedOrder = await updateOrderStatus(orderId, newStatus);
+      // Передаем заказ курьеру (статус меняется на assigned_to_courier, затем автоматически на delivered)
+      await assignOrderToCourier(orderId);
+      
+      // Обновляем заказ в списке
+      const updatedOrder = await getOrderById(orderId);
       setOrders(
         orders.map((order) =>
-          order.id === orderId ? { ...order, status: newStatus, updated_at: updatedOrder.updated_at } : order
+          order.id === orderId ? updatedOrder : order
         )
       );
-      showSuccess('Статус заказа успешно обновлен');
+      showSuccess('Заказ передан курьеру и помечен как доставленный');
     } catch (error) {
-      console.error('Error updating order status:', error);
+      console.error('Error assigning order to courier:', error);
       showError(handleApiError(error));
     }
   };
@@ -143,26 +147,16 @@ export default function AdminOrdersPage() {
                   {new Date(order.created_at).toLocaleString('ru-RU')}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="relative">
-                    <select
-                      value={order.status}
-                      onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                      className="px-4 py-2 pr-8 border-2 border-primary-500 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 focus:border-primary-600 cursor-pointer appearance-none"
-                      style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-                        backgroundPosition: 'right 0.5rem center',
-                        backgroundRepeat: 'no-repeat',
-                        backgroundSize: '1.5em 1.5em',
-                        paddingRight: '2.5rem'
-                      }}
+                  {order.status === 'ready' ? (
+                    <button
+                      onClick={() => handleAssignToCourier(order.id)}
+                      className="px-4 py-2 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors text-sm"
                     >
-                      {Object.entries(statusLabels).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                      🚚 Передать курьеру
+                    </button>
+                  ) : (
+                    <span className="text-gray-400">—</span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -191,29 +185,16 @@ export default function AdminOrdersPage() {
                 </p>
               </div>
             </div>
-            <div className="pt-3 border-t border-gray-200">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Изменить статус:
-              </label>
-              <select
-                value={order.status}
-                onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                className="w-full px-4 py-2.5 border-2 border-primary-500 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 focus:border-primary-600 cursor-pointer appearance-none"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-                  backgroundPosition: 'right 0.75rem center',
-                  backgroundRepeat: 'no-repeat',
-                  backgroundSize: '1.5em 1.5em',
-                  paddingRight: '2.75rem'
-                }}
-              >
-                {Object.entries(statusLabels).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {order.status === 'ready' && (
+              <div className="pt-3 border-t border-gray-200">
+                <button
+                  onClick={() => handleAssignToCourier(order.id)}
+                  className="w-full px-4 py-2.5 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors text-sm"
+                >
+                  🚚 Передать курьеру
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>
