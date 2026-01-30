@@ -20,6 +20,7 @@ interface RestaurantStats {
 }
 
 const statusLabels: Record<string, string> = {
+  assigned_to_courier: 'Передан курьеру',
   pending: 'В ожидании',
   accepted: 'Принят',
   ready: 'Готов',
