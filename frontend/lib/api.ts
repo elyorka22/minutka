@@ -35,11 +35,15 @@ api.interceptors.request.use((config) => {
       };
     } else {
       // Для POST/PATCH/DELETE добавляем в body (для обратной совместимости)
+      // НО только если telegram_id еще не указан в body (чтобы не перезаписывать пользовательские данные)
       if (config.data && typeof config.data === 'object') {
-        config.data = {
-          ...config.data,
-          telegram_id: telegramId,
-        };
+        // Проверяем, есть ли уже telegram_id в body
+        if (!config.data.telegram_id) {
+          config.data = {
+            ...config.data,
+            telegram_id: telegramId,
+          };
+        }
       } else if (!config.data) {
         config.data = { telegram_id: telegramId };
       }
