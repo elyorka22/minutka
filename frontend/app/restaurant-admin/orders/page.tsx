@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
-import { getOrders, updateOrderStatus } from '@/lib/api';
+import { getOrders, updateOrderStatus, getOrderById } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurantId } from '@/hooks/useRestaurantId';
 import { handleApiError } from '@/lib/errorHandler';
@@ -30,6 +30,20 @@ const statusColors: Record<OrderStatus, string> = {
   delivered: 'bg-gray-100 text-gray-800',
   cancelled: 'bg-red-100 text-red-800',
 };
+
+// Функция для передачи заказа курьеру (меняет статус на assigned_to_courier, затем автоматически на delivered)
+async function assignOrderToCourier(orderId: string): Promise<void> {
+  try {
+    // Сначала меняем статус на assigned_to_courier (это уведомит курьеров)
+    await updateOrderStatus(orderId, 'assigned_to_courier');
+    
+    // Затем сразу меняем на delivered (как просил пользователь)
+    await updateOrderStatus(orderId, 'delivered');
+  } catch (error) {
+    console.error('Error assigning order to courier:', error);
+    throw error;
+  }
+}
 
 export default function RestaurantAdminOrdersPage() {
   const { user } = useAuth();
@@ -62,17 +76,21 @@ export default function RestaurantAdminOrdersPage() {
     fetchOrders();
   }, [currentRestaurantId, currentPage]);
 
-  const handleStatusChange = async (orderId: string, newStatus: OrderStatus) => {
+  const handleAssignToCourier = async (orderId: string) => {
     try {
-      const updatedOrder = await updateOrderStatus(orderId, newStatus);
+      // Передаем заказ курьеру (статус меняется на assigned_to_courier, затем автоматически на delivered)
+      await assignOrderToCourier(orderId);
+      
+      // Обновляем заказ в списке
+      const updatedOrder = await getOrderById(orderId);
       setOrders(
         orders.map((order) =>
-          order.id === orderId ? { ...order, status: newStatus, updated_at: updatedOrder.updated_at } : order
+          order.id === orderId ? updatedOrder : order
         )
       );
-      showSuccess('Статус заказа успешно обновлен');
+      showSuccess('Заказ передан курьеру и помечен как доставленный');
     } catch (error) {
-      console.error('Error updating order status:', error);
+      console.error('Error assigning order to courier:', error);
       showError(handleApiError(error));
     }
   };
@@ -207,30 +225,17 @@ export default function RestaurantAdminOrdersPage() {
                   </p>
                 </div>
                 
-                {/* Изменение статуса */}
-                <div className="w-full sm:w-auto sm:ml-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 sm:hidden">
-                    Изменить статус:
-                  </label>
-                  <select
-                    value={order.status}
-                    onChange={(e) => handleStatusChange(order.id, e.target.value as OrderStatus)}
-                    className="w-full sm:w-auto px-4 py-2.5 pr-8 border-2 border-primary-500 bg-white rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-primary-500 focus:border-primary-600 cursor-pointer appearance-none text-gray-900"
-                    style={{
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
-                      backgroundPosition: 'right 0.75rem center',
-                      backgroundRepeat: 'no-repeat',
-                      backgroundSize: '1.5em 1.5em',
-                      paddingRight: '2.75rem'
-                    }}
-                  >
-                    {Object.entries(statusLabels).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {/* Кнопка "Передать курьеру" для заказов со статусом "ready" */}
+                {order.status === 'ready' && (
+                  <div className="w-full sm:w-auto sm:ml-4">
+                    <button
+                      onClick={() => handleAssignToCourier(order.id)}
+                      className="w-full sm:w-auto px-4 py-2.5 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors text-sm"
+                    >
+                      🚚 Передать курьеру
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           );
