@@ -4,44 +4,18 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Restaurant } from '../../shared/types';
-import { getMenuItems } from '@/lib/api';
 
 interface RestaurantCardProps {
   restaurant: Restaurant;
 }
 
 export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
-  const [dishCategories, setDishCategories] = useState<string[]>([]);
-
-  // Получаем категории блюд из меню ресторана
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const menuItems = await getMenuItems(restaurant.id, true);
-        // Извлекаем уникальные категории из меню
-        const categories = Array.from(
-          new Set(
-            menuItems
-              .map(item => item.category)
-              .filter((cat): cat is string => cat !== null && cat !== undefined)
-          )
-        );
-        setDishCategories(categories);
-      } catch (error) {
-        console.error('Error fetching menu categories:', error);
-      }
-    }
-    fetchCategories();
-  }, [restaurant.id]);
-
-  // Форматируем категории для отображения
-  const categoriesText = dishCategories.length > 0 
-    ? dishCategories.join(' • ')
-    : restaurant.category || '';
+  // Используем категорию ресторана напрямую, без дополнительных запросов
+  // Это ускоряет загрузку страницы
+  const categoriesText = restaurant.category || '';
 
   return (
     <Link href={`/restaurants/${restaurant.id}`}>
@@ -55,6 +29,9 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
             />
           </div>
         )}
