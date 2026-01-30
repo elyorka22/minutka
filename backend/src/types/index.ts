@@ -42,7 +42,7 @@ export interface User {
 }
 
 // Order types
-export type OrderStatus = 'pending' | 'accepted' | 'ready' | 'delivered' | 'cancelled';
+export type OrderStatus = 'pending' | 'accepted' | 'ready' | 'assigned_to_courier' | 'delivered' | 'cancelled';
 
 export interface Order {
   id: string;
@@ -53,6 +53,7 @@ export interface Order {
   latitude: number | null;
   longitude: number | null;
   status: OrderStatus;
+  courier_id: string | null;
   telegram_message_id: number | null;
   created_at: string;
   updated_at: string;
@@ -105,6 +106,20 @@ export interface RestaurantAdmin {
   password: string | null;
   is_active: boolean;
   notifications_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Courier types (курьеры)
+export interface Courier {
+  id: string;
+  telegram_id: number;
+  telegram_chat_id: number | null;
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
