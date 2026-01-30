@@ -12,13 +12,13 @@ import { removeOrderFromOtherCouriers } from '../services/adminNotification';
 const courierOrderMessages: Map<string, Array<{ courier_id: number; message_id: number }>> = new Map();
 
 /**
- * Обработчик активации/деактивации курьера
+ * Обработчик активации/деактивации курьера (для текстовых сообщений)
  */
 export async function courierToggleActiveHandler(ctx: Context) {
   try {
     const telegramId = ctx.from?.id;
     if (!telegramId) {
-      await ctx.answerCbQuery('❌ Foydalanuvchi aniqlanmadi');
+      await ctx.reply('❌ Foydalanuvchi aniqlanmadi');
       return;
     }
 
@@ -30,7 +30,7 @@ export async function courierToggleActiveHandler(ctx: Context) {
       .single();
 
     if (courierError || !courier) {
-      await ctx.answerCbQuery('❌ Siz kuryer emassiz');
+      await ctx.reply('❌ Siz kuryer emassiz');
       return;
     }
 
@@ -43,39 +43,27 @@ export async function courierToggleActiveHandler(ctx: Context) {
 
     if (updateError) {
       console.error('Error updating courier status:', updateError);
-      await ctx.answerCbQuery('❌ Xatolik yuz berdi');
+      await ctx.reply('❌ Xatolik yuz berdi');
       return;
     }
 
     const statusText = newStatus ? '✅ Faollashtirildi' : '❌ O\'chirildi';
-    await ctx.answerCbQuery(statusText);
-
-    // Обновляем сообщение
-    try {
-      await ctx.editMessageText(
-        `🚚 *Kuryer paneli*\n\n` +
-        `Holat: ${newStatus ? '✅ Faol' : '❌ Nofaol'}\n\n` +
-        `${newStatus ? 'Siz endi buyurtmalarni olishingiz mumkin.' : 'Siz buyurtmalarni ololmaysiz.'}`,
-        {
-          parse_mode: 'Markdown',
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: newStatus ? '❌ O\'chirish' : '✅ Faollashtirish',
-                  callback_data: 'courier:toggle_active'
-                }
-              ]
-            ]
-          }
-        }
-      );
-    } catch (error) {
-      console.error('Error editing message:', error);
-    }
+    const courierKeyboard = await import('../keyboards/courierMenu');
+    const keyboard = courierKeyboard.createCourierMenuKeyboard(newStatus);
+    
+    await ctx.reply(
+      `🚚 *Kuryer paneli*\n\n` +
+      `Holat: ${newStatus ? '✅ Faol' : '❌ Nofaol'}\n\n` +
+      `${newStatus ? 'Siz endi buyurtmalarni olishingiz mumkin.' : 'Siz buyurtmalarni ololmaysiz.'}\n\n` +
+      `${statusText}`,
+      {
+        parse_mode: 'Markdown',
+        ...keyboard
+      }
+    );
   } catch (error: any) {
     console.error('Error in courier toggle active handler:', error);
-    await ctx.answerCbQuery('Xatolik yuz berdi');
+    await ctx.reply('Xatolik yuz berdi');
   }
 }
 
@@ -182,8 +170,9 @@ export async function courierHandler(
       return;
     }
 
-    // Обработка активации/деактивации
+    // Обработка активации/деактивации через callback (для обратной совместимости)
     if (action === 'toggle_active') {
+      // Перенаправляем на текстовый обработчик
       await courierToggleActiveHandler(ctx);
       return;
     }

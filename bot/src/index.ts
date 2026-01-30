@@ -9,12 +9,13 @@ import { restaurantHandler } from './handlers/restaurant';
 import { orderHandler } from './handlers/order';
 import { locationHandler } from './handlers/location';
 import { orderStatusHandler } from './handlers/orderStatus';
-import { courierHandler } from './handlers/courier';
+import { courierHandler, courierToggleActiveHandler } from './handlers/courier';
 import { botInfoHandler, partnershipHandler, chatIdHandler } from './handlers/botInfo';
 import { initBot as initRestaurantNotification } from './services/restaurantNotification';
 import { initBot as initUserNotification } from './services/userNotification';
 import { initBot as initAdminNotification } from './services/adminNotification';
 import { createMainMenuKeyboard } from './keyboards/mainMenu';
+import { createCourierMenuKeyboard } from './keyboards/courierMenu';
 import { supabase } from './config/supabase';
 
 // Load environment variables
@@ -46,24 +47,16 @@ bot.start(async (ctx) => {
       .single();
     
     if (courier) {
-      // Показываем меню курьера
+      // Показываем меню курьера с reply keyboard
       const statusText = courier.is_active ? '✅ Faol' : '❌ Nofaol';
+      const courierKeyboard = createCourierMenuKeyboard(courier.is_active);
       await ctx.reply(
         `🚚 *Kuryer paneli*\n\n` +
         `Holat: ${statusText}\n\n` +
         `${courier.is_active ? 'Siz buyurtmalarni olishingiz mumkin.' : 'Buyurtmalarni olish uchun faollashtiring.'}`,
         {
           parse_mode: 'Markdown',
-          reply_markup: {
-            inline_keyboard: [
-              [
-                {
-                  text: courier.is_active ? '❌ O\'chirish' : '✅ Faollashtirish',
-                  callback_data: 'courier:toggle_active'
-                }
-              ]
-            ]
-          }
+          ...courierKeyboard
         }
       );
     }
@@ -142,12 +135,30 @@ bot.on('text', async (ctx) => {
     }
   }
   
-  if (text === '🆔 Chat ID') {
-    await chatIdHandler(ctx);
-    return;
-  }
+    if (text === '🆔 Chat ID') {
+      await chatIdHandler(ctx);
+      return;
+    }
+    
+    // Обработка кнопок курьера
+    if (text === '✅ Faollashtirish' || text === '❌ O\'chirish') {
+      // Проверяем, является ли пользователь курьером
+      const telegramId = ctx.from?.id;
+      if (telegramId) {
+        const { data: courier } = await supabase
+          .from('couriers')
+          .select('id')
+          .eq('telegram_id', telegramId)
+          .single();
+        
+        if (courier) {
+          await courierToggleActiveHandler(ctx);
+          return;
+        }
+      }
+    }
   
-  // Обычная обработка заказа/адреса
+    // Обычная обработка заказа/адреса
   const session = (ctx as any).session || {};
   // Если уже есть ресторан и заказ, то это адрес
   if (session.selectedRestaurantId && session.orderText) {
