@@ -157,10 +157,13 @@ export async function courierHandler(
         return;
       }
 
-      // Обновляем заказ - назначаем курьера
+      // Обновляем заказ - назначаем курьера и меняем статус на delivered
       const { error: updateError } = await supabase
         .from('orders')
-        .update({ courier_id: courier.id })
+        .update({ 
+          courier_id: courier.id,
+          status: 'delivered'
+        })
         .eq('id', orderId);
 
       if (updateError) {

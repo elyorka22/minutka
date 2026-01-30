@@ -31,14 +31,13 @@ const statusColors: Record<OrderStatus, string> = {
   cancelled: 'bg-red-100 text-red-800',
 };
 
-// Функция для передачи заказа курьеру (меняет статус на assigned_to_courier, затем автоматически на delivered)
+// Функция для передачи заказа курьеру (меняет статус на assigned_to_courier)
+// Статус останется assigned_to_courier до тех пор, пока курьер не возьмет заказ
 async function assignOrderToCourier(orderId: string): Promise<void> {
   try {
-    // Сначала меняем статус на assigned_to_courier (это уведомит курьеров)
+    // Меняем статус на assigned_to_courier (это уведомит курьеров)
+    // Статус изменится на delivered только когда курьер возьмет заказ
     await updateOrderStatus(orderId, 'assigned_to_courier');
-    
-    // Затем сразу меняем на delivered (как просил пользователь)
-    await updateOrderStatus(orderId, 'delivered');
   } catch (error) {
     console.error('Error assigning order to courier:', error);
     throw error;
@@ -78,7 +77,7 @@ export default function RestaurantAdminOrdersPage() {
 
   const handleAssignToCourier = async (orderId: string) => {
     try {
-      // Передаем заказ курьеру (статус меняется на assigned_to_courier, затем автоматически на delivered)
+      // Передаем заказ курьеру (статус меняется на assigned_to_courier)
       await assignOrderToCourier(orderId);
       
       // Обновляем заказ в списке
@@ -88,7 +87,7 @@ export default function RestaurantAdminOrdersPage() {
           order.id === orderId ? updatedOrder : order
         )
       );
-      showSuccess('Заказ передан курьеру и помечен как доставленный');
+      showSuccess('Заказ передан курьеру. Курьер получит уведомление и сможет взять заказ.');
     } catch (error) {
       console.error('Error assigning order to courier:', error);
       showError(handleApiError(error));
