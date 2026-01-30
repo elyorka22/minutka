@@ -18,6 +18,8 @@ const courierOrderMessages: Map<string, Array<{ courier_id: number; message_id: 
 export async function courierToggleActiveHandler(ctx: Context) {
   try {
     const telegramId = ctx.from?.id;
+    const chatId = ctx.chat?.id;
+    
     if (!telegramId) {
       await ctx.reply('❌ Foydalanuvchi aniqlanmadi');
       return;
@@ -26,7 +28,7 @@ export async function courierToggleActiveHandler(ctx: Context) {
     // Проверяем, что пользователь является курьером
     const { data: courier, error: courierError } = await supabase
       .from('couriers')
-      .select('id, telegram_id, is_active')
+      .select('id, telegram_id, telegram_chat_id, is_active')
       .eq('telegram_id', telegramId)
       .single();
 
@@ -35,11 +37,20 @@ export async function courierToggleActiveHandler(ctx: Context) {
       return;
     }
 
+    // Обновляем telegram_chat_id, если его нет или он изменился
+    const updateData: any = {};
+    if (chatId && courier.telegram_chat_id !== chatId) {
+      updateData.telegram_chat_id = chatId;
+      console.log(`[Courier] Updating telegram_chat_id for courier ${telegramId}: ${chatId}`);
+    }
+
     // Переключаем статус
     const newStatus = !courier.is_active;
+    updateData.is_active = newStatus;
+    
     const { error: updateError } = await supabase
       .from('couriers')
-      .update({ is_active: newStatus })
+      .update(updateData)
       .eq('id', courier.id);
 
     if (updateError) {
@@ -94,13 +105,24 @@ export async function courierHandler(
 
     // Курьер нажал "Взять заказ"
     if (action === 'take') {
+      const chatId = ctx.chat?.id;
+      
       // Проверяем, что пользователь является активным курьером
       const { data: courier, error: courierError } = await supabase
         .from('couriers')
-        .select('id, telegram_id, is_active')
+        .select('id, telegram_id, telegram_chat_id, is_active')
         .eq('telegram_id', telegramId)
         .eq('is_active', true)
         .single();
+
+      // Обновляем telegram_chat_id, если его нет или он изменился
+      if (chatId && courier && courier.telegram_chat_id !== chatId) {
+        await supabase
+          .from('couriers')
+          .update({ telegram_chat_id: chatId })
+          .eq('id', courier.id);
+        console.log(`[Courier] Updating telegram_chat_id for courier ${telegramId}: ${chatId}`);
+      }
 
       if (courierError || !courier) {
         await ctx.answerCbQuery('❌ Siz faol kuryer emassiz');

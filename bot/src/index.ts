@@ -39,14 +39,25 @@ bot.start(async (ctx) => {
   
   // Проверяем, является ли пользователь курьером, и показываем ему специальное меню
   const telegramId = ctx.from?.id;
+  const chatId = ctx.chat?.id;
+  
   if (telegramId) {
     const { data: courier } = await supabase
       .from('couriers')
-      .select('id, is_active')
+      .select('id, telegram_chat_id, is_active')
       .eq('telegram_id', telegramId)
       .single();
     
     if (courier) {
+      // Обновляем telegram_chat_id, если его нет или он изменился
+      if (chatId && courier.telegram_chat_id !== chatId) {
+        await supabase
+          .from('couriers')
+          .update({ telegram_chat_id: chatId })
+          .eq('id', courier.id);
+        console.log(`[Courier] Updated telegram_chat_id for courier ${telegramId}: ${chatId}`);
+      }
+      
       // Показываем меню курьера с reply keyboard
       const statusText = courier.is_active ? '✅ Faol' : '❌ Nofaol';
       const courierKeyboard = await createCourierMenuKeyboard(courier.is_active);
