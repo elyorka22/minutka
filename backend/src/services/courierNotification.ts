@@ -64,22 +64,31 @@ export async function notifyCouriersAboutOrder(
   }
 ): Promise<Array<{ courier_id: number; message_id: number }> | null> {
   try {
+    console.log(`[Courier Notification] Starting notification for order ${orderId}`);
+    
     // Получаем всех активных курьеров
     const { data: couriers, error } = await supabase
       .from('couriers')
-      .select('telegram_id, telegram_chat_id, first_name')
+      .select('telegram_id, telegram_chat_id, first_name, is_active')
       .eq('is_active', true)
       .not('telegram_chat_id', 'is', null);
 
     if (error) {
-      console.error('Error fetching active couriers:', error);
+      console.error('[Courier Notification] Error fetching active couriers:', error);
       return null;
     }
 
+    console.log(`[Courier Notification] Found ${couriers?.length || 0} active couriers`);
+
     if (!couriers || couriers.length === 0) {
-      console.log('No active couriers found');
+      console.log('[Courier Notification] No active couriers found');
       return null;
     }
+
+    // Логируем информацию о курьерах
+    couriers.forEach(courier => {
+      console.log(`[Courier Notification] Courier: telegram_id=${courier.telegram_id}, telegram_chat_id=${courier.telegram_chat_id}, is_active=${courier.is_active}`);
+    });
 
     const userPhone = orderData.userPhone || 'Ko\'rsatilmagan';
     const address = orderData.address || 'Ko\'rsatilmagan';
@@ -106,6 +115,13 @@ export async function notifyCouriersAboutOrder(
     const notificationPromises = couriers.map(async (courier) => {
       try {
         const chatId = courier.telegram_chat_id || courier.telegram_id;
+        console.log(`[Courier Notification] Attempting to send message to courier ${courier.telegram_id}, chat_id: ${chatId}`);
+        
+        if (!chatId) {
+          console.error(`[Courier Notification] No chat_id for courier ${courier.telegram_id}`);
+          return null;
+        }
+
         const messageId = await sendTelegramMessage(
           chatId,
           message,
@@ -114,21 +130,25 @@ export async function notifyCouriersAboutOrder(
             reply_markup: keyboard
           }
         );
-        console.log(`Sent order notification to courier ${courier.telegram_id}, message_id: ${messageId}`);
+        console.log(`[Courier Notification] Successfully sent order notification to courier ${courier.telegram_id}, message_id: ${messageId}`);
         return { courier_id: courier.telegram_id, message_id: messageId };
       } catch (error: any) {
-        console.error(`Error sending notification to courier ${courier.telegram_id}:`, error);
+        console.error(`[Courier Notification] Error sending notification to courier ${courier.telegram_id}:`, error.message || error);
         return null;
       }
     });
 
     const results = await Promise.all(notificationPromises);
     const successful = results.filter(r => r !== null) as Array<{ courier_id: number; message_id: number }>;
-    console.log(`Successfully notified ${successful.length} couriers about order ${orderId}`);
+    console.log(`[Courier Notification] Successfully notified ${successful.length} out of ${couriers.length} couriers about order ${orderId}`);
+    
+    if (successful.length === 0) {
+      console.warn(`[Courier Notification] No couriers were successfully notified about order ${orderId}`);
+    }
     
     return successful;
   } catch (error: any) {
-    console.error('Error notifying couriers:', error);
+    console.error('[Courier Notification] Error notifying couriers:', error.message || error);
     return null;
   }
 }

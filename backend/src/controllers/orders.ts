@@ -424,6 +424,8 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
 
     // Если статус изменился на "assigned_to_courier", уведомляем курьеров
     if (status === 'assigned_to_courier' && existingOrder.status !== 'assigned_to_courier') {
+      console.log(`[Order Status Update] Status changed to assigned_to_courier for order ${id}, notifying couriers...`);
+      
       // Получаем информацию о ресторане, пользователе и заказе для уведомления курьеров
       Promise.all([
         supabase.from('restaurants').select('name').eq('id', existingOrder.restaurant_id).single(),
@@ -434,10 +436,14 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
         const user = userResult.data;
         const order = orderResult.data;
 
+        console.log(`[Order Status Update] Fetched order details: restaurant=${restaurant?.name}, user=${user?.phone}, order=${order?.order_text?.substring(0, 50)}...`);
+
         if (order) {
           // Парсим общую сумму из order_text
-          const totalMatch = order.order_text.match(/Jami:\s*(\d+)/i) || order.order_text.match(/Total:\s*(\d+)/i);
+          const totalMatch = order.order_text.match(/Jami:\s*(\d+)/i) || order.order_text.match(/Total:\s*(\d+)/i) || order.order_text.match(/💰\s*(\d+)/i);
           const total = totalMatch ? `${totalMatch[1]} so'm` : 'Ko\'rsatilmagan';
+
+          console.log(`[Order Status Update] Parsed total: ${total}`);
 
           // Уведомляем курьеров
           const { notifyCouriersAboutOrder } = await import('../services/courierNotification');
@@ -448,11 +454,13 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
             userPhone: user?.phone || null,
             total
           }).catch((error) => {
-            console.error('Error notifying couriers about order:', error);
+            console.error('[Order Status Update] Error notifying couriers about order:', error);
           });
+        } else {
+          console.error('[Order Status Update] Order data not found for notification');
         }
       }).catch((error) => {
-        console.error('Error fetching order details for courier notification:', error);
+        console.error('[Order Status Update] Error fetching order details for courier notification:', error);
       });
     }
 
