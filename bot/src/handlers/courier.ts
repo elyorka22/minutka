@@ -172,7 +172,7 @@ export async function courierHandler(
         .eq('id', orderId)
         .single();
 
-      if (orderDetailsError || !orderDetailsDetails) {
+      if (orderDetailsError || !orderDetails) {
         console.error('Error fetching order details:', orderDetailsError);
         await ctx.answerCbQuery('❌ Buyurtma ma\'lumotlari topilmadi');
         return;
