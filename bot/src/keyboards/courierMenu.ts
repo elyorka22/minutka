@@ -40,7 +40,7 @@ export async function createCourierMenuKeyboard(isActive: boolean) {
       [
         Markup.button.text(toggleButtonText)
       ]
-    ]).resize().persistent();
+    ]).resize().oneTime();
   } catch (error) {
     console.error('Error loading button texts from DB, using defaults:', error);
     // В случае ошибки используем значения по умолчанию
@@ -56,7 +56,7 @@ export async function createCourierMenuKeyboard(isActive: boolean) {
       [
         Markup.button.text(toggleButtonText)
       ]
-    ]).resize().persistent();
+    ]).resize().oneTime();
   }
 }
 
