@@ -157,12 +157,32 @@ export async function courierHandler(
         return;
       }
 
-      // Обновляем заказ - назначаем курьера и меняем статус на delivered
+      // Получаем полную информацию о заказе для отображения курьеру
+      const { data: orderDetails, error: orderDetailsError } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          order_text,
+          address,
+          restaurant_id,
+          user_id,
+          restaurants(name),
+          users(phone)
+        `)
+        .eq('id', orderId)
+        .single();
+
+      if (orderDetailsError || !orderDetailsDetails) {
+        console.error('Error fetching order details:', orderDetailsError);
+        await ctx.answerCbQuery('❌ Buyurtma ma\'lumotlari topilmadi');
+        return;
+      }
+
+      // Обновляем заказ - назначаем курьера (статус остается assigned_to_courier)
       const { error: updateError } = await supabase
         .from('orders')
         .update({ 
-          courier_id: courier.id,
-          status: 'delivered'
+          courier_id: courier.id
         })
         .eq('id', orderId);
 
@@ -179,13 +199,44 @@ export async function courierHandler(
         courierOrderMessages.delete(orderId);
       }
 
+      // Формируем сообщение с данными заказа для курьера
+      const restaurant = orderDetails.restaurants as any;
+      const user = orderDetails.users as any;
+      const userPhone = user?.phone || 'Ko\'rsatilmagan';
+      const address = orderDetails.address || 'Ko\'rsatilmagan';
+      
+      // Парсим общую сумму из order_text
+      const totalMatch = orderDetails.order_text.match(/Jami:\s*(\d+)/i) || 
+                        orderDetails.order_text.match(/Total:\s*(\d+)/i) ||
+                        orderDetails.order_text.match(/💰\s*(\d+)/i);
+      const total = totalMatch ? `${totalMatch[1]} so'm` : 'Ko\'rsatilmagan';
+
+      const courierMessage = `✅ *Buyurtma olingan!*\n\n` +
+        `🆔 Buyurtma: #${orderId.slice(0, 8)}\n` +
+        `🍽️ Restoran: ${restaurant?.name || 'Restoran'}\n` +
+        `💰 Narx: ${total}\n` +
+        `📍 Manzil: ${address}\n` +
+        `📝 Buyurtma: ${orderDetails.order_text}\n` +
+        `📞 Mijoz: \`${userPhone}\`\n\n` +
+        `Yetkazib berishni yakunlaganingizdan so'ng, "Yetkazildi" tugmasini bosing.`;
+
+      // Создаем клавиатуру с кнопкой "Доставлен"
+      const deliveredKeyboard = {
+        inline_keyboard: [
+          [
+            { text: '✅ Yetkazildi', callback_data: `courier:delivered:${orderId}` }
+          ]
+        ]
+      };
+
       // Обновляем сообщение у курьера, который взял заказ
       try {
         await ctx.editMessageText(
-          `✅ *Buyurtma olingan!*\n\n` +
-          `Buyurtma #${orderId.slice(0, 8)} sizga tayinlandi.\n\n` +
-          `Yetkazib berishni yakunlaganingizdan so'ng, buyurtma holatini yangilang.`,
-          { parse_mode: 'Markdown' }
+          courierMessage,
+          {
+            parse_mode: 'Markdown',
+            reply_markup: deliveredKeyboard
+          }
         );
       } catch (error) {
         console.error('Error editing message:', error);
