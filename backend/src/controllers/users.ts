@@ -91,12 +91,27 @@ export async function getUserById(req: Request, res: Response) {
       throw error;
     }
 
+    if (!data) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
     // Конвертируем BigInt в строку для JSON сериализации
     const userData = serializeBigInt(data);
 
+    // Используем JSON.stringify с кастомным replacer для гарантированной сериализации
+    const serialized = JSON.parse(JSON.stringify(userData, (key, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    }));
+
     res.json({
       success: true,
-      data: userData as User
+      data: serialized as User
     });
   } catch (error: any) {
     console.error('Error fetching user:', error);
@@ -176,9 +191,18 @@ export async function createUser(req: Request, res: Response) {
         // Пользователь уже существует, возвращаем его
         // Конвертируем BigInt в строку для JSON сериализации
         const userData = serializeBigInt(existing);
+        
+        // Используем JSON.stringify с кастомным replacer для гарантированной сериализации
+        const serialized = JSON.parse(JSON.stringify(userData, (key, value) => {
+          if (typeof value === 'bigint') {
+            return value.toString();
+          }
+          return value;
+        }));
+        
         return res.json({
           success: true,
-          data: userData as User
+          data: serialized as User
         });
       }
 
@@ -199,12 +223,24 @@ export async function createUser(req: Request, res: Response) {
         throw error;
       }
 
+      if (!data) {
+        throw new Error('User created but no data returned');
+      }
+
       // Конвертируем BigInt в строку для JSON сериализации
       const userData = serializeBigInt(data);
 
+      // Используем JSON.stringify с кастомным replacer для гарантированной сериализации
+      const serialized = JSON.parse(JSON.stringify(userData, (key, value) => {
+        if (typeof value === 'bigint') {
+          return value.toString();
+        }
+        return value;
+      }));
+
       res.status(201).json({
         success: true,
-        data: userData as User
+        data: serialized as User
       });
     } else {
       // Создаем пользователя без telegram_id (временный пользователь)
@@ -224,12 +260,24 @@ export async function createUser(req: Request, res: Response) {
         throw error;
       }
 
+      if (!data) {
+        throw new Error('User created but no data returned');
+      }
+
       // Конвертируем BigInt в строку для JSON сериализации
       const userData = serializeBigInt(data);
 
+      // Используем JSON.stringify с кастомным replacer для гарантированной сериализации
+      const serialized = JSON.parse(JSON.stringify(userData, (key, value) => {
+        if (typeof value === 'bigint') {
+          return value.toString();
+        }
+        return value;
+      }));
+
       res.status(201).json({
         success: true,
-        data: userData as User
+        data: serialized as User
       });
     }
   } catch (error: any) {
