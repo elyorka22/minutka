@@ -141,7 +141,8 @@ export async function deleteRestaurant(id: string): Promise<void> {
 // Orders API
 export async function createOrder(orderData: {
   restaurant_id: string;
-  user_id: string;
+  user_id: string | null;
+  user_telegram_id?: number;
   order_text: string;
   address?: string;
   latitude?: number;

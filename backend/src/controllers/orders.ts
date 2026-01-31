@@ -7,7 +7,8 @@ import { supabase } from '../config/supabase';
 import { Order, OrderStatus } from '../types';
 import {
   sendOrderToChef,
-  notifyUserAboutOrderStatus
+  notifyUserAboutOrderStatus,
+  notifyUserByTelegramId
 } from '../services/telegramNotification';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { validateUuid, validateString, validateCoordinate } from '../utils/validation';
@@ -28,13 +29,13 @@ import { Logger } from '../services/logger';
  */
 export async function createOrder(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, user_id, order_text, address, latitude, longitude } = req.body;
+    const { restaurant_id, user_id, user_telegram_id, order_text, address, latitude, longitude } = req.body;
 
     // Валидация обязательных полей
-    if (!restaurant_id || !user_id || !order_text) {
+    if (!restaurant_id || !order_text) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: restaurant_id, user_id, order_text'
+        error: 'Missing required fields: restaurant_id, order_text'
       });
     }
 
@@ -46,7 +47,8 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
       });
     }
 
-    if (!validateUuid(user_id)) {
+    // user_id опционален, но если указан - должен быть валидным UUID
+    if (user_id !== null && user_id !== undefined && !validateUuid(user_id)) {
       return res.status(400).json({
         success: false,
         error: 'Invalid user_id format'
@@ -96,11 +98,13 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
     }
 
     // Создание заказа
+    // user_telegram_id используется для уведомлений, user_id может быть null
     const { data, error } = await supabase
       .from('orders')
       .insert({
         restaurant_id,
-        user_id,
+        user_id: user_id || null,
+        user_telegram_id: user_telegram_id || null,
         order_text,
         address: address || null,
         latitude: latitude || null,
@@ -123,23 +127,18 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
         changed_by: 'user'
       });
 
-    // Получаем информацию о пользователе и ресторане для уведомлений
-    const [userResult, restaurantResult] = await Promise.all([
-      supabase
-        .from('users')
-        .select('first_name, username')
-        .eq('id', user_id)
-        .single(),
-      supabase
-        .from('restaurants')
-        .select('name')
-        .eq('id', restaurant_id)
-        .single()
-    ]);
+    // Получаем информацию о ресторане для уведомлений
+    const restaurantResult = await supabase
+      .from('restaurants')
+      .select('name')
+      .eq('id', restaurant_id)
+      .single();
 
-    const user = userResult.data;
     const restaurantInfo = restaurantResult.data;
-    const userName = user?.username ? `@${user.username}` : (user?.first_name || 'Foydalanuvchi');
+    
+    // Формируем имя пользователя для уведомлений
+    // Используем "Foydalanuvchi" по умолчанию, так как пользователь не создается
+    const userName = 'Foydalanuvchi';
 
     // Отправляем уведомления асинхронно (не блокируем ответ)
     Promise.all([
@@ -384,7 +383,7 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
     // Проверка существования заказа
     const { data: existingOrder, error: orderError } = await supabase
       .from('orders')
-      .select('id, status, user_id, restaurant_id, courier_id')
+      .select('id, status, user_id, user_telegram_id, restaurant_id, courier_id')
       .eq('id', id)
       .single();
 
@@ -455,7 +454,14 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
       });
 
     // Уведомляем пользователя об изменении статуса (асинхронно)
-    if (existingOrder.user_id) {
+    // Используем user_telegram_id если есть, иначе пытаемся получить через user_id
+    if (existingOrder.user_telegram_id) {
+      // Отправляем уведомление напрямую по telegram_id
+      notifyUserByTelegramId(existingOrder.user_telegram_id, id, status).catch((error: any) => {
+        console.error('Error notifying user by telegram_id:', error);
+      });
+    } else if (existingOrder.user_id) {
+      // Fallback: используем старый метод через user_id
       notifyUserAboutOrderStatus(existingOrder.user_id, id, status).catch((error) => {
         console.error('Error notifying user about order status:', error);
       });

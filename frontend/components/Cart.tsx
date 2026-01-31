@@ -86,93 +86,13 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
 
     try {
       const orderText = formatOrderText();
-      
-      // Создаем или получаем пользователя по telegram_id
-      let userId: string;
-      
-      if (chatId) {
-        // Если указан Chat ID, создаем или находим пользователя
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
-        
-        // Сначала проверяем, существует ли пользователь
-        const checkUserResponse = await fetch(`${API_BASE_URL}/api/users?telegram_id=${chatId}`);
-        
-        if (!checkUserResponse.ok) {
-          const errorText = await checkUserResponse.text();
-          console.error('Error checking user:', errorText);
-          throw new Error(`Failed to check user: ${checkUserResponse.status} ${errorText}`);
-        }
-        
-        const checkUserData = await checkUserResponse.json();
-        
-        if (checkUserData.success && checkUserData.data && checkUserData.data.length > 0) {
-          userId = checkUserData.data[0].id;
-        } else {
-          // Создаем нового пользователя
-          const createUserResponse = await fetch(`${API_BASE_URL}/api/users`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              telegram_id: parseInt(chatId, 10),
-              first_name: name || null,
-              phone: phone || null
-            })
-          });
-          
-          if (!createUserResponse.ok) {
-            const errorText = await createUserResponse.text();
-            console.error('Error creating user:', errorText);
-            throw new Error(`Failed to create user: ${createUserResponse.status} ${errorText}`);
-          }
-          
-          const createUserData = await createUserResponse.json();
-          
-          if (!createUserData.success) {
-            throw new Error(createUserData.error || createUserData.message || 'Failed to create user');
-          }
-          
-          if (!createUserData.data || !createUserData.data.id) {
-            throw new Error('User created but no ID returned');
-          }
-          
-          userId = createUserData.data.id;
-        }
-      } else {
-        // Если Chat ID не указан, создаем временного пользователя без telegram_id
-        const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
-        const createUserResponse = await fetch(`${API_BASE_URL}/api/users`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            first_name: name || null,
-            phone: phone || null
-          })
-        });
-        
-        if (!createUserResponse.ok) {
-          const errorText = await createUserResponse.text();
-          console.error('Error creating user:', errorText);
-          throw new Error(`Failed to create user: ${createUserResponse.status} ${errorText}`);
-        }
-        
-        const createUserData = await createUserResponse.json();
-        
-        if (!createUserData.success) {
-          throw new Error(createUserData.error || createUserData.message || 'Failed to create user');
-        }
-        
-        if (!createUserData.data || !createUserData.data.id) {
-          throw new Error('User created but no ID returned');
-        }
-        
-        userId = createUserData.data.id;
-      }
 
-      // Создаем заказ
-      // Если есть координаты, адрес не обязателен (курьер увидит позицию на карте)
+      // Создаем заказ без создания пользователя
+      // telegram_id используется только для уведомлений
       await createOrder({
         restaurant_id: restaurantId,
-        user_id: userId,
+        user_id: null, // Не создаем пользователя
+        user_telegram_id: chatId ? parseInt(chatId, 10) : undefined, // Telegram ID для уведомлений
         order_text: orderText,
         address: address || (latitude && longitude ? `Geolokatsiya: ${latitude}, ${longitude}` : undefined),
         latitude: latitude || undefined,
