@@ -96,6 +96,13 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
         
         // Сначала проверяем, существует ли пользователь
         const checkUserResponse = await fetch(`${API_BASE_URL}/api/users?telegram_id=${chatId}`);
+        
+        if (!checkUserResponse.ok) {
+          const errorText = await checkUserResponse.text();
+          console.error('Error checking user:', errorText);
+          throw new Error(`Failed to check user: ${checkUserResponse.status} ${errorText}`);
+        }
+        
         const checkUserData = await checkUserResponse.json();
         
         if (checkUserData.success && checkUserData.data && checkUserData.data.length > 0) {
@@ -111,10 +118,21 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
               phone: phone || null
             })
           });
+          
+          if (!createUserResponse.ok) {
+            const errorText = await createUserResponse.text();
+            console.error('Error creating user:', errorText);
+            throw new Error(`Failed to create user: ${createUserResponse.status} ${errorText}`);
+          }
+          
           const createUserData = await createUserResponse.json();
           
           if (!createUserData.success) {
-            throw new Error(createUserData.error || 'Failed to create user');
+            throw new Error(createUserData.error || createUserData.message || 'Failed to create user');
+          }
+          
+          if (!createUserData.data || !createUserData.data.id) {
+            throw new Error('User created but no ID returned');
           }
           
           userId = createUserData.data.id;
@@ -130,10 +148,21 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
             phone: phone || null
           })
         });
+        
+        if (!createUserResponse.ok) {
+          const errorText = await createUserResponse.text();
+          console.error('Error creating user:', errorText);
+          throw new Error(`Failed to create user: ${createUserResponse.status} ${errorText}`);
+        }
+        
         const createUserData = await createUserResponse.json();
         
         if (!createUserData.success) {
-          throw new Error(createUserData.error || 'Failed to create user');
+          throw new Error(createUserData.error || createUserData.message || 'Failed to create user');
+        }
+        
+        if (!createUserData.data || !createUserData.data.id) {
+          throw new Error('User created but no ID returned');
         }
         
         userId = createUserData.data.id;
@@ -165,7 +194,25 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
       setLongitude(null);
     } catch (error: any) {
       console.error('Error creating order:', error);
-      showError('Buyurtma yuborishda xatolik yuz berdi: ' + (error.message || 'Noma\'lum xatolik'));
+      
+      // Более детальное сообщение об ошибке
+      let errorMessage = 'Noma\'lum xatolik';
+      
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      console.error('Error details:', {
+        message: errorMessage,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      
+      showError(`Buyurtma yuborishda xatolik yuz berdi: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }

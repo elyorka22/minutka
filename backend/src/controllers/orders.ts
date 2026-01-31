@@ -172,10 +172,34 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
     });
   } catch (error: any) {
     console.error('Error creating order:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
+    
+    // Если это ошибка валидации от Supabase, возвращаем более понятное сообщение
+    if (error.code === '23505') { // Unique violation
+      return res.status(409).json({
+        success: false,
+        error: 'Order already exists',
+        message: error.message
+      });
+    }
+    
+    if (error.code === '23503') { // Foreign key violation
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid restaurant_id or user_id',
+        message: error.message
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: 'Failed to create order',
-      message: error.message
+      message: error.message || 'Unknown error occurred'
     });
   }
 }

@@ -147,8 +147,29 @@ export async function createOrder(orderData: {
   latitude?: number;
   longitude?: number;
 }): Promise<Order> {
-  const response = await api.post<{ success: boolean; data: Order }>('/api/orders', orderData);
-  return response.data.data;
+  try {
+    const response = await api.post<{ success: boolean; data: Order }>('/api/orders', orderData);
+    
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to create order');
+    }
+    
+    if (!response.data.data) {
+      throw new Error('Order created but no data returned');
+    }
+    
+    return response.data.data;
+  } catch (error: any) {
+    console.error('Error in createOrder API call:', error);
+    
+    // Если это ошибка от axios, извлекаем детали из response
+    if (error.response) {
+      const errorMessage = error.response.data?.error || error.response.data?.message || error.message;
+      throw new Error(errorMessage);
+    }
+    
+    throw error;
+  }
 }
 
 export async function updateOrderStatus(orderId: string, status: string): Promise<Order> {
