@@ -227,7 +227,7 @@ export async function createUser(req: Request, res: Response) {
 
       // Создаем нового пользователя с telegram_id
       // Используем .select() без .single() чтобы избежать проблем с сериализацией
-      const { data: insertData, error } = await supabase
+      const insertResult = await supabase
         .from('users')
         .insert({
           telegram_id: telegramId,
@@ -238,25 +238,43 @@ export async function createUser(req: Request, res: Response) {
         })
         .select();
 
-      if (error) {
-        console.error('Supabase insert error:', error);
-        throw error;
+      if (insertResult.error) {
+        console.error('Supabase insert error:', insertResult.error);
+        throw insertResult.error;
       }
 
-      if (!insertData || insertData.length === 0) {
+      if (!insertResult.data || insertResult.data.length === 0) {
         throw new Error('User created but no data returned');
       }
 
-      const data = insertData[0];
+      const data = insertResult.data[0];
+
+      // Немедленная конвертация BigInt в строку, избегая любых операций с BigInt
+      let telegramIdStr: string | null = null;
+      try {
+        if (data.telegram_id !== null && data.telegram_id !== undefined) {
+          // Используем явное приведение через Number или String
+          if (typeof data.telegram_id === 'bigint') {
+            telegramIdStr = data.telegram_id.toString();
+          } else if (typeof data.telegram_id === 'number') {
+            telegramIdStr = String(data.telegram_id);
+          } else {
+            telegramIdStr = String(data.telegram_id);
+          }
+        }
+      } catch (e) {
+        console.error('Error converting telegram_id:', e);
+        telegramIdStr = null;
+      }
 
       // Ручная конвертация BigInt в строку перед сериализацией
       const userData: any = {
-        id: data.id,
-        telegram_id: data.telegram_id ? String(data.telegram_id) : null,
-        username: data.username,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        phone: data.phone,
+        id: String(data.id),
+        telegram_id: telegramIdStr,
+        username: data.username || null,
+        first_name: data.first_name || null,
+        last_name: data.last_name || null,
+        phone: data.phone || null,
         created_at: data.created_at,
         updated_at: data.updated_at
       };
@@ -267,7 +285,7 @@ export async function createUser(req: Request, res: Response) {
       });
     } else {
       // Создаем пользователя без telegram_id (временный пользователь)
-      const { data: insertData, error } = await supabase
+      const insertResult = await supabase
         .from('users')
         .insert({
           telegram_id: null,
@@ -278,25 +296,42 @@ export async function createUser(req: Request, res: Response) {
         })
         .select();
 
-      if (error) {
-        console.error('Supabase insert error:', error);
-        throw error;
+      if (insertResult.error) {
+        console.error('Supabase insert error:', insertResult.error);
+        throw insertResult.error;
       }
 
-      if (!insertData || insertData.length === 0) {
+      if (!insertResult.data || insertResult.data.length === 0) {
         throw new Error('User created but no data returned');
       }
 
-      const data = insertData[0];
+      const data = insertResult.data[0];
+
+      // Немедленная конвертация BigInt в строку, избегая любых операций с BigInt
+      let telegramIdStr: string | null = null;
+      try {
+        if (data.telegram_id !== null && data.telegram_id !== undefined) {
+          if (typeof data.telegram_id === 'bigint') {
+            telegramIdStr = data.telegram_id.toString();
+          } else if (typeof data.telegram_id === 'number') {
+            telegramIdStr = String(data.telegram_id);
+          } else {
+            telegramIdStr = String(data.telegram_id);
+          }
+        }
+      } catch (e) {
+        console.error('Error converting telegram_id:', e);
+        telegramIdStr = null;
+      }
 
       // Ручная конвертация BigInt в строку перед сериализацией
       const userData: any = {
-        id: data.id,
-        telegram_id: data.telegram_id ? String(data.telegram_id) : null,
-        username: data.username,
-        first_name: data.first_name,
-        last_name: data.last_name,
-        phone: data.phone,
+        id: String(data.id),
+        telegram_id: telegramIdStr,
+        username: data.username || null,
+        first_name: data.first_name || null,
+        last_name: data.last_name || null,
+        phone: data.phone || null,
         created_at: data.created_at,
         updated_at: data.updated_at
       };
