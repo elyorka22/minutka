@@ -20,13 +20,11 @@ export interface Restaurant {
 }
 
 export interface WorkingHours {
-  monday?: string;
-  tuesday?: string;
-  wednesday?: string;
-  thursday?: string;
-  friday?: string;
-  saturday?: string;
-  sunday?: string;
+  start_day?: string; // День начала работы (например, "Dushanba")
+  end_day?: string; // День окончания работы (например, "Yakshanba")
+  start_time?: string; // Время начала (например, "09:00")
+  end_time?: string; // Время окончания (например, "22:00")
+  closed_days?: string[]; // Массив закрытых дней (например, ["Dushanba"])
 }
 
 // User types
@@ -55,6 +53,7 @@ export interface Order {
   status: OrderStatus;
   courier_id: string | null;
   telegram_message_id: number | null;
+  archived_at: string | null; // Дата архивации (устанавливается автоматически при статусе "delivered")
   created_at: string;
   updated_at: string;
 }

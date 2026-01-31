@@ -12,6 +12,7 @@ export interface Restaurant {
   working_hours: WorkingHours | null;
   telegram_chat_id: number | null;
   phone: string | null;
+  delivery_text: string | null;
   is_active: boolean;
   is_featured: boolean;
   created_at: string;
@@ -19,13 +20,11 @@ export interface Restaurant {
 }
 
 export interface WorkingHours {
-  monday?: string;
-  tuesday?: string;
-  wednesday?: string;
-  thursday?: string;
-  friday?: string;
-  saturday?: string;
-  sunday?: string;
+  start_day?: string; // День начала работы (например, "Dushanba")
+  end_day?: string; // День окончания работы (например, "Yakshanba")
+  start_time?: string; // Время начала (например, "09:00")
+  end_time?: string; // Время окончания (например, "22:00")
+  closed_days?: string[]; // Массив закрытых дней (например, ["Dushanba"])
 }
 
 // User types
@@ -41,7 +40,7 @@ export interface User {
 }
 
 // Order types
-export type OrderStatus = 'pending' | 'accepted' | 'ready' | 'delivered' | 'cancelled';
+export type OrderStatus = 'pending' | 'accepted' | 'ready' | 'assigned_to_courier' | 'delivered' | 'cancelled';
 
 export interface Order {
   id: string;
@@ -52,7 +51,9 @@ export interface Order {
   latitude: number | null;
   longitude: number | null;
   status: OrderStatus;
+  courier_id: string | null;
   telegram_message_id: number | null;
+  archived_at: string | null; // Дата архивации (устанавливается автоматически при статусе "delivered")
   created_at: string;
   updated_at: string;
 }
@@ -100,8 +101,24 @@ export interface RestaurantAdmin {
   username: string | null;
   first_name: string | null;
   last_name: string | null;
+  phone: string | null;
+  password: string | null;
   is_active: boolean;
   notifications_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Courier types (курьеры)
+export interface Courier {
+  id: string;
+  telegram_id: number;
+  telegram_chat_id: number | null;
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  phone: string | null;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
