@@ -45,7 +45,8 @@ export type OrderStatus = 'pending' | 'accepted' | 'ready' | 'assigned_to_courie
 export interface Order {
   id: string;
   restaurant_id: string;
-  user_id: string;
+  user_id: string | null; // Опционально - может быть null если пользователь не зарегистрирован
+  user_telegram_id: number | null; // Telegram ID для уведомлений (может быть указан без user_id)
   order_text: string;
   address: string | null;
   latitude: number | null;
