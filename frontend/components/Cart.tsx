@@ -394,14 +394,21 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     required
-                    rows={2}
+                    rows={3}
                     className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                     placeholder="Ko'cha, uy, kvartira yoki 'Avtomatik aniqlash' tugmasini bosing"
                   />
                   {latitude && longitude && (
-                    <p className="mt-1 text-xs text-gray-500">
-                      📍 Koordinatalar: {latitude.toFixed(6)}, {longitude.toFixed(6)}
-                    </p>
+                    <div className="mt-1 space-y-1">
+                      <p className="text-xs text-gray-500">
+                        📍 Koordinatalar: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+                      </p>
+                      {address && address.includes('(ko\'cha va uy raqamini qo\'shing)') && (
+                        <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                          ⚠️ Iltimos, ko'cha nomi va uy raqamini qo'shing. Avtomatik aniqlash faqat shahar/oblast ma'lumotlarini berdi.
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
 

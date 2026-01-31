@@ -75,18 +75,23 @@ export async function getCurrentLocation(): Promise<GeolocationResult> {
 /**
  * Reverse geocoding - преобразование координат в адрес
  * Использует бесплатный Nominatim API (OpenStreetMap)
+ * Пытается получить максимально детальный адрес
  */
 export async function reverseGeocode(
   latitude: number,
   longitude: number
 ): Promise<string> {
   try {
-    // Используем Nominatim API (OpenStreetMap) - бесплатно, без API ключа
-    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`;
+    // Используем Nominatim API с максимальной детализацией
+    // zoom=18 - максимальная детализация для получения улиц и домов
+    // addressdetails=1 - получить все детали адреса
+    // extratags=1 - получить дополнительные теги
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&extratags=1&namedetails=1`;
     
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Minutka Delivery App', // Требуется Nominatim
+        'Accept-Language': 'uz,ru,en', // Приоритет языков для Узбекистана
       },
     });
 
@@ -106,22 +111,61 @@ export async function reverseGeocode(
       return `${latitude}, ${longitude}`;
     }
 
-    // Формируем читаемый адрес
+    // Формируем детальный адрес с приоритетом на улицу и дом
     const addressParts: string[] = [];
     
-    // Добавляем компоненты адреса в порядке приоритета
-    if (address.road) addressParts.push(address.road);
-    if (address.house_number) addressParts.push(address.house_number);
-    if (address.suburb || address.neighbourhood) {
-      addressParts.push(address.suburb || address.neighbourhood);
+    // Приоритет 1: Улица и номер дома (самое важное)
+    if (address.road || address.street || address.pedestrian) {
+      const streetName = address.road || address.street || address.pedestrian;
+      if (address.house_number) {
+        addressParts.push(`${streetName}, ${address.house_number}`);
+      } else if (address.house) {
+        addressParts.push(`${streetName}, ${address.house}`);
+      } else {
+        addressParts.push(streetName);
+      }
     }
-    if (address.city || address.town || address.village) {
-      addressParts.push(address.city || address.town || address.village);
+    
+    // Приоритет 2: Район, микрорайон, квартал
+    if (address.suburb) {
+      addressParts.push(address.suburb);
+    } else if (address.neighbourhood) {
+      addressParts.push(address.neighbourhood);
+    } else if (address.quarter) {
+      addressParts.push(address.quarter);
     }
-    if (address.state) addressParts.push(address.state);
-    if (address.country) addressParts.push(address.country);
+    
+    // Приоритет 3: Город, поселок, село
+    if (address.city) {
+      addressParts.push(address.city);
+    } else if (address.town) {
+      addressParts.push(address.town);
+    } else if (address.village) {
+      addressParts.push(address.village);
+    }
+    
+    // Приоритет 4: Область/регион (только если нет детального адреса)
+    if (addressParts.length === 0 && address.state) {
+      addressParts.push(address.state);
+    }
+    
+    // Приоритет 5: Страна (только если совсем нет данных)
+    if (addressParts.length === 0 && address.country) {
+      addressParts.push(address.country);
+    }
 
-    return addressParts.join(', ') || `${latitude}, ${longitude}`;
+    // Если получили только общие данные (город, область), добавляем подсказку
+    const result = addressParts.join(', ') || `${latitude}, ${longitude}`;
+    
+    // Проверяем, есть ли детальная информация (улица или дом)
+    const hasDetailedInfo = !!(address.road || address.street || address.house_number || address.house);
+    
+    if (!hasDetailedInfo && result !== `${latitude}, ${longitude}`) {
+      // Если нет детальной информации, добавляем подсказку для пользователя
+      return result + ' (ko\'cha va uy raqamini qo\'shing)';
+    }
+
+    return result;
   } catch (error) {
     console.error('Reverse geocoding error:', error);
     // Возвращаем координаты если не удалось получить адрес
