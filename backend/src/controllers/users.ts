@@ -193,17 +193,19 @@ export async function createUser(req: Request, res: Response) {
       // Если указан telegram_id, проверяем существование
     if (telegram_id) {
       const telegramId = BigInt(telegram_id);
-      const { data: existing, error: existingError } = await supabase
+      // Используем .select() вместо .maybeSingle() чтобы избежать проблем с сериализацией
+      const { data: existingData, error: existingError } = await supabase
         .from('users')
         .select('*')
         .eq('telegram_id', telegramId)
-        .maybeSingle();
+        .limit(1);
 
       if (existingError && existingError.code !== 'PGRST116') {
         throw existingError;
       }
 
-      if (existing) {
+      if (existingData && existingData.length > 0) {
+        const existing = existingData[0];
         // Пользователь уже существует, возвращаем его
         // Ручная конвертация BigInt в строку
         const userData: any = {
