@@ -5,6 +5,7 @@
 import { Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { User } from '../types';
+import { serializeBigInt } from '../utils/bigint';
 
 /**
  * GET /api/users
@@ -39,11 +40,14 @@ export async function getUsers(req: Request, res: Response) {
       throw error;
     }
 
+    // Конвертируем BigInt в строку для JSON сериализации
+    const usersData = serializeBigInt(data || []);
+
     const totalPages = Math.ceil((count || 0) / limitNum);
 
     res.json({
       success: true,
-      data: data as User[],
+      data: usersData as User[],
       pagination: {
         page: pageNum,
         limit: limitNum,
@@ -87,9 +91,12 @@ export async function getUserById(req: Request, res: Response) {
       throw error;
     }
 
+    // Конвертируем BigInt в строку для JSON сериализации
+    const userData = serializeBigInt(data);
+
     res.json({
       success: true,
-      data: data as User
+      data: userData as User
     });
   } catch (error: any) {
     console.error('Error fetching user:', error);
@@ -118,19 +125,22 @@ export async function getUserByTelegramId(req: Request, res: Response) {
 
     const telegramId = BigInt(telegram_id as string);
 
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('telegram_id', telegramId);
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('telegram_id', telegramId);
 
-    if (error) {
-      throw error;
-    }
+      if (error) {
+        throw error;
+      }
 
-    res.json({
-      success: true,
-      data: data as User[]
-    });
+      // Конвертируем BigInt в строку для JSON сериализации
+      const usersData = serializeBigInt(data || []);
+
+      res.json({
+        success: true,
+        data: usersData as User[]
+      });
   } catch (error: any) {
     console.error('Error fetching user by telegram_id:', error);
     res.status(500).json({
@@ -160,9 +170,11 @@ export async function createUser(req: Request, res: Response) {
 
       if (existing) {
         // Пользователь уже существует, возвращаем его
+        // Конвертируем BigInt в строку для JSON сериализации
+        const userData = serializeBigInt(existing);
         return res.json({
           success: true,
-          data: existing as User
+          data: userData as User
         });
       }
 
@@ -183,9 +195,12 @@ export async function createUser(req: Request, res: Response) {
         throw error;
       }
 
+      // Конвертируем BigInt в строку для JSON сериализации
+      const userData = serializeBigInt(data);
+
       res.status(201).json({
         success: true,
-        data: data as User
+        data: userData as User
       });
     } else {
       // Создаем пользователя без telegram_id (временный пользователь)
@@ -205,9 +220,12 @@ export async function createUser(req: Request, res: Response) {
         throw error;
       }
 
+      // Конвертируем BigInt в строку для JSON сериализации
+      const userData = serializeBigInt(data);
+
       res.status(201).json({
         success: true,
-        data: data as User
+        data: userData as User
       });
     }
   } catch (error: any) {
