@@ -18,7 +18,7 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
   const categoriesText = restaurant.category || '';
 
   return (
-    <Link href={`/restaurants/${restaurant.id}`}>
+    <Link href={`/restaurants/${restaurant.id}`} prefetch={true}>
       <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
         {/* Изображение ресторана */}
         {restaurant.image_url && (

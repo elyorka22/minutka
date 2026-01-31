@@ -1,312 +1,118 @@
 // ============================================
-// Home Page - Главная страница
+// Home Page - Главная страница (Server Component)
 // ============================================
 
-'use client';
+import { Suspense } from 'react';
+import HomeClient from '@/components/HomeClient';
+import {
+  getRestaurantsServer,
+  getCategoriesServer,
+  getRestaurantCategoryRelationsServer,
+  getBannersServer,
+  getPharmaciesStoresServer,
+  getBotSettingsServer,
+} from '@/lib/api-server';
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { getRestaurants, getBanners, getCategories, getRestaurantCategoryRelations } from '@/lib/api';
-import RestaurantCard from '@/components/RestaurantCard';
-import BannerCarousel from '@/components/BannerCarousel';
-import RestaurantCategories from '@/components/RestaurantCategories';
-import PharmacyStoreCard from '@/components/PharmacyStoreCard';
-import { getPharmaciesStores } from '@/lib/api';
+// Экспортируем revalidate для ISR (Incremental Static Regeneration)
+// Используем dynamic rendering для данных, которые могут меняться
+export const dynamic = 'force-dynamic'; // Используем динамический рендеринг для актуальных данных
 
-const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'your_bot_username';
+// Skeleton компоненты для загрузки
+const SkeletonCard = () => (
+  <div className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
+    <div className="w-full h-48 bg-gray-200"></div>
+    <div className="p-4">
+      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+    </div>
+  </div>
+);
+
+const SkeletonCategory = () => (
+  <div className="flex-shrink-0 w-24 h-24 bg-gray-200 rounded-lg animate-pulse"></div>
+);
+
+// Компонент для загрузки данных
+async function HomeData() {
+  try {
+    // Загружаем критичные данные параллельно на сервере
+    const [categories, restaurantsResult, relations, banners, pharmaciesStores, botSettings] =
+      await Promise.all([
+        getCategoriesServer(),
+        getRestaurantsServer(),
+        getRestaurantCategoryRelationsServer(),
+        getBannersServer('homepage').catch(() => []),
+        getPharmaciesStoresServer(true).catch(() => []),
+        getBotSettingsServer().catch(() => []),
+      ]);
+
+    // Создаем карту связей категорий и ресторанов
+    const categoryRestaurantMap: { [categoryId: string]: string[] } = {};
+    if (relations && Array.isArray(relations)) {
+      relations.forEach((rel: any) => {
+        if (!categoryRestaurantMap[rel.category_id]) {
+          categoryRestaurantMap[rel.category_id] = [];
+        }
+        categoryRestaurantMap[rel.category_id].push(rel.restaurant_id);
+      });
+    }
+
+    // Получаем слоган из настроек бота
+    const appSloganSetting = botSettings?.find((s: any) => s.key === 'app_slogan');
+    const appSlogan = appSloganSetting?.value || 'Tez va oson, uydan chiqmasdan';
+
+    return (
+      <HomeClient
+        initialRestaurants={restaurantsResult.data || []}
+        initialCategories={categories || []}
+        initialBanners={banners || []}
+        initialPharmaciesStores={pharmaciesStores || []}
+        initialCategoryRestaurantMap={categoryRestaurantMap}
+        appSlogan={appSlogan}
+      />
+    );
+  } catch (error) {
+    console.error('Error loading home page data:', error);
+    // Возвращаем пустые данные в случае ошибки
+    return (
+      <HomeClient
+        initialRestaurants={[]}
+        initialCategories={[]}
+        initialBanners={[]}
+        initialPharmaciesStores={[]}
+        initialCategoryRestaurantMap={{}}
+        appSlogan="Tez va oson, uydan chiqmasdan"
+      />
+    );
+  }
+}
 
 export default function Home() {
-  const [restaurants, setRestaurants] = useState<any[]>([]);
-  const [banners, setBanners] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [appSlogan, setAppSlogan] = useState('Tez va oson, uydan chiqmasdan');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [categoryRestaurantMap, setCategoryRestaurantMap] = useState<{ [categoryId: string]: string[] }>({});
-  const [pharmaciesStores, setPharmaciesStores] = useState<any[]>([]);
-
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        // Загружаем критичные данные первыми (категории и рестораны)
-        const [fetchedCategories, restaurantsResult] = await Promise.all([
-          getCategories(),
-          getRestaurants()
-        ]);
-
-        const fetchedRestaurants = restaurantsResult.data;
-        setCategories(fetchedCategories);
-        setRestaurants(fetchedRestaurants);
-        
-        // Загружаем все связи категорий и ресторанов одним запросом (исправление N+1 проблемы)
-        const allRelations = await getRestaurantCategoryRelations(undefined, undefined);
-        const relationsMap: { [categoryId: string]: string[] } = {};
-        if (allRelations && Array.isArray(allRelations)) {
-          allRelations.forEach((rel: any) => {
-            if (!relationsMap[rel.category_id]) {
-              relationsMap[rel.category_id] = [];
-            }
-            relationsMap[rel.category_id].push(rel.restaurant_id);
-          });
-        }
-        setCategoryRestaurantMap(relationsMap);
-        
-        // Помечаем что основные данные загружены
-        setLoading(false);
-        
-        // Загружаем некритичные данные параллельно (баннеры, настройки, аптеки)
-        Promise.all([
-          getBanners('homepage').then(b => setBanners(b)).catch(() => setBanners([])),
-          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001'}/api/bot-settings`)
-            .then(r => r.json())
-            .then(botSettingsResponse => {
-              const appSloganSetting = botSettingsResponse.data?.find((s: any) => s.key === 'app_slogan');
-              if (appSloganSetting?.value) {
-                setAppSlogan(appSloganSetting.value);
-              }
-            })
-            .catch(() => {}),
-          getPharmaciesStores(true).then(ps => setPharmaciesStores(ps)).catch(() => setPharmaciesStores([]))
-        ]);
-      } catch (error) {
-        console.error('Error loading data:', error);
-        // В случае ошибки оставляем пустые массивы
-        setCategories([]);
-        setRestaurants([]);
-        setBanners([]);
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
-
-  // Используем категории из базы данных
-  const allCategories = categories;
-  
-  // Находим категорию "Dorixonalar" (Аптеки) в списке
-  const pharmaciesCategory = categories.find(c => 
-    c.name === 'Dorixonalar' || c.name === 'Аптеки/Магазины' || c.name === 'Pharmacies/Stores' || c.id === 'pharmacies-stores'
-  );
-  
-  // Находим категорию "Do'konlar" (Магазины) в списке
-  const storesCategory = categories.find(c => 
-    c.name === 'Do\'konlar' || c.name === 'Магазины' || c.name === 'Stores' || c.id === 'stores'
-  );
-  
-  // Разделяем аптеки и магазины (пока по названию, можно добавить поле type в будущем)
-  const pharmacies = pharmaciesStores.filter(ps => 
-    ps.name?.toLowerCase().includes('apteka') || 
-    ps.name?.toLowerCase().includes('аптека') ||
-    ps.name?.toLowerCase().includes('pharmacy') ||
-    ps.description?.toLowerCase().includes('apteka') ||
-    ps.description?.toLowerCase().includes('аптека')
-  );
-  const stores = pharmaciesStores.filter(ps => 
-    !pharmacies.includes(ps)
-  );
-
-  // Фильтрация ресторанов по категории и поисковому запросу
-  const filteredRestaurants = restaurants.filter((r) => {
-    // Если выбрана категория аптек или магазинов, не показываем рестораны
-    if (selectedCategory === 'pharmacies-stores' || 
-        (pharmaciesCategory && selectedCategory === pharmaciesCategory.id) ||
-        (storesCategory && selectedCategory === storesCategory.id)) {
-      return false;
-    }
-    // Фильтр по категории (используем связи ресторан-категория)
-    if (selectedCategory) {
-      const restaurantIds = categoryRestaurantMap[selectedCategory] || [];
-      if (!restaurantIds.includes(r.id)) {
-        return false;
-      }
-    }
-    // Фильтр по поисковому запросу
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      const nameMatch = r.name?.toLowerCase().includes(query);
-      const descriptionMatch = r.description?.toLowerCase().includes(query);
-      return nameMatch || descriptionMatch;
-    }
-    return true;
-  });
-
-  // Skeleton компоненты для загрузки
-  const SkeletonCard = () => (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
-      <div className="w-full h-48 bg-gray-200"></div>
-      <div className="p-4">
-        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-      </div>
-    </div>
-  );
-
-  const SkeletonCategory = () => (
-    <div className="flex-shrink-0 w-24 h-24 bg-gray-200 rounded-lg animate-pulse"></div>
-  );
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header - Fixed on scroll */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">🍽️ Minutka</h1>
-              <p className="text-sm text-gray-600">{appSlogan}</p>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50">
+          <header className="bg-white shadow-sm sticky top-0 z-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold text-gray-900">🍽️ Minutka</h1>
+                  <p className="text-sm text-gray-600">Tez va oson, uydan chiqmasdan</p>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Link
-                href="/login"
-                className="px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm"
-              >
-                🔐 Kirish
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Search Bar */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <svg
-              className="h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Restoran qidirish..."
-            className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white placeholder:text-gray-400"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery('')}
-              className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          )}
-        </div>
-      </section>
-
-      {/* Top Banners Carousel */}
-      {loading ? (
-        <section className="px-4 sm:px-6 lg:px-8 pt-2 pb-2">
-          <div className="h-48 bg-gray-200 rounded-lg animate-pulse"></div>
-        </section>
-      ) : banners.length > 0 ? (
-        <section className="px-4 sm:px-6 lg:px-8 pt-2 pb-2">
-          <BannerCarousel banners={banners} />
-        </section>
-      ) : null}
-
-      {/* Restaurant Categories Carousel */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
-        {loading ? (
-          <div className="flex gap-4 overflow-x-auto pb-2">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <SkeletonCategory key={i} />
-            ))}
-          </div>
-        ) : (
-          <RestaurantCategories
-            categories={allCategories}
-            selectedCategory={selectedCategory}
-            onCategorySelect={setSelectedCategory}
-            allCategoryImage={categories.find(c => c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all')?.image_url}
-          />
-        )}
-      </section>
-
-      {/* All Restaurants or Filtered by Category */}
-      {selectedCategory !== 'pharmacies-stores' && 
-       !(pharmaciesCategory && selectedCategory === pharmaciesCategory.id) &&
-       !(storesCategory && selectedCategory === storesCategory.id) && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {searchQuery
-              ? `🔍 Qidiruv natijalari: "${searchQuery}"`
-              : selectedCategory
-              ? `${categories.find(c => c.id === selectedCategory)?.name || 'Restoranlar'}`
-              : '📋 Barcha restoranlar'}
-          </h2>
-          {loading ? (
+          </header>
+          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
             <div className="grid grid-cols-1 gap-4 md:gap-6">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <SkeletonCard key={i} />
               ))}
             </div>
-          ) : filteredRestaurants.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              Restoranlar topilmadi
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:gap-6">
-              {filteredRestaurants.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
-
-      {/* Pharmacies Section - показываем при выборе категории Dorixonalar или по умолчанию */}
-      {pharmacies.length > 0 && 
-       (!selectedCategory || 
-        selectedCategory === 'pharmacies-stores' || 
-        (pharmaciesCategory && selectedCategory === pharmaciesCategory.id)) && 
-       !searchQuery && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">💊 Dorixonalar</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {pharmacies.map((pharmacyStore) => (
-              <PharmacyStoreCard key={pharmacyStore.id} pharmacyStore={pharmacyStore} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Stores Section - показываем при выборе категории Do'konlar */}
-      {stores.length > 0 && 
-       (storesCategory && selectedCategory === storesCategory.id) && 
-       !searchQuery && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">🛒 Do'konlar</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {stores.map((pharmacyStore) => (
-              <PharmacyStoreCard key={pharmacyStore.id} pharmacyStore={pharmacyStore} />
-            ))}
-          </div>
-        </section>
-      )}
-    </div>
+          </section>
+        </div>
+      }
+    >
+      <HomeData />
+    </Suspense>
   );
 }

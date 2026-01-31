@@ -10,7 +10,14 @@ const nextConfig = {
         hostname: '**',
       },
     ],
+    // Оптимизация изображений
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 60,
   },
+  // Оптимизация компиляции
+  swcMinify: true,
+  // Компрессия
+  compress: true,
 }
 
 module.exports = nextConfig
