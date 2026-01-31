@@ -9,6 +9,7 @@ import { useCart } from '@/contexts/CartContext';
 import Image from 'next/image';
 import { createOrder } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
+import { getCurrentLocation, isGeolocationSupported } from '@/lib/geolocation';
 
 interface CartProps {
   restaurantId: string;
@@ -27,6 +28,9 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
   const [notes, setNotes] = useState('');
   const [chatId, setChatId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
   const totalPrice = getTotalPrice();
   const totalItems = getTotalItems();
@@ -131,7 +135,9 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
         restaurant_id: restaurantId,
         user_id: userId,
         order_text: orderText,
-        address: address || undefined
+        address: address || undefined,
+        latitude: latitude || undefined,
+        longitude: longitude || undefined,
       });
 
       // Успешно оформлен заказ
@@ -145,6 +151,8 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
       setName('');
       setNotes('');
       setChatId('');
+      setLatitude(null);
+      setLongitude(null);
     } catch (error: any) {
       console.error('Error creating order:', error);
       showError('Buyurtma yuborishda xatolik yuz berdi: ' + (error.message || 'Noma\'lum xatolik'));
@@ -344,6 +352,43 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                   <label htmlFor="address" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
                     Yetkazib berish manzili *
                   </label>
+                  <div className="flex gap-2 mb-2">
+                    {isGeolocationSupported() && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          setIsGettingLocation(true);
+                          try {
+                            const location = await getCurrentLocation();
+                            setLatitude(location.latitude);
+                            setLongitude(location.longitude);
+                            if (location.address) {
+                              setAddress(location.address);
+                            }
+                            showSuccess('Manzil avtomatik aniqlandi!');
+                          } catch (error: any) {
+                            showError(error.error || 'Manzilni aniqlab bo\'lmadi');
+                          } finally {
+                            setIsGettingLocation(false);
+                          }
+                        }}
+                        disabled={isGettingLocation}
+                        className="flex-shrink-0 px-3 sm:px-4 py-2 text-xs sm:text-sm bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-1.5"
+                      >
+                        {isGettingLocation ? (
+                          <>
+                            <span className="animate-spin">⏳</span>
+                            <span>Aniqlanmoqda...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>📍</span>
+                            <span>Avtomatik aniqlash</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
                   <textarea
                     id="address"
                     value={address}
@@ -351,8 +396,13 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                     required
                     rows={2}
                     className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                    placeholder="Ko'cha, uy, kvartira"
+                    placeholder="Ko'cha, uy, kvartira yoki 'Avtomatik aniqlash' tugmasini bosing"
                   />
+                  {latitude && longitude && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      📍 Koordinatalar: {latitude.toFixed(6)}, {longitude.toFixed(6)}
+                    </p>
+                  )}
                 </div>
 
                 <div>
