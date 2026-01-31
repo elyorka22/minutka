@@ -131,11 +131,12 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
       }
 
       // Создаем заказ
+      // Если есть координаты, адрес не обязателен (курьер увидит позицию на карте)
       await createOrder({
         restaurant_id: restaurantId,
         user_id: userId,
         order_text: orderText,
-        address: address || undefined,
+        address: address || (latitude && longitude ? `Geolokatsiya: ${latitude}, ${longitude}` : undefined),
         latitude: latitude || undefined,
         longitude: longitude || undefined,
       });
@@ -350,7 +351,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
 
                 <div>
                   <label htmlFor="address" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                    Yetkazib berish manzili *
+                    Yetkazib berish manzili {!latitude && !longitude && '*'}
                   </label>
                   <div className="flex gap-2 mb-2">
                     {isGeolocationSupported() && (
@@ -362,12 +363,10 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                             const location = await getCurrentLocation();
                             setLatitude(location.latitude);
                             setLongitude(location.longitude);
-                            if (location.address) {
-                              setAddress(location.address);
-                            }
-                            showSuccess('Manzil avtomatik aniqlandi!');
+                            // Не заполняем адрес - курьер увидит позицию на карте
+                            showSuccess('Geolokatsiya aniqlandi! Kuryer sizning joylashuvingizni kartada ko\'radi.');
                           } catch (error: any) {
-                            showError(error.error || 'Manzilni aniqlab bo\'lmadi');
+                            showError(error.error || 'Geolokatsiyani aniqlab bo\'lmadi');
                           } finally {
                             setIsGettingLocation(false);
                           }
@@ -393,21 +392,19 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                     id="address"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
-                    required
-                    rows={3}
+                    required={!latitude || !longitude}
+                    rows={2}
                     className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                    placeholder="Ko'cha, uy, kvartira yoki 'Avtomatik aniqlash' tugmasini bosing"
+                    placeholder={latitude && longitude ? "Qo'shimcha ma'lumot (ixtiyoriy)" : "Ko'cha, uy, kvartira yoki 'Avtomatik aniqlash' tugmasini bosing"}
                   />
                   {latitude && longitude && (
                     <div className="mt-1 space-y-1">
+                      <p className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                        ✅ Geolokatsiya aniqlandi! Kuryer sizning joylashuvingizni kartada ko'radi.
+                      </p>
                       <p className="text-xs text-gray-500">
                         📍 Koordinatalar: {latitude.toFixed(6)}, {longitude.toFixed(6)}
                       </p>
-                      {address && address.includes('(ko\'cha va uy raqamini qo\'shing)') && (
-                        <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-                          ⚠️ Iltimos, ko'cha nomi va uy raqamini qo'shing. Avtomatik aniqlash faqat shahar/oblast ma'lumotlarini berdi.
-                        </p>
-                      )}
                     </div>
                   )}
                 </div>

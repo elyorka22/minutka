@@ -31,22 +31,12 @@ export async function getCurrentLocation(): Promise<GeolocationResult> {
       async (position) => {
         const { latitude, longitude } = position.coords;
         
-        // Получаем адрес через reverse geocoding
-        try {
-          const address = await reverseGeocode(latitude, longitude);
-          resolve({
-            latitude,
-            longitude,
-            address,
-          });
-        } catch (error) {
-          // Если reverse geocoding не удался, возвращаем только координаты
-          resolve({
-            latitude,
-            longitude,
-            address: `${latitude}, ${longitude}`,
-          });
-        }
+        // Возвращаем только координаты (без reverse geocoding)
+        // Адрес не нужен - курьер увидит позицию на карте
+        resolve({
+          latitude,
+          longitude,
+        });
       },
       (error) => {
         let errorMessage = 'Geolokatsiyani aniqlab bo\'lmadi.';

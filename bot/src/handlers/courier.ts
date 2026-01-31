@@ -164,6 +164,8 @@ export async function courierHandler(
           id,
           order_text,
           address,
+          latitude,
+          longitude,
           restaurant_id,
           user_id,
           restaurants(name),
@@ -204,6 +206,7 @@ export async function courierHandler(
       const user = orderDetails.users as any;
       const userPhone = user?.phone || 'Ko\'rsatilmagan';
       const address = orderDetails.address || 'Ko\'rsatilmagan';
+      const hasLocation = orderDetails.latitude && orderDetails.longitude;
       
       // Парсим общую сумму из order_text
       const totalMatch = orderDetails.order_text.match(/Jami:\s*(\d+)/i) || 
@@ -215,18 +218,26 @@ export async function courierHandler(
         `🆔 Buyurtma: #${orderId.slice(0, 8)}\n` +
         `🍽️ Restoran: ${restaurant?.name || 'Restoran'}\n` +
         `💰 Narx: ${total}\n` +
-        `📍 Manzil: ${address}\n` +
+        (hasLocation ? `📍 Geolokatsiya: ${orderDetails.latitude?.toFixed(6)}, ${orderDetails.longitude?.toFixed(6)}\n` : `📍 Manzil: ${address}\n`) +
         `📝 Buyurtma: ${orderDetails.order_text}\n` +
         `📞 Mijoz: \`${userPhone}\`\n\n` +
         `Yetkazib berishni yakunlaganingizdan so'ng, "Yetkazildi" tugmasini bosing.`;
 
-      // Создаем клавиатуру с кнопкой "Доставлен"
+      // Создаем клавиатуру с кнопкой "Доставлен" и "Открыть на карте" (если есть координаты)
+      const keyboardButtons: any[] = [
+        [{ text: '✅ Yetkazildi', callback_data: `courier:delivered:${orderId}` }]
+      ];
+      
+      // Добавляем кнопку "Открыть на карте" если есть координаты
+      if (hasLocation) {
+        const mapUrl = `https://www.google.com/maps?q=${orderDetails.latitude},${orderDetails.longitude}`;
+        keyboardButtons.push([
+          { text: '🗺️ Kartada ko\'rish', url: mapUrl }
+        ]);
+      }
+      
       const deliveredKeyboard = {
-        inline_keyboard: [
-          [
-            { text: '✅ Yetkazildi', callback_data: `courier:delivered:${orderId}` }
-          ]
-        ]
+        inline_keyboard: keyboardButtons
       };
 
       // Обновляем сообщение у курьера, который взял заказ
@@ -238,6 +249,20 @@ export async function courierHandler(
             reply_markup: deliveredKeyboard
           }
         );
+        
+        // Если есть координаты, отправляем также location для удобства
+        if (hasLocation && ctx.chat) {
+          try {
+            await ctx.telegram.sendLocation(
+              ctx.chat.id,
+              orderDetails.latitude!,
+              orderDetails.longitude!
+            );
+          } catch (locationError) {
+            console.error('Error sending location to courier:', locationError);
+            // Не критично, продолжаем работу
+          }
+        }
       } catch (error) {
         console.error('Error editing message:', error);
       }

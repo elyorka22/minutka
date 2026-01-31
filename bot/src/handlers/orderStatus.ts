@@ -101,7 +101,7 @@ export async function orderStatusHandler(
         // Получаем информацию о заказе
         const { data: order, error: orderError } = await supabase
           .from('orders')
-          .select('restaurant_id, order_text, address, user_id')
+          .select('restaurant_id, order_text, address, user_id, latitude, longitude')
           .eq('id', orderId)
           .single();
 
@@ -151,14 +151,16 @@ export async function orderStatusHandler(
           })
         });
 
-        // Уведомляем курьеров
+        // Уведомляем курьеров (передаем координаты для отображения на карте)
         const { notifyCouriersAboutOrder } = await import('../services/adminNotification');
         await notifyCouriersAboutOrder(orderId, {
           restaurantName: restaurant?.name || 'Restoran',
           orderText: order.order_text,
           address: order.address,
           userPhone: user?.phone || null,
-          total
+          total,
+          latitude: order.latitude,
+          longitude: order.longitude
         });
 
         // Обновляем сообщение

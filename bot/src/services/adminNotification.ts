@@ -243,6 +243,8 @@ export async function notifyCouriersAboutOrder(
     address: string | null;
     userPhone: string | null;
     total: string;
+    latitude?: number | null;
+    longitude?: number | null;
   }
 ) {
   if (!botInstance) {
@@ -255,8 +257,7 @@ export async function notifyCouriersAboutOrder(
     const { data: couriers, error } = await supabase
       .from('couriers')
       .select('telegram_id, telegram_chat_id, first_name')
-      .eq('is_active', true)
-      .not('telegram_chat_id', 'is', null);
+      .eq('is_active', true);
 
     if (error) {
       console.error('Error fetching active couriers:', error);
@@ -270,25 +271,38 @@ export async function notifyCouriersAboutOrder(
 
     const userPhone = orderData.userPhone || 'Ko\'rsatilmagan';
     const address = orderData.address || 'Ko\'rsatilmagan';
+    const hasLocation = orderData.latitude && orderData.longitude;
 
     const message = `📦 *Yangi buyurtma*\n\n` +
       `🆔 Buyurtma: #${orderId.slice(0, 8)}\n` +
       `🍽️ Restoran: ${orderData.restaurantName}\n` +
       `💰 Narx: ${orderData.total}\n` +
-      `📍 Manzil: ${address}\n` +
+      (hasLocation ? `📍 Geolokatsiya: ${orderData.latitude?.toFixed(6)}, ${orderData.longitude?.toFixed(6)}\n` : `📍 Manzil: ${address}\n`) +
       `📝 Buyurtma: ${orderData.orderText}\n` +
       `📞 Mijoz: \`${userPhone}\`\n\n` +
       `⚠️ *Kim birinchi olsa, shu buyurtmani oladi!*`;
 
-    // Создаем клавиатуру с кнопкой "Взять заказ"
-    const keyboard = Markup.inlineKeyboard([
-      Markup.button.callback('✅ Olmoq', `courier:take:${orderId}`)
-    ]);
+    // Создаем клавиатуру с кнопкой "Взять заказ" и кнопкой "Открыть на карте" (если есть координаты)
+    const keyboardButtons: any[] = [
+      [Markup.button.callback('✅ Olmoq', `courier:take:${orderId}`)]
+    ];
+    
+    // Добавляем кнопку "Открыть на карте" если есть координаты
+    if (hasLocation) {
+      const mapUrl = `https://www.google.com/maps?q=${orderData.latitude},${orderData.longitude}`;
+      keyboardButtons.push([
+        Markup.button.url('🗺️ Kartada ko\'rish', mapUrl)
+      ]);
+    }
+
+    const keyboard = Markup.inlineKeyboard(keyboardButtons);
 
     // Отправляем уведомление всем активным курьерам
     const notificationPromises = couriers.map(async (courier) => {
       try {
         const chatId = courier.telegram_chat_id || courier.telegram_id;
+        
+        // Отправляем сообщение
         const result = await botInstance!.telegram.sendMessage(
           chatId,
           message,
@@ -297,6 +311,21 @@ export async function notifyCouriersAboutOrder(
             reply_markup: keyboard.reply_markup
           }
         );
+        
+        // Если есть координаты, отправляем также location для удобства
+        if (hasLocation) {
+          try {
+            await botInstance!.telegram.sendLocation(
+              chatId,
+              orderData.latitude!,
+              orderData.longitude!
+            );
+          } catch (locationError) {
+            console.error(`Error sending location to courier ${courier.telegram_id}:`, locationError);
+            // Не критично, продолжаем работу
+          }
+        }
+        
         console.log(`Sent order notification to courier ${courier.telegram_id}, message_id: ${result.message_id}`);
         return { courier_id: courier.telegram_id, message_id: result.message_id };
       } catch (error: any) {
