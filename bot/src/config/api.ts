@@ -17,7 +17,7 @@ export async function apiRequest<T>(
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...options.headers
+      ...(options.headers || {})
     }
   });
 
