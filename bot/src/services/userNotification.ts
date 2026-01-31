@@ -56,15 +56,15 @@ export async function notifyUserAboutOrderStatus(
   const statusMessages: Record<string, string> = {
     accepted: '✅ *Buyurtmangiz qabul qilindi!*\n\nRestoran buyurtmangizni tayyorlashni boshladi.',
     ready: '🚀 *Buyurtmangiz tayyor!*\n\nYetkazib berishni kuting.',
-    assigned_to_courier: '🚚 *Buyurtma kuryerga yuborildi!*\n\nKuryer sizga yetkazib beradi.',
+    assigned_to_courier: '🚚 *Buyurtmangiz kuryerga topshirildi.*\n\nKuryer siz bilan bog\'lanadi.',
     cancelled: '❌ *Buyurtma bekor qilindi*\n\nRestoran buyurtmangizni bajarolmaydi.',
-    delivered: '✅ *Buyurtma yetkazildi!*\n\nMazali bo\'lsin! Rahmat!'
+    delivered: '✅ *Yoqimli ishtaha. Biz bilan qulay, oson va tez*'
   };
 
   let message = statusMessages[newStatus] || `📋 Buyurtma holati o'zgardi: ${newStatus}`;
   
-  // Добавляем информацию о заказе, если доступна
-  if (orderDetails) {
+  // Для assigned_to_courier и delivered всегда добавляем данные о заказе
+  if (orderDetails && (newStatus === 'assigned_to_courier' || newStatus === 'delivered')) {
     const restaurantName = (orderDetails as any).restaurants?.name || 'Restoran';
     message += `\n\n🆔 Buyurtma: #${orderId.slice(0, 8)}\n🍽️ Restoran: ${restaurantName}`;
     
