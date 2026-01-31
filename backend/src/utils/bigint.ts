@@ -11,7 +11,8 @@ export function serializeBigInt<T>(data: T): T {
     return data;
   }
 
-  if (data instanceof BigInt) {
+  // Проверяем, является ли значение BigInt (используем typeof, так как BigInt - примитивный тип)
+  if (typeof data === 'bigint') {
     return data.toString() as unknown as T;
   }
 
@@ -24,7 +25,8 @@ export function serializeBigInt<T>(data: T): T {
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {
         const value = (data as any)[key];
-        if (value instanceof BigInt) {
+        // Проверяем typeof, так как BigInt - примитивный тип, а не класс
+        if (typeof value === 'bigint') {
           result[key] = value.toString();
         } else if (typeof value === 'object' && value !== null) {
           result[key] = serializeBigInt(value);

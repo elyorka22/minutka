@@ -21,11 +21,8 @@ export const generalLimiter = rateLimit({
   skip: (req) => {
     return req.path === '/api/auth/login' || req.originalUrl === '/api/auth/login';
   },
-  // Настраиваем keyGenerator для правильной работы с trust proxy
-  keyGenerator: (req) => {
-    // Используем IP из заголовка X-Forwarded-For (если есть) или напрямую из req.ip
-    return req.ip || req.socket.remoteAddress || 'unknown';
-  },
+  // Убираем кастомный keyGenerator - express-rate-limit автоматически использует req.ip
+  // который правильно работает с trust proxy и IPv6
 });
 
 /**
@@ -42,10 +39,8 @@ export const strictLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skipSuccessfulRequests: true, // Не учитывать успешные запросы
-  // Настраиваем keyGenerator для правильной работы с trust proxy
-  keyGenerator: (req) => {
-    return req.ip || req.socket.remoteAddress || 'unknown';
-  },
+  // Убираем кастомный keyGenerator - express-rate-limit автоматически использует req.ip
+  // который правильно работает с trust proxy и IPv6
 });
 
 /**
@@ -61,9 +56,7 @@ export const createUpdateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
-  // Настраиваем keyGenerator для правильной работы с trust proxy
-  keyGenerator: (req) => {
-    return req.ip || req.socket.remoteAddress || 'unknown';
-  },
+  // Убираем кастомный keyGenerator - express-rate-limit автоматически использует req.ip
+  // который правильно работает с trust proxy и IPv6
 });
 

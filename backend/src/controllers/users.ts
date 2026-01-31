@@ -159,14 +159,18 @@ export async function createUser(req: Request, res: Response) {
   try {
     const { telegram_id, username, first_name, last_name, phone } = req.body;
 
-    // Если указан telegram_id, проверяем существование
+      // Если указан telegram_id, проверяем существование
     if (telegram_id) {
       const telegramId = BigInt(telegram_id);
-      const { data: existing } = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from('users')
         .select('*')
         .eq('telegram_id', telegramId)
         .maybeSingle();
+
+      if (existingError && existingError.code !== 'PGRST116') {
+        throw existingError;
+      }
 
       if (existing) {
         // Пользователь уже существует, возвращаем его
