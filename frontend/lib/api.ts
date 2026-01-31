@@ -148,10 +148,10 @@ export async function createOrder(orderData: {
   longitude?: number;
 }): Promise<Order> {
   try {
-    const response = await api.post<{ success: boolean; data: Order }>('/api/orders', orderData);
+    const response = await api.post<{ success: boolean; data?: Order; error?: string; message?: string }>('/api/orders', orderData);
     
     if (!response.data.success) {
-      throw new Error(response.data.error || 'Failed to create order');
+      throw new Error(response.data.error || response.data.message || 'Failed to create order');
     }
     
     if (!response.data.data) {
