@@ -246,6 +246,66 @@ export async function courierHandler(
       return;
     }
 
+    // Курьер нажал "Доставлен"
+    if (action === 'delivered') {
+      // Проверяем, что пользователь является курьером и взял этот заказ
+      const { data: courier, error: courierError } = await supabase
+        .from('couriers')
+        .select('id, telegram_id')
+        .eq('telegram_id', telegramId)
+        .single();
+
+      if (courierError || !courier) {
+        await ctx.answerCbQuery('❌ Siz kuryer emassiz');
+        return;
+      }
+
+      // Проверяем заказ
+      const { data: order, error: orderError } = await supabase
+        .from('orders')
+        .select('id, courier_id, status')
+        .eq('id', orderId)
+        .single();
+
+      if (orderError || !order) {
+        await ctx.answerCbQuery('❌ Buyurtma topilmadi');
+        return;
+      }
+
+      if (order.courier_id !== courier.id) {
+        await ctx.answerCbQuery('❌ Bu buyurtma sizga tegishli emas');
+        return;
+      }
+
+      // Обновляем статус заказа на delivered через API
+      try {
+        await apiRequest(`/api/orders/${orderId}/status`, {
+          method: 'PATCH',
+          headers: {
+            'x-telegram-id': String(telegramId)
+          },
+          body: JSON.stringify({
+            status: 'delivered',
+            changed_by: 'courier',
+            telegram_id: telegramId
+          })
+        });
+
+        // Обновляем сообщение
+        await ctx.editMessageText(
+          `✅ *Buyurtma yetkazildi!*\n\n` +
+          `Buyurtma #${orderId.slice(0, 8)} muvaffaqiyatli yetkazildi.`,
+          { parse_mode: 'Markdown' }
+        );
+
+        await ctx.answerCbQuery('✅ Buyurtma yetkazildi!');
+      } catch (error: any) {
+        console.error('Error updating order status to delivered:', error);
+        await ctx.answerCbQuery('❌ Xatolik yuz berdi');
+      }
+      return;
+    }
+
     // Обработка активации/деактивации через callback (для обратной совместимости)
     if (action === 'toggle_active') {
       // Перенаправляем на текстовый обработчик
