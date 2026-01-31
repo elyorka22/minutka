@@ -43,11 +43,19 @@ export async function getUsers(req: Request, res: Response) {
     // Конвертируем BigInt в строку для JSON сериализации
     const usersData = serializeBigInt(data || []);
 
+    // Используем JSON.stringify с кастомным replacer для гарантированной сериализации
+    const serialized = JSON.parse(JSON.stringify(usersData, (key, value) => {
+      if (typeof value === 'bigint') {
+        return value.toString();
+      }
+      return value;
+    }));
+
     const totalPages = Math.ceil((count || 0) / limitNum);
 
     res.json({
       success: true,
-      data: usersData as User[],
+      data: serialized as User[],
       pagination: {
         page: pageNum,
         limit: limitNum,
@@ -152,9 +160,17 @@ export async function getUserByTelegramId(req: Request, res: Response) {
       // Конвертируем BigInt в строку для JSON сериализации
       const usersData = serializeBigInt(data || []);
 
+      // Используем JSON.stringify с кастомным replacer для гарантированной сериализации
+      const serialized = JSON.parse(JSON.stringify(usersData, (key, value) => {
+        if (typeof value === 'bigint') {
+          return value.toString();
+        }
+        return value;
+      }));
+
       res.json({
         success: true,
-        data: usersData as User[]
+        data: serialized as User[]
       });
   } catch (error: any) {
     console.error('Error fetching user by telegram_id:', error);
