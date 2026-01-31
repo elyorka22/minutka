@@ -132,21 +132,65 @@ export async function notifyUserAboutOrderStatus(
       return;
     }
 
-    // Формируем сообщение
+    // Получаем детали заказа для более информативного сообщения
+    let orderDetails = null;
+    try {
+      const { data: order } = await supabase
+        .from('orders')
+        .select(`
+          id,
+          order_text,
+          restaurant_id,
+          restaurants(name)
+        `)
+        .eq('id', orderId)
+        .single();
+      
+      orderDetails = order;
+    } catch (error) {
+      console.error('Error fetching order details for notification:', error);
+    }
+
+    // Формируем сообщение с деталями заказа
     const statusMessages: Record<string, string> = {
       accepted: '✅ *Buyurtmangiz qabul qilindi!*\n\nRestoran buyurtmangizni tayyorlashni boshladi.',
       ready: '🚀 *Buyurtmangiz tayyor!*\n\nYetkazib berishni kuting.',
+      assigned_to_courier: '🚚 *Buyurtma kuryerga yuborildi!*\n\nKuryer sizga yetkazib beradi.',
       cancelled: '❌ *Buyurtma bekor qilindi*\n\nRestoran buyurtmangizni bajarolmaydi.',
-      delivered: '✅ *Buyurtma yetkazildi!*\n\nMazali bo\'lsin!'
+      delivered: '✅ *Buyurtma yetkazildi!*\n\nMazali bo\'lsin! Rahmat!'
     };
 
-    const message = statusMessages[newStatus] || `📋 Buyurtma holati o'zgardi: ${newStatus}`;
+    let message = statusMessages[newStatus] || `📋 Buyurtma holati o'zgardi: ${newStatus}`;
+    
+    // Добавляем информацию о заказе, если доступна
+    if (orderDetails) {
+      const restaurant = (orderDetails as any).restaurants;
+      const restaurantName = restaurant?.name || 'Restoran';
+      message += `\n\n🆔 Buyurtma: #${orderId.slice(0, 8)}\n🍽️ Restoran: ${restaurantName}`;
+      
+      // Парсим сумму из order_text
+      const totalMatch = orderDetails.order_text.match(/Jami:\s*(\d+)/i) || 
+                        orderDetails.order_text.match(/Total:\s*(\d+)/i) ||
+                        orderDetails.order_text.match(/💰\s*(\d+)/i);
+      if (totalMatch) {
+        message += `\n💰 Jami: ${totalMatch[1]} so'm`;
+      }
+    }
 
-    await sendTelegramMessage(
-      user.telegram_id,
-      message,
-      { parse_mode: 'Markdown' }
-    );
+    try {
+      await sendTelegramMessage(
+        user.telegram_id,
+        message,
+        { parse_mode: 'Markdown' }
+      );
+      console.log(`Sent order status notification to user ${user.telegram_id} for order ${orderId}, status: ${newStatus}`);
+    } catch (error: any) {
+      console.error('Error sending notification to user:', error);
+      // Если пользователь заблокировал бота, это нормально - не логируем как критическую ошибку
+      if (error.message?.includes('403') || error.message?.includes('blocked')) {
+        console.log(`User ${user.telegram_id} has blocked the bot, skipping notification`);
+      }
+    }
   } catch (error: any) {
     console.error('Error notifying user about order status:', error);
   }

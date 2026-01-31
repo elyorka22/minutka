@@ -4,12 +4,13 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '@/contexts/CartContext';
 import Image from 'next/image';
 import { createOrder } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { getCurrentLocation, isGeolocationSupported } from '@/lib/geolocation';
+import { getTelegramUserId } from '@/lib/telegram-webapp';
 
 interface CartProps {
   restaurantId: string;
@@ -31,6 +32,14 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
   const [latitude, setLatitude] = useState<number | null>(null);
   const [longitude, setLongitude] = useState<number | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+
+  // Автоматически определяем telegram_id из Telegram Web App при монтировании
+  useEffect(() => {
+    const telegramId = getTelegramUserId();
+    if (telegramId && !chatId) {
+      setChatId(telegramId);
+    }
+  }, []);
 
   const totalPrice = getTotalPrice();
   const totalItems = getTotalItems();
