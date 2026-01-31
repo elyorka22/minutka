@@ -25,6 +25,7 @@ import pharmaciesStoresRouter from './routes/pharmacies-stores';
 import pharmacyStoreCategoryRelationsRouter from './routes/pharmacy-store-category-relations';
 import couriersRouter from './routes/couriers';
 import { generalLimiter, strictLimiter, createUpdateLimiter } from './middleware/rateLimit';
+import { bigIntSerializerMiddleware } from './middleware/bigintSerializer';
 
 // Load environment variables
 dotenv.config();
@@ -70,6 +71,9 @@ app.set('trust proxy', 1);
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// BigInt serialization middleware - должен быть перед rate limiting
+app.use(bigIntSerializerMiddleware);
 
 // Rate limiting - применяется ко всем запросам
 app.use(generalLimiter);

@@ -194,27 +194,43 @@ export async function createUser(req: Request, res: Response) {
     if (telegram_id) {
       const telegramId = BigInt(telegram_id);
       // Используем .select() вместо .maybeSingle() чтобы избежать проблем с сериализацией
-      const { data: existingData, error: existingError } = await supabase
+      const existingResult = await supabase
         .from('users')
         .select('*')
         .eq('telegram_id', telegramId)
         .limit(1);
 
-      if (existingError && existingError.code !== 'PGRST116') {
-        throw existingError;
+      if (existingResult.error && existingResult.error.code !== 'PGRST116') {
+        throw existingResult.error;
       }
 
-      if (existingData && existingData.length > 0) {
-        const existing = existingData[0];
+      if (existingResult.data && existingResult.data.length > 0) {
+        const existing = existingResult.data[0];
+        
+        // Немедленная конвертация BigInt в строку
+        let telegramIdStr: string | null = null;
+        try {
+          if (existing.telegram_id !== null && existing.telegram_id !== undefined) {
+            if (typeof existing.telegram_id === 'bigint') {
+              telegramIdStr = existing.telegram_id.toString();
+            } else {
+              telegramIdStr = String(existing.telegram_id);
+            }
+          }
+        } catch (e) {
+          console.error('Error converting telegram_id:', e);
+          telegramIdStr = null;
+        }
+        
         // Пользователь уже существует, возвращаем его
         // Ручная конвертация BigInt в строку
         const userData: any = {
-          id: existing.id,
-          telegram_id: existing.telegram_id ? String(existing.telegram_id) : null,
-          username: existing.username,
-          first_name: existing.first_name,
-          last_name: existing.last_name,
-          phone: existing.phone,
+          id: String(existing.id),
+          telegram_id: telegramIdStr,
+          username: existing.username || null,
+          first_name: existing.first_name || null,
+          last_name: existing.last_name || null,
+          phone: existing.phone || null,
           created_at: existing.created_at,
           updated_at: existing.updated_at
         };
