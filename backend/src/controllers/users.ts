@@ -308,33 +308,51 @@ export async function createUser(req: Request, res: Response) {
     }
   } catch (error: any) {
     console.error('Error creating user:', error);
-    console.error('Error details:', {
-      message: error.message,
-      code: error.code,
-      details: error.details,
-      hint: error.hint
-    });
+    console.error('Error type:', typeof error);
+    console.error('Error constructor:', error?.constructor?.name);
     
     // Безопасная сериализация ошибки (без BigInt)
-    let errorMessage = error.message || 'Failed to create user';
-    if (typeof errorMessage === 'object') {
-      try {
-        errorMessage = JSON.stringify(errorMessage, (key, value) => {
-          if (typeof value === 'bigint') {
-            return value.toString();
-          }
-          return value;
-        });
-      } catch (e) {
-        errorMessage = 'Failed to create user';
+    let errorMessage = 'Failed to create user';
+    let errorCode = error?.code;
+    let errorDetails = null;
+    
+    try {
+      // Пытаемся извлечь сообщение об ошибке безопасным способом
+      if (error?.message) {
+        errorMessage = String(error.message);
       }
+      
+      if (error?.code) {
+        errorCode = String(error.code);
+      }
+      
+      // Пытаемся безопасно сериализовать детали ошибки
+      if (error?.details || error?.hint) {
+        errorDetails = {
+          details: error.details ? String(error.details) : null,
+          hint: error.hint ? String(error.hint) : null
+        };
+      }
+    } catch (e) {
+      console.error('Error extracting error details:', e);
     }
     
-    res.status(500).json({
+    // Отправляем безопасный ответ без BigInt
+    const errorResponse: any = {
       success: false,
       error: 'Failed to create user',
-      message: String(errorMessage)
-    });
+      message: errorMessage
+    };
+    
+    if (errorCode) {
+      errorResponse.code = errorCode;
+    }
+    
+    if (errorDetails) {
+      errorResponse.details = errorDetails;
+    }
+    
+    res.status(500).json(errorResponse);
   }
 }
 
