@@ -34,7 +34,13 @@ export default function AdminOrdersArchivePage() {
     async function fetchOrders() {
       try {
         const result = await getOrders(undefined, true); // archived = true
-        setOrders(result.data);
+        // Сортируем заказы по дате создания (новые сверху)
+        const sortedOrders = [...result.data].sort((a, b) => {
+          const dateA = new Date(a.created_at).getTime();
+          const dateB = new Date(b.created_at).getTime();
+          return dateB - dateA; // Убывание (новые сверху)
+        });
+        setOrders(sortedOrders);
       } catch (error) {
         console.error('Error fetching archived orders:', error);
       } finally {
