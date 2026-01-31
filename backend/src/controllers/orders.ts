@@ -360,7 +360,7 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
     // Проверка существования заказа
     const { data: existingOrder, error: orderError } = await supabase
       .from('orders')
-      .select('id, status, user_id, restaurant_id')
+      .select('id, status, user_id, restaurant_id, courier_id')
       .eq('id', id)
       .single();
 
@@ -375,8 +375,23 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
     if (req.user) {
       // Супер-админы могут обновлять статусы любых заказов
       if (req.user.role !== 'super_admin') {
+        // Курьеры могут обновлять статус на 'delivered' только для заказов, которые им назначены
+        if (req.user.role === 'courier') {
+          if (status !== 'delivered') {
+            return res.status(403).json({
+              success: false,
+              error: 'Forbidden: Couriers can only change status to delivered'
+            });
+          }
+          if (existingOrder.courier_id !== req.user.courier_id) {
+            return res.status(403).json({
+              success: false,
+              error: 'Forbidden: You can only update orders assigned to you'
+            });
+          }
+        }
         // Админы ресторана и повары могут обновлять только заказы своего ресторана
-        if ((req.user.role === 'restaurant_admin' || req.user.role === 'chef') 
+        else if ((req.user.role === 'restaurant_admin' || req.user.role === 'chef') 
             && req.user.restaurant_id !== existingOrder.restaurant_id) {
           return res.status(403).json({
             success: false,

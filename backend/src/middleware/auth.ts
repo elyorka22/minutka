@@ -9,9 +9,10 @@ import { Logger } from '../services/logger';
 export interface AuthenticatedRequest extends Request {
   user?: {
     telegram_id: string;
-    role: 'super_admin' | 'restaurant_admin' | 'chef' | 'mijoz';
+    role: 'super_admin' | 'restaurant_admin' | 'chef' | 'mijoz' | 'courier';
     userData: any;
     restaurant_id?: string; // Для админов ресторана и поваров
+    courier_id?: string; // Для курьеров
   };
 }
 
@@ -40,7 +41,7 @@ export async function requireStaffAuth(
     const telegramId = BigInt(telegram_id);
 
     // Проверяем все роли сотрудников параллельно
-    const [superAdminResult, chefResult, restaurantAdminResult] = await Promise.all([
+    const [superAdminResult, chefResult, restaurantAdminResult, courierResult] = await Promise.all([
       supabase
         .from('super_admins')
         .select('*')
@@ -55,6 +56,12 @@ export async function requireStaffAuth(
         .maybeSingle(),
       supabase
         .from('restaurant_admins')
+        .select('*')
+        .eq('telegram_id', telegramId)
+        .eq('is_active', true)
+        .maybeSingle(),
+      supabase
+        .from('couriers')
         .select('*')
         .eq('telegram_id', telegramId)
         .eq('is_active', true)
@@ -101,6 +108,14 @@ export async function requireStaffAuth(
         restaurantIdType: typeof restaurantId
       });
       
+      return next();
+    } else if (courierResult.data && !courierResult.error) {
+      req.user = {
+        telegram_id: telegram_id,
+        role: 'courier',
+        userData: courierResult.data,
+        courier_id: courierResult.data.id,
+      };
       return next();
     }
 
