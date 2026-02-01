@@ -14,22 +14,27 @@ interface PharmacyStore {
   name: string;
   description: string | null;
   phone: string;
-  working_hours: any;
+  working_hours: {
+    start_day?: string;
+    end_day?: string;
+    start_time?: string;
+    end_time?: string;
+    closed_days?: string[];
+  } | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
 }
 
-const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-const dayNames: { [key: string]: string } = {
-  monday: 'Dushanba',
-  tuesday: 'Seshanba',
-  wednesday: 'Chorshanba',
-  thursday: 'Payshanba',
-  friday: 'Juma',
-  saturday: 'Shanba',
-  sunday: 'Yakshanba',
-};
+const DAYS_OF_WEEK = [
+  { key: 'Dushanba', label: 'Dushanba' },
+  { key: 'Seshanba', label: 'Seshanba' },
+  { key: 'Chorshanba', label: 'Chorshanba' },
+  { key: 'Payshanba', label: 'Payshanba' },
+  { key: 'Juma', label: 'Juma' },
+  { key: 'Shanba', label: 'Shanba' },
+  { key: 'Yakshanba', label: 'Yakshanba' },
+];
 
 export default function PharmaciesStoresPage() {
   const [pharmaciesStores, setPharmaciesStores] = useState<PharmacyStore[]>([]);
@@ -40,7 +45,13 @@ export default function PharmaciesStoresPage() {
     name: '',
     description: '',
     phone: '',
-    working_hours: {} as any,
+    working_hours: {
+      start_day: '',
+      end_day: '',
+      start_time: '',
+      end_time: '',
+      closed_days: [] as string[],
+    },
     is_active: true,
   });
   const [saving, setSaving] = useState(false);
@@ -64,11 +75,24 @@ export default function PharmaciesStoresPage() {
 
   const handleEdit = (pharmacyStore: PharmacyStore) => {
     setEditing(pharmacyStore.id);
+    const workingHours = pharmacyStore.working_hours || {
+      start_day: '',
+      end_day: '',
+      start_time: '',
+      end_time: '',
+      closed_days: [],
+    };
     setFormData({
       name: pharmacyStore.name,
       description: pharmacyStore.description || '',
       phone: pharmacyStore.phone,
-      working_hours: pharmacyStore.working_hours || {},
+      working_hours: {
+        start_day: workingHours.start_day || '',
+        end_day: workingHours.end_day || '',
+        start_time: workingHours.start_time || '',
+        end_time: workingHours.end_time || '',
+        closed_days: workingHours.closed_days || [],
+      },
       is_active: pharmacyStore.is_active,
     });
     setShowAddForm(false);
@@ -81,7 +105,13 @@ export default function PharmaciesStoresPage() {
       name: '',
       description: '',
       phone: '',
-      working_hours: {},
+      working_hours: {
+        start_day: '',
+        end_day: '',
+        start_time: '',
+        end_time: '',
+        closed_days: [],
+      },
       is_active: true,
     });
   };
@@ -153,7 +183,13 @@ export default function PharmaciesStoresPage() {
               name: '',
               description: '',
               phone: '',
-              working_hours: {},
+              working_hours: {
+                start_day: '',
+                end_day: '',
+                start_time: '',
+                end_time: '',
+                closed_days: [],
+              },
               is_active: true,
             });
           }}
@@ -210,24 +246,122 @@ export default function PharmaciesStoresPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Время работы
               </label>
-              <div className="space-y-2 max-w-full">
-                {daysOfWeek.map((day) => (
-                  <div key={day} className="flex items-center gap-2 flex-wrap">
-                    <label className="w-28 sm:w-32 text-sm text-gray-700 flex-shrink-0">{dayNames[day]}:</label>
-                    <input
-                      type="text"
-                      value={formData.working_hours[day] || ''}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      День начала работы
+                    </label>
+                    <select
+                      value={formData.working_hours.start_day}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          working_hours: { ...formData.working_hours, [day]: e.target.value },
+                          working_hours: { ...formData.working_hours, start_day: e.target.value },
                         })
                       }
-                      className="flex-1 min-w-0 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
-                      placeholder="09:00-22:00"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
+                    >
+                      <option value="">Tanlang</option>
+                      {DAYS_OF_WEEK.map((day) => (
+                        <option key={day.key} value={day.key}>
+                          {day.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      День окончания работы
+                    </label>
+                    <select
+                      value={formData.working_hours.end_day}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          working_hours: { ...formData.working_hours, end_day: e.target.value },
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
+                    >
+                      <option value="">Tanlang</option>
+                      {DAYS_OF_WEEK.map((day) => (
+                        <option key={day.key} value={day.key}>
+                          {day.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Время начала
+                    </label>
+                    <input
+                      type="time"
+                      value={formData.working_hours.start_time}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          working_hours: { ...formData.working_hours, start_time: e.target.value },
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
+                      style={{ color: '#111827' }}
                     />
                   </div>
-                ))}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Время окончания
+                    </label>
+                    <input
+                      type="time"
+                      value={formData.working_hours.end_time}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          working_hours: { ...formData.working_hours, end_time: e.target.value },
+                        })
+                      }
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-gray-900 bg-white"
+                      style={{ color: '#111827' }}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Закрытые дни
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {DAYS_OF_WEEK.map((day) => {
+                      const isClosed = formData.working_hours.closed_days?.includes(day.key) || false;
+                      return (
+                        <button
+                          key={day.key}
+                          type="button"
+                          onClick={() => {
+                            const closedDays = formData.working_hours.closed_days || [];
+                            const newClosedDays = isClosed
+                              ? closedDays.filter((d) => d !== day.key)
+                              : [...closedDays, day.key];
+                            setFormData({
+                              ...formData,
+                              working_hours: { ...formData.working_hours, closed_days: newClosedDays },
+                            });
+                          }}
+                          className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
+                            isClosed
+                              ? 'bg-red-100 text-red-800 hover:bg-red-200'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {day.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
             <div className="flex items-center">
@@ -279,11 +413,19 @@ export default function PharmaciesStoresPage() {
                 {pharmacyStore.working_hours && (
                   <div className="mt-2">
                     <p className="font-medium mb-1">Время работы:</p>
-                    {Object.entries(pharmacyStore.working_hours).slice(0, 2).map(([day, hours]) => (
-                      <p key={day} className="text-xs">
-                        {dayNames[day]}: {String(hours)}
+                    {pharmacyStore.working_hours.start_day && pharmacyStore.working_hours.end_day && (
+                      <p className="text-xs">
+                        {pharmacyStore.working_hours.start_day} dan {pharmacyStore.working_hours.end_day} gacha
+                        {pharmacyStore.working_hours.start_time && pharmacyStore.working_hours.end_time && (
+                          <> {pharmacyStore.working_hours.start_time} dan {pharmacyStore.working_hours.end_time} gacha</>
+                        )}
                       </p>
-                    ))}
+                    )}
+                    {pharmacyStore.working_hours.closed_days && pharmacyStore.working_hours.closed_days.length > 0 && (
+                      <p className="text-xs text-red-600">
+                        Yopiq: {pharmacyStore.working_hours.closed_days.join(', ')}
+                      </p>
+                    )}
                   </div>
                 )}
                 <p>Статус: {pharmacyStore.is_active ? '✅ Активна' : '❌ Неактивна'}</p>
