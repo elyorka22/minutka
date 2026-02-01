@@ -647,6 +647,26 @@ export async function getStats(): Promise<any> {
   }
 }
 
+export async function getRestaurantsStats(): Promise<Array<{
+  restaurant_id: string;
+  restaurant_name: string;
+  is_active: boolean;
+  total_orders: number;
+  total_revenue: number;
+  average_order_value: number;
+}>> {
+  try {
+    const response = await api.get<{ success: boolean; data: any[] }>('/api/stats/restaurants');
+    if (!response.data.success) {
+      throw new Error(response.data.error || 'Failed to fetch restaurants stats');
+    }
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching restaurants stats:', error);
+    throw error;
+  }
+}
+
 export async function getRestaurantStats(restaurantId: string): Promise<any> {
   try {
     const response = await api.get<{ success: boolean; data: any }>(`/api/stats/restaurant/${restaurantId}`);

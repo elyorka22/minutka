@@ -275,3 +275,100 @@ export async function getRestaurantStats(req: Request, res: Response) {
   }
 }
 
+/**
+ * GET /api/stats/restaurants
+ * Получить статистику по всем ресторанам за месяц
+ */
+export async function getRestaurantsStats(req: Request, res: Response) {
+  try {
+    // Получаем начало и конец текущего месяца
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    monthStart.setHours(0, 0, 0, 0);
+    const monthStartISO = monthStart.toISOString();
+    
+    const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    monthEnd.setHours(23, 59, 59, 999);
+    const monthEndISO = monthEnd.toISOString();
+
+    // Получаем все рестораны
+    const { data: restaurants, error: restaurantsError } = await supabase
+      .from('restaurants')
+      .select('id, name, is_active')
+      .order('name', { ascending: true });
+
+    if (restaurantsError) {
+      throw restaurantsError;
+    }
+
+    if (!restaurants || restaurants.length === 0) {
+      return res.json({
+        success: true,
+        data: []
+      });
+    }
+
+    // Для каждого ресторана получаем статистику за месяц
+    const restaurantsStats = await Promise.all(
+      restaurants.map(async (restaurant) => {
+        // Получаем все заказы ресторана за месяц
+        const { data: orders, error: ordersError } = await supabase
+          .from('orders')
+          .select('id, order_text, status, created_at')
+          .eq('restaurant_id', restaurant.id)
+          .gte('created_at', monthStartISO)
+          .lte('created_at', monthEndISO);
+
+        if (ordersError) {
+          console.error(`Error fetching orders for restaurant ${restaurant.id}:`, ordersError);
+          return {
+            restaurant_id: restaurant.id,
+            restaurant_name: restaurant.name,
+            is_active: restaurant.is_active,
+            total_orders: 0,
+            total_revenue: 0,
+            average_order_value: 0
+          };
+        }
+
+        // Рассчитываем статистику
+        const totalOrders = orders?.length || 0;
+        
+        // Рассчитываем выручку из всех заказов (не только доставленных, так как пользователь может хотеть видеть все)
+        const totalRevenue = (orders || []).reduce((sum, order) => {
+          return sum + parseOrderTotal(order.order_text);
+        }, 0);
+
+        // Средний чек
+        const averageOrderValue = totalOrders > 0 
+          ? Math.round(totalRevenue / totalOrders)
+          : 0;
+
+        return {
+          restaurant_id: restaurant.id,
+          restaurant_name: restaurant.name,
+          is_active: restaurant.is_active,
+          total_orders: totalOrders,
+          total_revenue: totalRevenue,
+          average_order_value: averageOrderValue
+        };
+      })
+    );
+
+    // Сортируем по количеству заказов (по убыванию)
+    restaurantsStats.sort((a, b) => b.total_orders - a.total_orders);
+
+    res.json({
+      success: true,
+      data: restaurantsStats
+    });
+  } catch (error: any) {
+    console.error('Error fetching restaurants stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch restaurants stats',
+      message: error.message
+    });
+  }
+}
+
