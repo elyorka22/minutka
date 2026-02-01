@@ -35,7 +35,7 @@ export default async function RestaurantPage({ params }: PageProps) {
 
   // Разделяем блюда на баннеры и обычные
   const bannerItems = menuItems.filter((item: MenuItemType) => item.is_banner === true);
-  const regularItems = menuItems.filter((item: MenuItemType) => !item.is_banner || item.is_banner === false);
+  const regularItems = menuItems.filter((item: MenuItemType) => !item.is_banner);
 
   // Группируем обычные блюда по категориям (если категории есть) или показываем все блюда
   const menuByCategory: MenuCategory[] = [];
