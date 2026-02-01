@@ -63,7 +63,7 @@ export default function MenuItemBanner({ item }: MenuItemBannerProps) {
     >
       {/* Большая картинка */}
       {item.image_url && (
-        <div className="relative w-full h-64 md:h-80">
+        <div className="relative w-full h-48 md:h-56">
           <Image
             src={item.image_url}
             alt={item.name}
@@ -77,30 +77,30 @@ export default function MenuItemBanner({ item }: MenuItemBannerProps) {
             <button
               onClick={handleAddClick}
               disabled={!item.is_available}
-              className="absolute bottom-4 right-4 bg-primary-500 text-white rounded-full w-14 h-14 flex items-center justify-center hover:bg-primary-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed shadow-lg"
+              className="absolute bottom-3 right-3 bg-primary-500 text-white rounded-full w-12 h-12 flex items-center justify-center hover:bg-primary-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed shadow-lg"
               aria-label="Savatchaga qo'shish"
             >
-              <span className="text-2xl font-bold">+</span>
+              <span className="text-xl font-bold">+</span>
             </button>
           ) : (
-            <div className="absolute bottom-4 right-4 flex items-center gap-3 bg-white rounded-full px-3 py-2 shadow-lg">
+            <div className="absolute bottom-3 right-3 flex items-center gap-2 bg-white rounded-full px-2 py-1 shadow-lg">
               <button
                 onClick={handleDecrease}
-                className="bg-gray-200 text-gray-700 rounded-full w-10 h-10 flex items-center justify-center hover:bg-gray-300 transition-colors"
+                className="bg-gray-200 text-gray-700 rounded-full w-9 h-9 flex items-center justify-center hover:bg-gray-300 transition-colors"
                 aria-label="Miqdorni kamaytirish"
               >
-                <span className="text-xl font-bold">−</span>
+                <span className="text-lg font-bold">−</span>
               </button>
-              <span className="text-lg font-semibold text-gray-900 min-w-[2rem] text-center">
+              <span className="text-base font-semibold text-gray-900 min-w-[1.5rem] text-center">
                 {cartItem?.quantity || 0}
               </span>
               <button
                 onClick={handleIncrease}
                 disabled={!item.is_available}
-                className="bg-primary-500 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-primary-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                className="bg-primary-500 text-white rounded-full w-9 h-9 flex items-center justify-center hover:bg-primary-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                 aria-label="Miqdorni oshirish"
               >
-                <span className="text-xl font-bold">+</span>
+                <span className="text-lg font-bold">+</span>
               </button>
             </div>
           )}
@@ -108,10 +108,10 @@ export default function MenuItemBanner({ item }: MenuItemBannerProps) {
       )}
       
       {/* Контент под картинкой */}
-      <div className="p-6">
+      <div className="p-4">
         {/* Название блюда */}
         <h3
-          className={`text-xl md:text-2xl font-bold mb-2 ${
+          className={`text-lg md:text-xl font-bold mb-1 ${
             !item.is_available ? 'text-gray-400' : 'text-gray-900'
           }`}
         >
@@ -120,7 +120,7 @@ export default function MenuItemBanner({ item }: MenuItemBannerProps) {
         
         {/* Статус доступности */}
         {item.is_available === false && (
-          <p className="text-sm text-red-600 font-semibold mb-3">
+          <p className="text-xs text-red-600 font-semibold mb-2">
             Hozir mavjud emas
           </p>
         )}
@@ -128,7 +128,7 @@ export default function MenuItemBanner({ item }: MenuItemBannerProps) {
         {/* Описание */}
         {item.description && (
           <p
-            className={`text-sm md:text-base mb-4 leading-relaxed ${
+            className={`text-xs md:text-sm mb-3 leading-relaxed line-clamp-2 ${
               !item.is_available ? 'text-gray-400' : 'text-gray-600'
             }`}
           >
@@ -139,7 +139,7 @@ export default function MenuItemBanner({ item }: MenuItemBannerProps) {
         {/* Цена */}
         <div className="flex items-center justify-between">
           <span
-            className={`text-xl md:text-2xl font-bold ${
+            className={`text-lg md:text-xl font-bold ${
               !item.is_available ? 'text-gray-400' : 'text-primary-600'
             }`}
           >
