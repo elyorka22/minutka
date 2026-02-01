@@ -151,6 +151,7 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
         category: category || null, // Категория опциональна
         image_url: image_url || null,
         is_available: is_available ?? true,
+        is_banner: is_banner ?? false,
       })
       .select()
       .single();
@@ -174,7 +175,7 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
 export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, price, category, image_url, is_available } = req.body;
+    const { name, description, price, category, image_url, is_available, is_banner } = req.body;
     
     // Логируем входящий запрос
     console.log('updateMenuItem called:', {
@@ -240,7 +241,8 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
       description === undefined && 
       price === undefined && 
       category === undefined && 
-      image_url === undefined;
+      image_url === undefined &&
+      is_banner === undefined;
     
     // Логируем для отладки
     console.log('updateMenuItem - Request details:', {
@@ -248,7 +250,7 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
       userId: req.user?.telegram_id,
       userRole: req.user?.role,
       onlyAvailabilityUpdate,
-      body: { is_available, name, description, price, category, image_url }
+      body: { is_available, is_banner, name, description, price, category, image_url }
     });
 
     // Супер-админы могут обновлять блюда любых ресторанов
@@ -270,7 +272,7 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
         // Разрешаем без проверок - просто продолжаем выполнение
       } 
       // Если is_available НЕ обновляется, но обновляются другие поля - проверяем права
-      else if (name !== undefined || description !== undefined || price !== undefined || category !== undefined || image_url !== undefined) {
+      else if (name !== undefined || description !== undefined || price !== undefined || category !== undefined || image_url !== undefined || is_banner !== undefined) {
         // Для полного обновления (без is_available) используем строгую проверку
         if (!req.user.restaurant_id) {
           console.error(`${req.user.role} has no restaurant_id for full update`);

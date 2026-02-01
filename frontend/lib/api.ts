@@ -370,6 +370,7 @@ export async function createMenuItem(menuItemData: {
   category?: string | null;
   image_url?: string | null;
   is_available?: boolean;
+  is_banner?: boolean;
 }): Promise<any> {
   try {
     const response = await api.post<{ success: boolean; data: any }>('/api/menu', menuItemData);
