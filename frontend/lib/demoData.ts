@@ -224,6 +224,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Пицца',
       image_url: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&h=300&fit=crop',
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -235,6 +236,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Пицца',
       image_url: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400&h=300&fit=crop',
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -246,6 +248,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Пицца',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -257,6 +260,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Паста',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -268,6 +272,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Паста',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -279,6 +284,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Десерты',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     }
   ],
@@ -292,6 +298,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Роллы',
       image_url: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=400&h=300&fit=crop',
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -303,6 +310,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Роллы',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -314,6 +322,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Сеты',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -325,6 +334,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Суши',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -336,6 +346,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Супы',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     }
   ],
@@ -349,6 +360,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Бургеры',
       image_url: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop',
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -360,6 +372,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Бургеры',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -371,6 +384,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Гарниры',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -382,6 +396,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Напитки',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     }
   ],
@@ -395,6 +410,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Шашлыки',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -406,6 +422,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Хинкали',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -417,6 +434,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Хачапури',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     }
   ],
@@ -430,6 +448,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Кофе',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -441,6 +460,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Кофе',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -452,6 +472,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Выпечка',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     }
   ],
@@ -465,6 +486,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Основные блюда',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -476,6 +498,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Супы',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     },
     {
@@ -487,6 +510,7 @@ export const demoMenuItems: Record<string, MenuItem[]> = {
       category: 'Основные блюда',
       image_url: null,
       is_available: true,
+      is_banner: false,
       created_at: new Date().toISOString()
     }
   ]
