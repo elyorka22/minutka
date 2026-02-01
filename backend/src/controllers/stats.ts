@@ -50,7 +50,8 @@ export async function getStats(req: Request, res: Response) {
       bannersResult,
       todayOrdersResult,
       deliveredOrdersResult,
-      todayDeliveredOrdersResult
+      todayDeliveredOrdersResult,
+      uniqueOrderUsersResult
     ] = await Promise.all([
       // Всего ресторанов
       supabase.from('restaurants').select('id', { count: 'exact', head: true }),
@@ -79,7 +80,12 @@ export async function getStats(req: Request, res: Response) {
         .from('orders')
         .select('order_text')
         .eq('status', 'delivered')
-        .gte('created_at', todayISO)
+        .gte('created_at', todayISO),
+      // Уникальные пользователи, которые делали заказы (по user_telegram_id)
+      supabase
+        .from('orders')
+        .select('user_telegram_id')
+        .not('user_telegram_id', 'is', null)
     ]);
 
     // Обрабатываем ошибки
@@ -92,7 +98,8 @@ export async function getStats(req: Request, res: Response) {
       bannersResult.error,
       todayOrdersResult.error,
       deliveredOrdersResult.error,
-      todayDeliveredOrdersResult.error
+      todayDeliveredOrdersResult.error,
+      uniqueOrderUsersResult.error
     ].filter(Boolean);
 
     if (errors.length > 0) {
@@ -116,12 +123,25 @@ export async function getStats(req: Request, res: Response) {
       ? Math.round(totalRevenue / deliveredOrders.length)
       : 0;
 
+    // Подсчитываем уникальных пользователей, которые делали заказы
+    const uniqueOrderUsers = uniqueOrderUsersResult.data || [];
+    const uniqueUserTelegramIds = new Set(
+      uniqueOrderUsers
+        .map((order: any) => order.user_telegram_id)
+        .filter((id: any) => id !== null && id !== undefined)
+    );
+    const uniqueOrderUsersCount = uniqueUserTelegramIds.size;
+
+    // Используем количество уникальных пользователей из заказов, если оно больше
+    // Это более точная метрика, так как показывает реальных активных пользователей
+    const totalUsers = Math.max(usersResult.count || 0, uniqueOrderUsersCount);
+
     const stats = {
       totalRestaurants: restaurantsResult.count || 0,
       activeRestaurants: activeRestaurantsResult.count || 0,
       totalOrders: ordersResult.count || 0,
       pendingOrders: pendingOrdersResult.count || 0,
-      totalUsers: usersResult.count || 0,
+      totalUsers, // Реальные пользователи бота (максимум из users с telegram_id и уникальных из заказов)
       totalBanners: bannersResult.count || 0,
       todayOrders: todayOrdersResult.count || 0,
       todayRevenue,
