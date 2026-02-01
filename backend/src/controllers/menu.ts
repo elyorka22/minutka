@@ -82,7 +82,7 @@ export async function getMenuItemById(req: AuthenticatedRequest, res: Response) 
  */
 export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, name, description, price, category, image_url, is_available } = req.body;
+    const { restaurant_id, name, description, price, category, image_url, is_available, is_banner } = req.body;
 
     // Валидация обязательных полей
     if (!restaurant_id || !name || price === undefined) {

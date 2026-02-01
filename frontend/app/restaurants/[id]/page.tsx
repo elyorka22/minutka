@@ -7,6 +7,7 @@ import { getRestaurantById, getBanners, getMenuItems } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import MenuItem from '@/components/MenuItem';
+import MenuItemBanner from '@/components/MenuItemBanner';
 import Cart from '@/components/Cart';
 import { MenuCategory, MenuItem as MenuItemType } from '@/lib/types';
 import TableBookingButton from '@/components/TableBookingButton';
@@ -32,18 +33,22 @@ export default async function RestaurantPage({ params }: PageProps) {
     notFound();
   }
 
-  // Группируем меню по категориям (если категории есть) или показываем все блюда
+  // Разделяем блюда на баннеры и обычные
+  const bannerItems = menuItems.filter((item: MenuItemType) => item.is_banner === true);
+  const regularItems = menuItems.filter((item: MenuItemType) => !item.is_banner || item.is_banner === false);
+
+  // Группируем обычные блюда по категориям (если категории есть) или показываем все блюда
   const menuByCategory: MenuCategory[] = [];
-  if (menuItems.length > 0) {
+  if (regularItems.length > 0) {
     // Если у всех блюд категория null, просто показываем все в одной группе
-    const hasCategories = menuItems.some(item => item.category !== null);
+    const hasCategories = regularItems.some(item => item.category !== null);
     
     if (!hasCategories) {
       // Все блюда без категорий - показываем в одной группе "Меню"
-      menuByCategory.push({ name: 'Меню', items: menuItems });
+      menuByCategory.push({ name: 'Меню', items: regularItems });
     } else {
       // Группируем по категориям, игнорируя блюда с null категорией
-      menuItems.forEach((item: MenuItemType) => {
+      regularItems.forEach((item: MenuItemType) => {
         if (item.category === null) {
           // Блюда без категории добавляем в группу "Меню"
           const defaultCategory = menuByCategory.find(c => c.name === 'Меню');
@@ -135,7 +140,19 @@ export default async function RestaurantPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Menu Section */}
+          {/* Banner Items Section - Большие баннеры для блюд */}
+          {bannerItems.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Tavsiya etamiz</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {bannerItems.map((item) => (
+                  <MenuItemBanner key={item.id} item={item} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Regular Menu Section - Обычные карточки блюд */}
           {menuByCategory.length > 0 && (
             <div className="mb-8">
               {menuByCategory.map((category) => (

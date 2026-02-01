@@ -210,6 +210,7 @@ export default function RestaurantAdminMenuPage() {
                   category: item.category,
                   image_url: item.image_url,
                   is_available: item.is_available,
+                  is_banner: item.is_banner,
                 });
                 setMenuItems((prevItems) => [...prevItems, created]);
                 showSuccess('Блюдо успешно создано!');
@@ -245,6 +246,7 @@ function MenuItemFormModal({
     price: item?.price?.toString() || '',
     image_url: item?.image_url || '',
     is_available: item?.is_available ?? true,
+    is_banner: item?.is_banner ?? false,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -258,6 +260,7 @@ function MenuItemFormModal({
       category: null, // Категория не используется для блюд ресторана
       image_url: formData.image_url || null,
       is_available: formData.is_available,
+      is_banner: formData.is_banner,
       created_at: item?.created_at || new Date().toISOString(),
     };
     onSave(newItem);
@@ -326,16 +329,34 @@ function MenuItemFormModal({
               required={false}
             />
 
-            <div>
-              <label className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.is_available}
-                  onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
-                  className="mr-2"
-                />
-                <span className="text-sm text-gray-700">В наличии</span>
-              </label>
+            <div className="space-y-3">
+              <div>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_available}
+                    onChange={(e) => setFormData({ ...formData, is_available: e.target.checked })}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">В наличии</span>
+                </label>
+              </div>
+              <div>
+                <label className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={formData.is_banner}
+                    onChange={(e) => setFormData({ ...formData, is_banner: e.target.checked })}
+                    className="mr-2"
+                  />
+                  <span className="text-sm text-gray-700">
+                    Баннер (большое отображение для ассорти, корпоративных предложений)
+                  </span>
+                </label>
+                <p className="text-xs text-gray-500 mt-1 ml-6">
+                  Блюда с баннером отображаются в большом формате в начале страницы
+                </p>
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 pt-4">

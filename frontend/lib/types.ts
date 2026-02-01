@@ -28,6 +28,7 @@ export interface MenuItem {
   category: string | null; // Категория не используется для блюд ресторана
   image_url: string | null;
   is_available: boolean;
+  is_banner: boolean; // Помечает блюдо как баннер для большого отображения
   created_at: string;
 }
 

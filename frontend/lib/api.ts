@@ -387,6 +387,7 @@ export async function updateMenuItem(id: string, menuItemData: {
   category?: string | null;
   image_url?: string | null;
   is_available?: boolean;
+  is_banner?: boolean;
 }): Promise<any> {
   try {
     const response = await api.patch<{ success: boolean; data: any }>(`/api/menu/${id}`, menuItemData);
