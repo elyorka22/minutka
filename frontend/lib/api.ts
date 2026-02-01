@@ -655,16 +655,11 @@ export async function getRestaurantsStats(): Promise<Array<{
   total_revenue: number;
   average_order_value: number;
 }>> {
-  try {
-    const response = await api.get<{ success: boolean; data: any[] }>('/api/stats/restaurants');
-    if (!response.data.success) {
-      throw new Error(response.data.error || 'Failed to fetch restaurants stats');
-    }
-    return response.data.data;
-  } catch (error) {
-    console.error('Error fetching restaurants stats:', error);
-    throw error;
+  const response = await api.get<{ success: boolean; data: any[]; error?: string }>('/api/stats/restaurants');
+  if (!response.data.success) {
+    throw new Error(response.data.error || 'Failed to fetch restaurants stats');
   }
+  return response.data.data;
 }
 
 export async function getRestaurantStats(restaurantId: string): Promise<any> {
