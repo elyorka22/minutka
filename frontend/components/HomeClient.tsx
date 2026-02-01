@@ -180,7 +180,11 @@ export default function HomeClient({
       </section>
 
       {/* Top Banners Carousel */}
-      {banners.length > 0 && <BannerCarousel banners={banners} />}
+      {banners.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
+          <BannerCarousel banners={banners} />
+        </section>
+      )}
 
       {/* Restaurant Categories Carousel */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
