@@ -60,8 +60,8 @@ export async function getStats(req: Request, res: Response) {
       supabase.from('orders').select('id', { count: 'exact', head: true }),
       // Заказов в ожидании
       supabase.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-      // Всего пользователей
-      supabase.from('users').select('id', { count: 'exact', head: true }),
+      // Всего пользователей бота (только с telegram_id - реальные пользователи)
+      supabase.from('users').select('id', { count: 'exact', head: true }).not('telegram_id', 'is', null),
       // Всего баннеров
       supabase.from('banners').select('id', { count: 'exact', head: true }),
       // Заказов сегодня
