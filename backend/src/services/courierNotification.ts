@@ -50,8 +50,9 @@ async function sendTelegramMessage(chatId: number, message: string, options?: {
 }
 
 /**
- * Уведомить всех активных курьеров о заказе
+ * Уведомить активных курьеров о заказе
  * Кто первый нажмет кнопку "Взять заказ" - тот получит заказ, у остальных заказ исчезнет
+ * @param restaurantId - если указан, уведомляются только курьеры этого ресторана, иначе - общие курьеры (restaurant_id IS NULL)
  */
 export async function notifyCouriersAboutOrder(
   orderId: string,
@@ -61,17 +62,31 @@ export async function notifyCouriersAboutOrder(
     address: string | null;
     userPhone: string | null;
     total: string;
-  }
+  },
+  restaurantId?: string | null
 ): Promise<Array<{ courier_id: number; message_id: number }> | null> {
   try {
-    console.log(`[Courier Notification] Starting notification for order ${orderId}`);
+    console.log(`[Courier Notification] Starting notification for order ${orderId}, restaurantId: ${restaurantId || 'general'}`);
     
-    // Получаем всех активных курьеров
-    // Сначала получаем всех активных курьеров, даже без telegram_chat_id
-    const { data: couriers, error } = await supabase
+    // Получаем активных курьеров
+    // Если restaurantId указан - только курьеры этого ресторана
+    // Если restaurantId не указан (null/undefined) - только общие курьеры (restaurant_id IS NULL)
+    let query = supabase
       .from('couriers')
-      .select('telegram_id, telegram_chat_id, first_name, is_active')
+      .select('telegram_id, telegram_chat_id, first_name, is_active, restaurant_id')
       .eq('is_active', true);
+    
+    if (restaurantId) {
+      // Уведомляем только курьеров этого ресторана
+      query = query.eq('restaurant_id', restaurantId);
+      console.log(`[Courier Notification] Filtering couriers for restaurant ${restaurantId}`);
+    } else {
+      // Уведомляем только общих курьеров (restaurant_id IS NULL)
+      query = query.is('restaurant_id', null);
+      console.log(`[Courier Notification] Filtering general couriers (restaurant_id IS NULL)`);
+    }
+    
+    const { data: couriers, error } = await query;
 
     if (error) {
       console.error('[Courier Notification] Error fetching active couriers:', error);

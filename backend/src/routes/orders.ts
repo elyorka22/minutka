@@ -3,7 +3,7 @@
 // ============================================
 
 import express from 'express';
-import { createOrder, getOrders, getOrderById, updateOrderStatus } from '../controllers/orders';
+import { createOrder, getOrders, getOrderById, updateOrderStatus, assignOrderToGeneralCourier, assignOrderToRestaurantCourier } from '../controllers/orders';
 import { requireStaffAuth } from '../middleware/auth';
 
 const router = express.Router();
@@ -37,6 +37,20 @@ router.get('/:id', requireStaffAuth, getOrderById);
  * Только для сотрудников
  */
 router.patch('/:id/status', requireStaffAuth, updateOrderStatus);
+
+/**
+ * POST /api/orders/:id/assign-to-general-courier
+ * Передать заказ общему курьеру (restaurant_id IS NULL)
+ * Только для сотрудников
+ */
+router.post('/:id/assign-to-general-courier', requireStaffAuth, assignOrderToGeneralCourier);
+
+/**
+ * POST /api/orders/:id/assign-to-restaurant-courier
+ * Передать заказ курьеру ресторана (restaurant_id = order.restaurant_id)
+ * Только для сотрудников
+ */
+router.post('/:id/assign-to-restaurant-courier', requireStaffAuth, assignOrderToRestaurantCourier);
 
 export default router;
 

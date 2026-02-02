@@ -103,6 +103,7 @@ export interface Courier {
   first_name: string | null;
   last_name: string | null;
   phone: string | null;
+  restaurant_id: string | null; // Если null - общий курьер, если установлен - курьер ресторана
   is_active: boolean;
   created_at: string;
   updated_at: string;

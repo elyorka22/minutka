@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
-import { getOrders, updateOrderStatus, getOrderById } from '@/lib/api';
+import { getOrders, updateOrderStatus, getOrderById, assignOrderToGeneralCourier, assignOrderToRestaurantCourier } from '@/lib/api';
 import { handleApiError } from '@/lib/errorHandler';
 import { useToast } from '@/contexts/ToastContext';
 import Pagination from '@/components/Pagination';
@@ -29,13 +29,14 @@ const statusColors: Record<OrderStatus, string> = {
   cancelled: 'bg-red-100 text-red-800',
 };
 
-// Функция для передачи заказа курьеру (меняет статус на assigned_to_courier)
-// Статус останется assigned_to_courier до тех пор, пока курьер не возьмет заказ
-async function assignOrderToCourier(orderId: string): Promise<void> {
+// Функции для передачи заказа курьеру
+async function assignOrderToCourier(orderId: string, type: 'general' | 'restaurant'): Promise<void> {
   try {
-    // Меняем статус на assigned_to_courier (это уведомит курьеров)
-    // Статус изменится на delivered только когда курьер возьмет заказ
-    await updateOrderStatus(orderId, 'assigned_to_courier');
+    if (type === 'general') {
+      await assignOrderToGeneralCourier(orderId);
+    } else {
+      await assignOrderToRestaurantCourier(orderId);
+    }
   } catch (error) {
     console.error('Error assigning order to courier:', error);
     throw error;
@@ -67,10 +68,10 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, [currentPage]);
 
-  const handleAssignToCourier = async (orderId: string) => {
+  const handleAssignToCourier = async (orderId: string, type: 'general' | 'restaurant') => {
     try {
       // Передаем заказ курьеру (статус меняется на assigned_to_courier)
-      await assignOrderToCourier(orderId);
+      await assignOrderToCourier(orderId, type);
       
       // Обновляем заказ в списке
       const updatedOrder = await getOrderById(orderId);
@@ -79,7 +80,10 @@ export default function AdminOrdersPage() {
           order.id === orderId ? updatedOrder : order
         )
       );
-      showSuccess('Заказ передан курьеру. Курьер получит уведомление и сможет взять заказ.');
+      const message = type === 'general' 
+        ? 'Заказ передан общему курьеру. Курьер получит уведомление и сможет взять заказ.'
+        : 'Заказ передан курьеру ресторана. Курьер получит уведомление и сможет взять заказ.';
+      showSuccess(message);
     } catch (error) {
       console.error('Error assigning order to courier:', error);
       showError(handleApiError(error));
@@ -172,12 +176,20 @@ export default function AdminOrdersPage() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   {order.status !== 'delivered' && order.status !== 'cancelled' ? (
-                    <button
-                      onClick={() => handleAssignToCourier(order.id)}
-                      className="px-4 py-2 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors text-sm shadow-md"
-                    >
-                      🚚 Передать курьеру
-                    </button>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => handleAssignToCourier(order.id, 'general')}
+                        className="px-3 py-1.5 bg-purple-500 text-white rounded text-xs font-semibold hover:bg-purple-600 transition-colors"
+                      >
+                        🚚 Общий
+                      </button>
+                      <button
+                        onClick={() => handleAssignToCourier(order.id, 'restaurant')}
+                        className="px-3 py-1.5 bg-blue-500 text-white rounded text-xs font-semibold hover:bg-blue-600 transition-colors"
+                      >
+                        🏪 Ресторан
+                      </button>
+                    </div>
                   ) : (
                     <span className="text-gray-400">—</span>
                   )}
@@ -210,12 +222,18 @@ export default function AdminOrdersPage() {
               </div>
             </div>
             {order.status !== 'delivered' && order.status !== 'cancelled' && (
-              <div className="pt-3 border-t border-gray-200">
+              <div className="pt-3 border-t border-gray-200 space-y-2">
                 <button
-                  onClick={() => handleAssignToCourier(order.id)}
+                  onClick={() => handleAssignToCourier(order.id, 'general')}
                   className="w-full px-4 py-2.5 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors text-sm shadow-md"
                 >
-                  🚚 Передать курьеру
+                  🚚 Передать общему курьеру
+                </button>
+                <button
+                  onClick={() => handleAssignToCourier(order.id, 'restaurant')}
+                  className="w-full px-4 py-2.5 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors text-sm shadow-md"
+                >
+                  🏪 Передать курьеру ресторана
                 </button>
               </div>
             )}

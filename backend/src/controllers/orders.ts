@@ -491,6 +491,8 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
           console.log(`[Order Status Update] Parsed total: ${total}`);
 
           // Уведомляем курьеров
+          // По умолчанию уведомляем общих курьеров (restaurantId = null)
+          // Если нужно уведомить курьеров ресторана, это делается через отдельный endpoint
           const { notifyCouriersAboutOrder } = await import('../services/courierNotification');
           await notifyCouriersAboutOrder(id, {
             restaurantName: restaurant?.name || 'Restoran',
@@ -498,7 +500,7 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
             address: order.address,
             userPhone: user?.phone || null,
             total
-          }).catch((error) => {
+          }, null).catch((error) => {
             console.error('[Order Status Update] Error notifying couriers about order:', error);
           });
         } else {
@@ -523,4 +525,163 @@ export async function updateOrderStatus(req: AuthenticatedRequest, res: Response
   }
 }
 
+/**
+ * POST /api/orders/:id/assign-to-general-courier
+ * Передать заказ общему курьеру (restaurant_id IS NULL)
+ */
+export async function assignOrderToGeneralCourier(req: AuthenticatedRequest, res: Response) {
+  try {
+    const { id } = req.params;
+
+    if (!validateUuid(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid order ID format' });
+    }
+
+    // Получаем заказ
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (orderError || !order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    // Проверяем, что заказ не доставлен и не отменен
+    if (order.status === 'delivered' || order.status === 'cancelled') {
+      return res.status(400).json({ success: false, error: 'Cannot assign delivered or cancelled order' });
+    }
+
+    // Обновляем статус на assigned_to_courier
+    const { data: updatedOrder, error: updateError } = await supabase
+      .from('orders')
+      .update({ status: 'assigned_to_courier' })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    // Уведомляем общих курьеров (restaurant_id IS NULL)
+    Promise.all([
+      supabase.from('restaurants').select('name').eq('id', order.restaurant_id).single(),
+      supabase.from('users').select('phone').eq('id', order.user_id).single(),
+      supabase.from('orders').select('order_text, address').eq('id', id).single()
+    ]).then(async ([restaurantResult, userResult, orderResult]) => {
+      const restaurant = restaurantResult.data;
+      const user = userResult.data;
+      const orderData = orderResult.data;
+
+      if (orderData) {
+        const totalMatch = orderData.order_text.match(/Jami:\s*(\d+)/i) || orderData.order_text.match(/Total:\s*(\d+)/i) || orderData.order_text.match(/💰\s*(\d+)/i);
+        const total = totalMatch ? `${totalMatch[1]} so'm` : 'Ko\'rsatilmagan';
+
+        const { notifyCouriersAboutOrder } = await import('../services/courierNotification');
+        await notifyCouriersAboutOrder(id, {
+          restaurantName: restaurant?.name || 'Restoran',
+          orderText: orderData.order_text,
+          address: orderData.address,
+          userPhone: user?.phone || null,
+          total
+        }, null).catch((error) => {
+          console.error('[Assign to General Courier] Error notifying couriers:', error);
+        });
+      }
+    }).catch((error) => {
+      console.error('[Assign to General Courier] Error fetching order details:', error);
+    });
+
+    res.json({ success: true, data: updatedOrder as Order });
+  } catch (error: any) {
+    console.error('Error assigning order to general courier:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to assign order to general courier',
+      message: error.message
+    });
+  }
+}
+
+/**
+ * POST /api/orders/:id/assign-to-restaurant-courier
+ * Передать заказ курьеру ресторана (restaurant_id = order.restaurant_id)
+ */
+export async function assignOrderToRestaurantCourier(req: AuthenticatedRequest, res: Response) {
+  try {
+    const { id } = req.params;
+
+    if (!validateUuid(id)) {
+      return res.status(400).json({ success: false, error: 'Invalid order ID format' });
+    }
+
+    // Получаем заказ
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (orderError || !order) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
+    }
+
+    // Проверяем, что заказ не доставлен и не отменен
+    if (order.status === 'delivered' || order.status === 'cancelled') {
+      return res.status(400).json({ success: false, error: 'Cannot assign delivered or cancelled order' });
+    }
+
+    // Обновляем статус на assigned_to_courier
+    const { data: updatedOrder, error: updateError } = await supabase
+      .from('orders')
+      .update({ status: 'assigned_to_courier' })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    // Уведомляем курьеров ресторана (restaurant_id = order.restaurant_id)
+    Promise.all([
+      supabase.from('restaurants').select('name').eq('id', order.restaurant_id).single(),
+      supabase.from('users').select('phone').eq('id', order.user_id).single(),
+      supabase.from('orders').select('order_text, address').eq('id', id).single()
+    ]).then(async ([restaurantResult, userResult, orderResult]) => {
+      const restaurant = restaurantResult.data;
+      const user = userResult.data;
+      const orderData = orderResult.data;
+
+      if (orderData) {
+        const totalMatch = orderData.order_text.match(/Jami:\s*(\d+)/i) || orderData.order_text.match(/Total:\s*(\d+)/i) || orderData.order_text.match(/💰\s*(\d+)/i);
+        const total = totalMatch ? `${totalMatch[1]} so'm` : 'Ko\'rsatilmagan';
+
+        const { notifyCouriersAboutOrder } = await import('../services/courierNotification');
+        await notifyCouriersAboutOrder(id, {
+          restaurantName: restaurant?.name || 'Restoran',
+          orderText: orderData.order_text,
+          address: orderData.address,
+          userPhone: user?.phone || null,
+          total
+        }, order.restaurant_id).catch((error) => {
+          console.error('[Assign to Restaurant Courier] Error notifying couriers:', error);
+        });
+      }
+    }).catch((error) => {
+      console.error('[Assign to Restaurant Courier] Error fetching order details:', error);
+    });
+
+    res.json({ success: true, data: updatedOrder as Order });
+  } catch (error: any) {
+    console.error('Error assigning order to restaurant courier:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to assign order to restaurant courier',
+      message: error.message
+    });
+  }
+}
 

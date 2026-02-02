@@ -183,6 +183,26 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
   }
 }
 
+export async function assignOrderToGeneralCourier(orderId: string): Promise<Order> {
+  try {
+    const response = await api.post<{ success: boolean; data: Order }>(`/api/orders/${orderId}/assign-to-general-courier`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error assigning order to general courier:', error);
+    throw error;
+  }
+}
+
+export async function assignOrderToRestaurantCourier(orderId: string): Promise<Order> {
+  try {
+    const response = await api.post<{ success: boolean; data: Order }>(`/api/orders/${orderId}/assign-to-restaurant-courier`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error assigning order to restaurant courier:', error);
+    throw error;
+  }
+}
+
 export async function getOrderById(id: string): Promise<Order> {
   const response = await api.get<{ success: boolean; data: Order }>(`/api/orders/${id}`);
   return response.data.data;
