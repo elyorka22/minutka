@@ -5,12 +5,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Courier } from '@/lib/types';
-import { getCouriers, createCourier, updateCourier, deleteCourier } from '@/lib/api';
+import { Courier, Restaurant } from '@/lib/types';
+import { getCouriers, createCourier, updateCourier, deleteCourier, getRestaurants } from '@/lib/api';
 import { handleApiError } from '@/lib/errorHandler';
 
 export default function AdminCouriersPage() {
   const [couriers, setCouriers] = useState<Courier[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingCourier, setEditingCourier] = useState<Courier | null>(null);
@@ -20,16 +21,21 @@ export default function AdminCouriersPage() {
     first_name: '',
     last_name: '',
     phone: '',
+    restaurant_id: '',
     is_active: true
   });
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const couriersData = await getCouriers();
+        const [couriersData, restaurantsData] = await Promise.all([
+          getCouriers(),
+          getRestaurants()
+        ]);
         setCouriers(couriersData);
+        setRestaurants(restaurantsData);
       } catch (error) {
-        console.error('Error fetching couriers:', error);
+        console.error('Error fetching data:', error);
         alert(handleApiError(error));
       } finally {
         setLoading(false);
@@ -46,6 +52,7 @@ export default function AdminCouriersPage() {
       first_name: courier.first_name || '',
       last_name: courier.last_name || '',
       phone: courier.phone || '',
+      restaurant_id: courier.restaurant_id || '',
       is_active: courier.is_active
     });
     setShowForm(true);
@@ -72,6 +79,7 @@ export default function AdminCouriersPage() {
         first_name: formData.first_name || null,
         last_name: formData.last_name || null,
         phone: formData.phone || null,
+        restaurant_id: formData.restaurant_id || null,
         ...(editingCourier ? { is_active: formData.is_active } : {})
       };
 
@@ -91,6 +99,7 @@ export default function AdminCouriersPage() {
         first_name: '',
         last_name: '',
         phone: '',
+        restaurant_id: '',
         is_active: true
       });
     } catch (error) {
@@ -144,6 +153,9 @@ export default function AdminCouriersPage() {
                 Телефон
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Ресторан
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Статус
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -178,6 +190,13 @@ export default function AdminCouriersPage() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{courier.phone || '-'}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">
+                      {courier.restaurant_id 
+                        ? restaurants.find(r => r.id === courier.restaurant_id)?.name || 'Неизвестный ресторан'
+                        : 'Общий курьер'}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
@@ -244,6 +263,11 @@ export default function AdminCouriersPage() {
               <div className="text-sm text-gray-600 mb-2">
                 <div>Telegram ID: {courier.telegram_id}</div>
                 {courier.phone && <div>Телефон: {courier.phone}</div>}
+                <div>
+                  Ресторан: {courier.restaurant_id 
+                    ? restaurants.find(r => r.id === courier.restaurant_id)?.name || 'Неизвестный ресторан'
+                    : 'Общий курьер'}
+                </div>
               </div>
               <div className="flex gap-2 mt-3">
                 <button
@@ -331,6 +355,26 @@ export default function AdminCouriersPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
                     placeholder="+998901234567"
                   />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Ресторан
+                  </label>
+                  <select
+                    value={formData.restaurant_id}
+                    onChange={(e) => setFormData({ ...formData, restaurant_id: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                  >
+                    <option value="">Общий курьер (видит все заказы)</option>
+                    {restaurants.map((restaurant) => (
+                      <option key={restaurant.id} value={restaurant.id}>
+                        {restaurant.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Если не выбран ресторан, курьер будет общим и увидит все заказы
+                  </p>
                 </div>
                 {editingCourier && (
                   <div>
