@@ -5,7 +5,7 @@
 import { Response } from 'express';
 import { supabase } from '../config/supabase';
 import { Courier } from '../types';
-import { validateTelegramId, validateString } from '../utils/validation';
+import { validateTelegramId, validateString, validateUuid } from '../utils/validation';
 import { AuthenticatedRequest } from '../middleware/auth';
 
 /**
@@ -43,7 +43,7 @@ export async function getCouriers(req: AuthenticatedRequest, res: Response) {
  */
 export async function createCourier(req: AuthenticatedRequest, res: Response) {
   try {
-    const { telegram_id, username, first_name, last_name, phone } = req.body;
+    const { telegram_id, username, first_name, last_name, phone, restaurant_id } = req.body;
 
     // Валидация
     if (!validateTelegramId(telegram_id)) {
@@ -71,6 +71,16 @@ export async function createCourier(req: AuthenticatedRequest, res: Response) {
       });
     }
 
+    // Валидация restaurant_id если указан
+    if (restaurant_id !== undefined && restaurant_id !== null && restaurant_id !== '') {
+      if (!validateUuid(restaurant_id)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid restaurant_id format'
+        });
+      }
+    }
+
     // Создаем курьера
     const { data, error } = await supabase
       .from('couriers')
@@ -80,6 +90,7 @@ export async function createCourier(req: AuthenticatedRequest, res: Response) {
         first_name: validateString(first_name) ? first_name : null,
         last_name: validateString(last_name) ? last_name : null,
         phone: validateString(phone) ? phone : null,
+        restaurant_id: restaurant_id && restaurant_id !== '' ? restaurant_id : null,
         is_active: true
       })
       .select()
@@ -110,7 +121,7 @@ export async function createCourier(req: AuthenticatedRequest, res: Response) {
 export async function updateCourier(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { telegram_id, username, first_name, last_name, phone, is_active } = req.body;
+    const { telegram_id, username, first_name, last_name, phone, is_active, restaurant_id } = req.body;
 
     // Валидация ID
     if (!id || typeof id !== 'string') {
@@ -150,6 +161,22 @@ export async function updateCourier(req: AuthenticatedRequest, res: Response) {
 
     if (is_active !== undefined) {
       updateData.is_active = Boolean(is_active);
+    }
+
+    if (restaurant_id !== undefined) {
+      // Если restaurant_id пустая строка или null, устанавливаем null (общий курьер)
+      if (restaurant_id === '' || restaurant_id === null) {
+        updateData.restaurant_id = null;
+      } else {
+        // Валидация restaurant_id если указан
+        if (!validateUuid(restaurant_id)) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid restaurant_id format'
+          });
+        }
+        updateData.restaurant_id = restaurant_id;
+      }
     }
 
     const { data, error } = await supabase
