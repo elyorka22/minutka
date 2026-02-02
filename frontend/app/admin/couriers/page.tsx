@@ -125,6 +125,7 @@ export default function AdminCouriersPage() {
               first_name: '',
               last_name: '',
               phone: '',
+              restaurant_id: '',
               is_active: true
             });
             setShowForm(true);
