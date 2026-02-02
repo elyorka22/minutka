@@ -162,7 +162,7 @@ export default function AdminOrdersPage() {
                     </span>
                     {order.status !== 'delivered' && order.status !== 'cancelled' && (
                       <button
-                        onClick={() => handleAssignToCourier(order.id)}
+                        onClick={() => handleAssignToCourier(order.id, 'general')}
                         className="px-3 py-1 bg-purple-500 text-white rounded text-xs font-semibold hover:bg-purple-600 transition-colors shadow-sm"
                         title="Передать заказ курьеру"
                       >
