@@ -28,12 +28,12 @@ export default function AdminCouriersPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [couriersData, restaurantsData] = await Promise.all([
+        const [couriersData, restaurantsResult] = await Promise.all([
           getCouriers(),
           getRestaurants()
         ]);
         setCouriers(couriersData);
-        setRestaurants(restaurantsData);
+        setRestaurants(restaurantsResult.data);
       } catch (error) {
         console.error('Error fetching data:', error);
         alert(handleApiError(error));
