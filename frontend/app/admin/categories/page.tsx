@@ -385,22 +385,32 @@ export default function CategoriesPage() {
 
   const handleToggleActive = async (category: Category) => {
     try {
+      const newStatus = !category.is_active;
       const response = await fetch(`${API_BASE_URL}/api/categories/${category.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ is_active: !category.is_active }),
+        body: JSON.stringify({ is_active: newStatus }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update category');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to update category');
       }
 
+      // Оптимистичное обновление UI
+      setCategories(categories.map(c => 
+        c.id === category.id ? { ...c, is_active: newStatus } : c
+      ));
+
       await fetchCategories();
-    } catch (error) {
+      showSuccess(`Категория "${category.name}" ${newStatus ? 'активирована' : 'деактивирована'}!`);
+    } catch (error: any) {
       console.error('Error toggling category:', error);
-      alert('Ошибка при обновлении категории');
+      // Откатываем изменения при ошибке
+      await fetchCategories();
+      showError(error.message || 'Ошибка при обновлении категории');
     }
   };
 

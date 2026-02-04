@@ -12,6 +12,7 @@ export interface Category {
   name: string;
   image_url: string;
   icon?: string;
+  is_active?: boolean;
 }
 
 interface RestaurantCategoriesProps {
@@ -125,7 +126,9 @@ export default function RestaurantCategories({
                 category.name?.toLowerCase() === 'все' ||
                 category.name?.toLowerCase() === 'hammasi' ||
                 category.id === 'all';
-              return !isAllCategory;
+              // Показываем только активные категории (is_active === true или undefined для обратной совместимости)
+              const isActive = category.is_active !== false;
+              return !isAllCategory && isActive;
             })
             .map((category) => (
             <button

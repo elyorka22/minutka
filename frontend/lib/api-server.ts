@@ -46,8 +46,9 @@ export async function getRestaurantsServer(
 }
 
 // Categories API (server-side)
+// Для публичного доступа возвращаем только активные категории
 export async function getCategoriesServer(): Promise<RestaurantCategory[]> {
-  const url = `${API_BASE_URL}/api/categories`;
+  const url = `${API_BASE_URL}/api/categories?active=true`;
   const data = await fetchWithCache<RestaurantCategory[]>(url, {}, 300); // Кэш 5 минут (категории меняются редко)
   return Array.isArray(data) ? data : [];
 }
