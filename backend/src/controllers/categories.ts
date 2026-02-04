@@ -28,8 +28,14 @@ export async function getCategories(req: Request, res: Response) {
       return res.status(500).json({ error: 'Failed to fetch categories' });
     }
 
-    // Добавляем заголовки кеширования для публичных данных (кеш на 5 минут)
-    res.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    // Добавляем заголовки кеширования для публичных данных
+    // Уменьшаем кэш до 30 секунд для более быстрого обновления при деактивации категорий
+    if (active === 'true') {
+      res.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
+    } else {
+      // Для админ-панели кэш короче
+      res.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=120');
+    }
     
     res.json({ data });
   } catch (error: any) {

@@ -126,8 +126,8 @@ export default function RestaurantCategories({
                 category.name?.toLowerCase() === 'все' ||
                 category.name?.toLowerCase() === 'hammasi' ||
                 category.id === 'all';
-              // Показываем только активные категории (is_active === true или undefined для обратной совместимости)
-              const isActive = category.is_active !== false;
+              // Показываем только активные категории (is_active должен быть явно true)
+              const isActive = category.is_active === true;
               return !isAllCategory && isActive;
             })
             .map((category) => (
