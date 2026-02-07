@@ -4,10 +4,7 @@
 
 import { notFound } from 'next/navigation';
 import { getRestaurantById, getMenuItems } from '@/lib/api';
-import MenuItem from '@/components/MenuItem';
-import MenuItemBanner from '@/components/MenuItemBanner';
 import { MenuCategory, MenuItem as MenuItemType } from '@/lib/types';
-import { useEffect } from 'react';
 import MenuPageClient from '@/components/MenuPageClient';
 
 const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'your_bot_username';
