@@ -17,8 +17,11 @@ export default function RestaurantCard({ restaurant }: RestaurantCardProps) {
   // Это ускоряет загрузку страницы
   const categoriesText = restaurant.category || '';
 
+  // Определяем URL в зависимости от типа (ресторан или магазин)
+  const href = restaurant.type === 'store' ? `/stores/${restaurant.id}` : `/restaurants/${restaurant.id}`;
+
   return (
-    <Link href={`/restaurants/${restaurant.id}`} prefetch={true}>
+    <Link href={href} prefetch={true}>
       <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
         {/* Изображение ресторана */}
         {restaurant.image_url && (

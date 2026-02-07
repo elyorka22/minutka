@@ -33,16 +33,27 @@ async function fetchWithCache<T>(
 export async function getRestaurantsServer(
   featured?: boolean,
   page?: number,
-  limit?: number
+  limit?: number,
+  type?: 'restaurant' | 'store'
 ): Promise<{ data: Restaurant[]; pagination?: any }> {
   const params = new URLSearchParams();
   if (featured) params.append('featured', 'true');
   if (page) params.append('page', page.toString());
   if (limit) params.append('limit', limit.toString());
+  if (type) params.append('type', type);
 
   const url = `${API_BASE_URL}/api/restaurants${params.toString() ? `?${params.toString()}` : ''}`;
   const data = await fetchWithCache<Restaurant[]>(url, {}, 60); // Кэш 60 секунд
   return { data: Array.isArray(data) ? data : [], pagination: null };
+}
+
+// Stores API (server-side)
+export async function getStoresServer(
+  featured?: boolean,
+  page?: number,
+  limit?: number
+): Promise<{ data: Restaurant[]; pagination?: any }> {
+  return getRestaurantsServer(featured, page, limit, 'store');
 }
 
 // Categories API (server-side)

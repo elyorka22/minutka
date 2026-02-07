@@ -9,6 +9,7 @@ export interface Restaurant {
   description: string | null;
   image_url: string | null;
   category?: string | null;
+  type?: 'restaurant' | 'store'; // Тип заведения: ресторан или магазин
   working_hours: WorkingHours | null;
   telegram_chat_id: number | null;
   phone: string | null;

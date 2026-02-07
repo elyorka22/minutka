@@ -36,10 +36,11 @@ const SkeletonCategory = () => (
 async function HomeData() {
   try {
     // Загружаем критичные данные параллельно на сервере
-    const [categories, restaurantsResult, relations, banners, pharmaciesStores, botSettings] =
+    const [categories, restaurantsResult, storesResult, relations, banners, pharmaciesStores, botSettings] =
       await Promise.all([
         getCategoriesServer(),
-        getRestaurantsServer(),
+        getRestaurantsServer(undefined, undefined, undefined, 'restaurant'),
+        getStoresServer(),
         getRestaurantCategoryRelationsServer(),
         getBannersServer('homepage').catch(() => []),
         getPharmaciesStoresServer(true).catch(() => []),
@@ -64,6 +65,7 @@ async function HomeData() {
     return (
       <HomeClient
         initialRestaurants={restaurantsResult.data || []}
+        initialStores={storesResult.data || []}
         initialCategories={categories || []}
         initialBanners={banners || []}
         initialPharmaciesStores={pharmaciesStores || []}
@@ -77,6 +79,7 @@ async function HomeData() {
     return (
       <HomeClient
         initialRestaurants={[]}
+        initialStores={[]}
         initialCategories={[]}
         initialBanners={[]}
         initialPharmaciesStores={[]}

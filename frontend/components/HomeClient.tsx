@@ -24,6 +24,7 @@ const BannerCarousel = dynamic(() => import('./BannerCarousel'), {
 
 interface HomeClientProps {
   initialRestaurants: Restaurant[];
+  initialStores: Restaurant[];
   initialCategories: RestaurantCategory[];
   initialBanners: any[];
   initialPharmaciesStores: any[];
@@ -33,12 +34,14 @@ interface HomeClientProps {
 
 export default function HomeClient({
   initialRestaurants,
+  initialStores,
   initialCategories,
   initialBanners,
   initialPharmaciesStores,
   initialCategoryRestaurantMap,
   appSlogan,
 }: HomeClientProps) {
+  const [selectedTab, setSelectedTab] = useState<'restaurants' | 'stores'>('restaurants');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [banners, setBanners] = useState(initialBanners);
@@ -82,7 +85,8 @@ export default function HomeClient({
 
   // Фильтрация ресторанов
   const filteredRestaurants = useMemo(() => {
-    return initialRestaurants.filter((r) => {
+    const restaurants = selectedTab === 'restaurants' ? initialRestaurants : [];
+    return restaurants.filter((r) => {
       // Если выбрана категория аптек или магазинов, не показываем рестораны
       if (
         selectedCategory === 'pharmacies-stores' ||
@@ -107,7 +111,37 @@ export default function HomeClient({
       }
       return true;
     });
-  }, [initialRestaurants, selectedCategory, searchQuery, initialCategoryRestaurantMap, pharmaciesCategory, storesCategory]);
+  }, [initialRestaurants, selectedCategory, searchQuery, initialCategoryRestaurantMap, pharmaciesCategory, storesCategory, selectedTab]);
+
+  // Фильтрация магазинов
+  const filteredStores = useMemo(() => {
+    const stores = selectedTab === 'stores' ? initialStores : [];
+    return stores.filter((s) => {
+      // Если выбрана категория аптек или магазинов, не показываем магазины
+      if (
+        selectedCategory === 'pharmacies-stores' ||
+        (pharmaciesCategory && selectedCategory === pharmaciesCategory.id) ||
+        (storesCategory && selectedCategory === storesCategory.id)
+      ) {
+        return false;
+      }
+      // Фильтр по категории
+      if (selectedCategory) {
+        const restaurantIds = initialCategoryRestaurantMap[selectedCategory] || [];
+        if (!restaurantIds.includes(s.id)) {
+          return false;
+        }
+      }
+      // Фильтр по поисковому запросу
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        const nameMatch = s.name?.toLowerCase().includes(query);
+        const descriptionMatch = s.description?.toLowerCase().includes(query);
+        return nameMatch || descriptionMatch;
+      }
+      return true;
+    });
+  }, [initialStores, selectedCategory, searchQuery, initialCategoryRestaurantMap, pharmaciesCategory, storesCategory, selectedTab]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -186,6 +220,38 @@ export default function HomeClient({
         </section>
       )}
 
+      {/* Tabs for Restaurants and Stores */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+        <div className="flex gap-4 border-b border-gray-200">
+          <button
+            onClick={() => {
+              setSelectedTab('restaurants');
+              setSelectedCategory(null);
+            }}
+            className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
+              selectedTab === 'restaurants'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🍽️ Restoranlar
+          </button>
+          <button
+            onClick={() => {
+              setSelectedTab('stores');
+              setSelectedCategory(null);
+            }}
+            className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
+              selectedTab === 'stores'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🛒 Do'konlar
+          </button>
+        </div>
+      </section>
+
       {/* Restaurant Categories Carousel */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
         <RestaurantCategories
@@ -204,26 +270,53 @@ export default function HomeClient({
       {selectedCategory !== 'pharmacies-stores' &&
         !(pharmaciesCategory && selectedCategory === pharmaciesCategory.id) &&
         !(storesCategory && selectedCategory === storesCategory.id) && (
-          <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              {searchQuery
-                ? `🔍 Qidiruv natijalari: "${searchQuery}"`
-                : selectedCategory
-                ? `${initialCategories.find((c) => c.id === selectedCategory)?.name || 'Restoranlar'}`
-                : '📋 Barcha restoranlar'}
-            </h2>
-            {filteredRestaurants.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                Restoranlar topilmadi
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 md:gap-6">
-                {filteredRestaurants.map((restaurant) => (
-                  <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-                ))}
-              </div>
+          <>
+            {selectedTab === 'restaurants' && (
+              <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  {searchQuery
+                    ? `🔍 Qidiruv natijalari: "${searchQuery}"`
+                    : selectedCategory
+                    ? `${initialCategories.find((c) => c.id === selectedCategory)?.name || 'Restoranlar'}`
+                    : '📋 Barcha restoranlar'}
+                </h2>
+                {filteredRestaurants.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    Restoranlar topilmadi
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 md:gap-6">
+                    {filteredRestaurants.map((restaurant) => (
+                      <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                    ))}
+                  </div>
+                )}
+              </section>
             )}
-          </section>
+
+            {selectedTab === 'stores' && (
+              <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                  {searchQuery
+                    ? `🔍 Qidiruv natijalari: "${searchQuery}"`
+                    : selectedCategory
+                    ? `${initialCategories.find((c) => c.id === selectedCategory)?.name || 'Do\'konlar'}`
+                    : '📋 Barcha do\'konlar'}
+                </h2>
+                {filteredStores.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    Do'konlar topilmadi
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 md:gap-6">
+                    {filteredStores.map((store) => (
+                      <RestaurantCard key={store.id} restaurant={store} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+          </>
         )}
 
       {/* Pharmacies Section */}

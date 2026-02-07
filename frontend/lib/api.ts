@@ -88,13 +88,19 @@ api.interceptors.response.use(
 );
 
 // Restaurants API
-export async function getRestaurants(featured?: boolean, page?: number, limit?: number): Promise<{ data: Restaurant[]; pagination?: any }> {
+export async function getRestaurants(featured?: boolean, page?: number, limit?: number, type?: 'restaurant' | 'store'): Promise<{ data: Restaurant[]; pagination?: any }> {
   const params: any = {};
   if (featured) params.featured = 'true';
   if (page) params.page = page.toString();
   if (limit) params.limit = limit.toString();
+  if (type) params.type = type;
   const response = await api.get<{ success: boolean; data: Restaurant[]; pagination?: any }>('/api/restaurants', { params });
   return { data: response.data.data, pagination: response.data.pagination };
+}
+
+// Stores API (alias для удобства)
+export async function getStores(featured?: boolean, page?: number, limit?: number): Promise<{ data: Restaurant[]; pagination?: any }> {
+  return getRestaurants(featured, page, limit, 'store');
 }
 
 export async function getRestaurantById(id: string): Promise<Restaurant> {

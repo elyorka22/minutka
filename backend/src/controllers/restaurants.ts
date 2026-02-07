@@ -17,7 +17,7 @@ import { Logger } from '../services/logger';
  */
 export async function getRestaurants(req: AuthenticatedRequest, res: Response) {
   try {
-    const { featured, page, limit } = req.query;
+    const { featured, page, limit, type } = req.query;
 
     // Параметры пагинации
     const pageNum = parseInt(page as string) || 1;
@@ -34,6 +34,11 @@ export async function getRestaurants(req: AuthenticatedRequest, res: Response) {
       countQuery = countQuery.eq('is_featured', true);
     }
 
+    // Фильтрация по типу (restaurant или store)
+    if (type === 'restaurant' || type === 'store') {
+      countQuery = countQuery.eq('type', type);
+    }
+
     const { count, error: countError } = await countQuery;
 
     if (countError) {
@@ -48,6 +53,11 @@ export async function getRestaurants(req: AuthenticatedRequest, res: Response) {
       .order('is_featured', { ascending: false })
       .order('name', { ascending: true })
       .range(offset, offset + limitNum - 1);
+
+    // Фильтрация по типу (restaurant или store)
+    if (type === 'restaurant' || type === 'store') {
+      query = query.eq('type', type);
+    }
 
     // Если запрашивают только топовые рестораны
     if (featured === 'true') {

@@ -1,0 +1,206 @@
+// ============================================
+// Store Detail Page - Страница магазина
+// ============================================
+
+import { notFound } from 'next/navigation';
+import { getRestaurantById, getBanners, getMenuItems } from '@/lib/api';
+import Link from 'next/link';
+import Image from 'next/image';
+import MenuItem from '@/components/MenuItem';
+import MenuItemBanner from '@/components/MenuItemBanner';
+import Cart from '@/components/Cart';
+import { MenuCategory, MenuItem as MenuItemType } from '@/lib/types';
+import TableBookingButton from '@/components/TableBookingButton';
+
+const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'your_bot_username';
+
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function StorePage({ params }: PageProps) {
+  // Загружаем данные из API
+  // Получаем все товары, включая недоступные, чтобы показать их серыми
+  const [store, recommendedBanners, menuItems] = await Promise.all([
+    getRestaurantById(params.id).catch(() => null),
+    getBanners('recommended'),
+    getMenuItems(params.id, true) // includeUnavailable = true
+  ]);
+
+  if (!store || store.type !== 'store') {
+    notFound();
+  }
+
+  // Разделяем товары на баннеры и обычные
+  const bannerItems = menuItems.filter((item: MenuItemType) => item.is_banner === true);
+  const regularItems = menuItems.filter((item: MenuItemType) => !item.is_banner);
+
+  // Группируем обычные товары по категориям (если категории есть) или показываем все товары
+  const menuByCategory: MenuCategory[] = [];
+  if (regularItems.length > 0) {
+    // Если у всех товаров категория null, просто показываем все в одной группе
+    const hasCategories = regularItems.some(item => item.category !== null);
+    
+    if (!hasCategories) {
+      // Все товары без категорий - показываем в одной группе "Товары"
+      menuByCategory.push({ name: 'Товары', items: regularItems });
+    } else {
+      // Группируем по категориям, игнорируя товары с null категорией
+      regularItems.forEach((item: MenuItemType) => {
+        if (item.category === null) {
+          // Товары без категории добавляем в группу "Товары"
+          const defaultCategory = menuByCategory.find(c => c.name === 'Товары');
+          if (defaultCategory) {
+            defaultCategory.items.push(item);
+          } else {
+            menuByCategory.push({ name: 'Товары', items: [item] });
+          }
+        } else {
+          const category = menuByCategory.find(c => c.name === item.category);
+          if (category) {
+            category.items.push(item);
+          } else {
+            menuByCategory.push({ name: item.category, items: [item] });
+          }
+        }
+      });
+    }
+  }
+
+    // Форматируем время работы для отображения
+    const formatWorkingHours = () => {
+      if (!store.working_hours) return null;
+      
+      const { start_day, end_day, start_time, end_time, closed_days } = store.working_hours;
+      
+      if (!start_day || !end_day || !start_time || !end_time) {
+        return null;
+      }
+      
+      let result = `${start_day} dan ${end_day} gacha ${start_time} dan ${end_time} gacha`;
+      
+      if (closed_days && closed_days.length > 0) {
+        result += `. ${closed_days.join(', ')} yopiq`;
+      }
+      
+      return result;
+    };
+
+    const workingHoursText = formatWorkingHours();
+
+    return (
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <header className="bg-white shadow-sm sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <Link href="/" className="text-primary-600 hover:text-primary-700">
+                ← Orqaga
+              </Link>
+              <Cart
+                restaurantId={store.id}
+                restaurantName={store.name}
+                telegramBotUsername={TELEGRAM_BOT_USERNAME}
+                buttonPosition="header"
+              />
+            </div>
+          </div>
+        </header>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Store Name - по центру */}
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 text-center">
+            {store.name}
+          </h1>
+
+          {/* Description - под названием */}
+          {store.description && (
+            <p className="text-gray-700 text-base md:text-lg mb-4 text-center">
+              {store.description}
+            </p>
+          )}
+
+          {/* Working Hours - время работы над описанием о доставке */}
+          {workingHoursText && (
+            <div className="mb-4 text-center">
+              <p className="text-sm md:text-base text-gray-600">
+                {workingHoursText}
+              </p>
+            </div>
+          )}
+
+          {/* Delivery Info - как доставляется */}
+          {store.delivery_text && (
+            <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200 text-center">
+              <p className="text-sm md:text-base text-gray-700">
+                <span className="font-medium">Yetkazib berish:</span> {store.delivery_text}
+              </p>
+            </div>
+          )}
+
+          {/* Banner Items Section - Большие баннеры для товаров */}
+          {bannerItems.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Tavsiya etamiz</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {bannerItems.map((item) => (
+                  <MenuItemBanner key={item.id} item={item} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Regular Menu Section - Обычные карточки товаров */}
+          {menuByCategory.length > 0 && (
+            <div className="mb-8">
+              {menuByCategory.map((category) => (
+                <div key={category.name} className="mb-8 last:mb-0">
+                  {menuByCategory.length > 1 && (
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                      {category.name}
+                    </h2>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
+                    {category.items.map((item) => (
+                      <MenuItem key={item.id} item={item} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Recommended Banners */}
+          {recommendedBanners.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Bugun tavsiya etamiz</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {recommendedBanners.map((banner) => (
+                  <div key={banner.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+                    {banner.image_url && (
+                      <div className="relative w-full h-32">
+                        <Image
+                          src={banner.image_url}
+                          alt={banner.title || 'Banner'}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                    {banner.title && (
+                      <div className="p-4">
+                        <p className="font-semibold text-gray-900">{banner.title}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
