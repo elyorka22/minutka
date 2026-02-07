@@ -133,6 +133,7 @@ export async function updateRestaurant(id: string, restaurantData: {
   phone?: string;
   image_url?: string;
   delivery_text?: string;
+  menu_button_text?: string;
   is_active?: boolean;
   is_featured?: boolean;
   type?: 'restaurant' | 'store';
