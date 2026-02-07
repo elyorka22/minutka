@@ -542,6 +542,16 @@ export async function getMyRestaurants(telegramId: string): Promise<any[]> {
   }
 }
 
+export async function getMyRestaurant(restaurantId: string): Promise<Restaurant> {
+  try {
+    const response = await api.get<{ success: boolean; data: Restaurant }>(`/api/restaurants/${restaurantId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error fetching restaurant:', error);
+    throw error;
+  }
+}
+
 // Super Admins API
 export async function getSuperAdmins(): Promise<any[]> {
   try {
