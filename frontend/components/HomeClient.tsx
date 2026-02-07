@@ -158,9 +158,9 @@ export default function HomeClient({
         ) {
           return false;
         }
-        // Показываем категорию, если она связана хотя бы с одним рестораном
+        // Показываем категорию ТОЛЬКО если она связана хотя бы с одним рестораном
         const restaurantIds = initialCategoryRestaurantMap[category.id] || [];
-        return restaurantIds.length > 0 || !selectedCategory; // Показываем все категории, если не выбрана конкретная
+        return restaurantIds.length > 0;
       });
     } else {
       // Показываем только категории, которые связаны с магазинами
@@ -172,12 +172,31 @@ export default function HomeClient({
         ) {
           return false;
         }
-        // Показываем категорию, если она связана хотя бы с одним магазином
+        // Показываем категорию ТОЛЬКО если она связана хотя бы с одним магазином
         const storeIds = initialCategoryStoreMap[category.id] || [];
-        return storeIds.length > 0 || !selectedCategory; // Показываем все категории, если не выбрана конкретная
+        return storeIds.length > 0;
       });
     }
-  }, [initialCategories, selectedTab, initialCategoryRestaurantMap, initialCategoryStoreMap, pharmaciesCategory, storesCategory, selectedCategory]);
+  }, [initialCategories, selectedTab, initialCategoryRestaurantMap, initialCategoryStoreMap, pharmaciesCategory, storesCategory]);
+
+  // Сбрасываем выбранную категорию, если она не подходит для текущей вкладки
+  useEffect(() => {
+    if (selectedCategory) {
+      if (selectedTab === 'restaurants') {
+        // Проверяем, есть ли эта категория в категориях ресторанов
+        const restaurantIds = initialCategoryRestaurantMap[selectedCategory] || [];
+        if (restaurantIds.length === 0) {
+          setSelectedCategory(null);
+        }
+      } else {
+        // Проверяем, есть ли эта категория в категориях магазинов
+        const storeIds = initialCategoryStoreMap[selectedCategory] || [];
+        if (storeIds.length === 0) {
+          setSelectedCategory(null);
+        }
+      }
+    }
+  }, [selectedTab, selectedCategory, initialCategoryRestaurantMap, initialCategoryStoreMap, setSelectedCategory]);
 
   return (
     <div className="min-h-screen bg-gray-50">
