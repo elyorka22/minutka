@@ -43,38 +43,36 @@ export default function RestaurantAdminLayout({ children }: { children: React.Re
         // Проверяем, выбран ли ресторан (кроме страницы выбора ресторана)
         if (pathname !== '/restaurant-admin/select-restaurant') {
           let selectedRestaurantId = localStorage.getItem('selected_restaurant_id');
+          const hasMultipleRestaurants = (user?.user as any)?.hasMultipleRestaurants;
+          const restaurantIdFromUser = (user?.user as any)?.restaurant_id;
+          
           console.log('[Layout] Checking restaurant selection:', {
             pathname,
             selectedRestaurantId,
-            user: user?.user,
-            hasMultipleRestaurants: (user?.user as any)?.hasMultipleRestaurants,
-            restaurant_id: (user?.user as any)?.restaurant_id
+            hasMultipleRestaurants,
+            restaurantIdFromUser,
+            user: user?.user
           });
           
-          // Если ресторан не выбран, но у админа есть restaurant_id в данных пользователя
-          if (!selectedRestaurantId && (user?.user as any)?.restaurant_id) {
-            // Сохраняем restaurant_id из данных пользователя
-            const restaurantIdFromUser = (user?.user as any)?.restaurant_id;
-            if (restaurantIdFromUser) {
-              selectedRestaurantId = restaurantIdFromUser;
+          // Если у админа НЕ несколько ресторанов и есть restaurant_id в данных пользователя
+          if (!hasMultipleRestaurants && restaurantIdFromUser) {
+            // Автоматически устанавливаем restaurant_id для админа с одним рестораном
+            if (!selectedRestaurantId || selectedRestaurantId !== restaurantIdFromUser) {
               localStorage.setItem('selected_restaurant_id', restaurantIdFromUser);
-              console.log('[Layout] Saved restaurant_id from user data:', restaurantIdFromUser);
+              selectedRestaurantId = restaurantIdFromUser;
+              console.log('[Layout] Auto-saved restaurant_id from user data:', restaurantIdFromUser);
             }
           }
           
+          // Если ресторан все еще не выбран, редиректим на страницу выбора
           if (!selectedRestaurantId) {
-            // Если ресторан все еще не выбран, проверяем, есть ли у админа несколько ресторанов
             const telegramId = localStorage.getItem('telegram_id');
-            const hasMultipleRestaurants = (user?.user as any)?.hasMultipleRestaurants;
-            
-            console.log('[Layout] No restaurant selected, checking if multiple restaurants:', {
+            console.log('[Layout] No restaurant selected, redirecting to select-restaurant page', {
               telegramId,
               hasMultipleRestaurants
             });
             
             if (telegramId) {
-              // Редиректим на страницу выбора ресторана
-              console.log('[Layout] Redirecting to select-restaurant page');
               router.push('/restaurant-admin/select-restaurant');
             }
           }
@@ -83,22 +81,46 @@ export default function RestaurantAdminLayout({ children }: { children: React.Re
     }
   }, [user, loading, router, pathname]);
 
-  // Проверяем, есть ли у админа несколько ресторанов
+  // Проверяем, есть ли у админа несколько ресторанов и автоматически устанавливаем ресторан, если он один
   useEffect(() => {
-    const checkMultipleRestaurants = async () => {
+    const checkAndSetRestaurant = async () => {
       if (user && user.role === 'restaurant_admin' && pathname !== '/restaurant-admin/select-restaurant') {
         const telegramId = localStorage.getItem('telegram_id');
-        if (telegramId) {
+        const selectedRestaurantId = localStorage.getItem('selected_restaurant_id');
+        
+        if (!telegramId) return;
+        
+        // Если ресторан не выбран, пытаемся загрузить и установить автоматически
+        if (!selectedRestaurantId) {
+          try {
+            console.log('[Layout] No restaurant selected, fetching restaurants to auto-select');
+            const restaurants = await getMyRestaurants(telegramId);
+            console.log('[Layout] Fetched restaurants:', restaurants);
+            
+            if (restaurants.length === 1) {
+              // Если только один ресторан, автоматически устанавливаем его
+              const restaurantId = restaurants[0].restaurant_id;
+              localStorage.setItem('selected_restaurant_id', restaurantId);
+              console.log('[Layout] Auto-selected restaurant:', restaurantId);
+              // Не делаем редирект, просто обновляем состояние
+            } else if (restaurants.length > 1) {
+              setHasMultipleRestaurants(true);
+            }
+          } catch (error) {
+            console.error('[Layout] Error checking restaurants:', error);
+          }
+        } else {
+          // Ресторан уже выбран, просто проверяем количество
           try {
             const restaurants = await getMyRestaurants(telegramId);
             setHasMultipleRestaurants(restaurants.length > 1);
           } catch (error) {
-            console.error('Error checking restaurants:', error);
+            console.error('[Layout] Error checking restaurants:', error);
           }
         }
       }
     };
-    checkMultipleRestaurants();
+    checkAndSetRestaurant();
   }, [user, pathname]);
 
   if (loading) {
