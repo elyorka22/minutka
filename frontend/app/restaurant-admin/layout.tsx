@@ -54,9 +54,12 @@ export default function RestaurantAdminLayout({ children }: { children: React.Re
           // Если ресторан не выбран, но у админа есть restaurant_id в данных пользователя
           if (!selectedRestaurantId && (user?.user as any)?.restaurant_id) {
             // Сохраняем restaurant_id из данных пользователя
-            selectedRestaurantId = (user?.user as any)?.restaurant_id;
-            localStorage.setItem('selected_restaurant_id', selectedRestaurantId);
-            console.log('[Layout] Saved restaurant_id from user data:', selectedRestaurantId);
+            const restaurantIdFromUser = (user?.user as any)?.restaurant_id;
+            if (restaurantIdFromUser) {
+              selectedRestaurantId = restaurantIdFromUser;
+              localStorage.setItem('selected_restaurant_id', restaurantIdFromUser);
+              console.log('[Layout] Saved restaurant_id from user data:', restaurantIdFromUser);
+            }
           }
           
           if (!selectedRestaurantId) {
