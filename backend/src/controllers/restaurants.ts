@@ -410,7 +410,7 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
 export async function updateRestaurant(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, phone, image_url, delivery_text, is_active, is_featured, working_hours } = req.body;
+    const { name, description, phone, image_url, delivery_text, is_active, is_featured, working_hours, type } = req.body;
 
     // Валидация ID
     if (!id || !validateString(id, 1, 100)) {
