@@ -26,7 +26,7 @@ export default function AdminRestaurantsPage() {
     async function fetchRestaurants() {
       try {
         setLoading(true);
-        const result = await getRestaurants(undefined, currentPage, pageSize);
+        const result = await getRestaurants(undefined, currentPage, pageSize, 'restaurant');
         setRestaurants(result.data);
         setPagination(result.pagination);
       } catch (error) {

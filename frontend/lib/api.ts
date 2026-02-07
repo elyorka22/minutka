@@ -116,6 +116,7 @@ export async function createRestaurant(restaurantData: {
   delivery_text?: string;
   is_active?: boolean;
   is_featured?: boolean;
+  type?: 'restaurant' | 'store';
   admin_telegram_id?: number;
   admin_phone?: string;
   admin_password?: string;
@@ -134,6 +135,7 @@ export async function updateRestaurant(id: string, restaurantData: {
   delivery_text?: string;
   is_active?: boolean;
   is_featured?: boolean;
+  type?: 'restaurant' | 'store';
   working_hours?: WorkingHours | null;
 }): Promise<Restaurant> {
   const response = await api.patch<{ success: boolean; data: Restaurant }>(`/api/restaurants/${id}`, restaurantData);
