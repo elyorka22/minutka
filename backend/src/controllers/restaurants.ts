@@ -485,6 +485,16 @@ export async function updateRestaurant(req: AuthenticatedRequest, res: Response)
     if (is_active !== undefined) updateData.is_active = is_active;
     if (is_featured !== undefined) updateData.is_featured = is_featured;
     if (working_hours !== undefined) updateData.working_hours = working_hours;
+    if (type !== undefined) {
+      // Валидация типа
+      if (type !== 'restaurant' && type !== 'store') {
+        return res.status(400).json({
+          success: false,
+          error: 'Тип должен быть "restaurant" или "store"'
+        });
+      }
+      updateData.type = type;
+    }
 
     const { data, error } = await supabase
       .from('restaurants')

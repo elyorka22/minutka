@@ -102,6 +102,7 @@ export default function AdminRestaurantsPage() {
           delivery_text: restaurant.delivery_text || 'Telegram-bot orqali buyurtma bering',
           is_active: restaurant.is_active,
           is_featured: restaurant.is_featured,
+          type: 'restaurant', // Указываем тип как ресторан
         };
         
         // Добавляем admin_telegram_id только если он указан и не пустой
