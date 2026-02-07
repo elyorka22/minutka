@@ -29,7 +29,8 @@ export default function LoginPage() {
       } else if (role === 'restaurant_admin') {
         router.push('/restaurant-admin');
       } else {
-        router.push('/');
+        // Клиент - показываем страницу с сообщением
+        router.push('/client-access-denied');
       }
     }
   }, [user, router]);

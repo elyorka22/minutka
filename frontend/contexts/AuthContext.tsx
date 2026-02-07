@@ -217,8 +217,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           router.push('/restaurant-admin');
         }
       } else {
-        console.log('AuthContext: Redirecting to /');
-        router.push('/');
+        // Клиент - показываем страницу с сообщением
+        console.log('AuthContext: User is a client, redirecting to /client-access-denied');
+        router.push('/client-access-denied');
       }
     } catch (error: any) {
       console.error('AuthContext: Login error:', error);

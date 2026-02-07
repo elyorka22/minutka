@@ -6,11 +6,13 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Restaurant, RestaurantCategory } from '../../shared/types';
 import RestaurantCard from './RestaurantCard';
 import RestaurantCategories from './RestaurantCategories';
 import PharmacyStoreCard from './PharmacyStoreCard';
+import { useAuth } from '@/contexts/AuthContext';
 
 // Lazy loading для больших компонентов
 const BannerCarousel = dynamic(() => import('./BannerCarousel'), {
