@@ -29,6 +29,7 @@ interface HomeClientProps {
   initialBanners: any[];
   initialPharmaciesStores: any[];
   initialCategoryRestaurantMap: { [categoryId: string]: string[] };
+  initialCategoryStoreMap: { [categoryId: string]: string[] };
   appSlogan: string;
 }
 
@@ -39,6 +40,7 @@ export default function HomeClient({
   initialBanners,
   initialPharmaciesStores,
   initialCategoryRestaurantMap,
+  initialCategoryStoreMap,
   appSlogan,
 }: HomeClientProps) {
   const [selectedTab, setSelectedTab] = useState<'restaurants' | 'stores'>('restaurants');
@@ -141,7 +143,41 @@ export default function HomeClient({
       }
       return true;
     });
-  }, [initialStores, selectedCategory, searchQuery, initialCategoryRestaurantMap, pharmaciesCategory, storesCategory, selectedTab]);
+  }, [initialStores, selectedCategory, searchQuery, initialCategoryStoreMap, pharmaciesCategory, storesCategory, selectedTab]);
+
+  // Фильтруем категории в зависимости от выбранной вкладки
+  const filteredCategories = useMemo(() => {
+    if (selectedTab === 'restaurants') {
+      // Показываем только категории, которые связаны с ресторанами
+      return initialCategories.filter((category) => {
+        // Исключаем категории аптек и магазинов
+        if (
+          category.id === 'pharmacies-stores' ||
+          (pharmaciesCategory && category.id === pharmaciesCategory.id) ||
+          (storesCategory && category.id === storesCategory.id)
+        ) {
+          return false;
+        }
+        // Показываем категорию, если она связана хотя бы с одним рестораном
+        const restaurantIds = initialCategoryRestaurantMap[category.id] || [];
+        return restaurantIds.length > 0 || !selectedCategory; // Показываем все категории, если не выбрана конкретная
+      });
+    } else {
+      // Показываем только категории, которые связаны с магазинами
+      return initialCategories.filter((category) => {
+        // Исключаем категории аптек
+        if (
+          category.id === 'pharmacies-stores' ||
+          (pharmaciesCategory && category.id === pharmaciesCategory.id)
+        ) {
+          return false;
+        }
+        // Показываем категорию, если она связана хотя бы с одним магазином
+        const storeIds = initialCategoryStoreMap[category.id] || [];
+        return storeIds.length > 0 || !selectedCategory; // Показываем все категории, если не выбрана конкретная
+      });
+    }
+  }, [initialCategories, selectedTab, initialCategoryRestaurantMap, initialCategoryStoreMap, pharmaciesCategory, storesCategory, selectedCategory]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -252,14 +288,14 @@ export default function HomeClient({
         </div>
       </section>
 
-      {/* Restaurant Categories Carousel */}
+      {/* Restaurant/Store Categories Carousel */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
         <RestaurantCategories
-          categories={initialCategories}
+          categories={filteredCategories}
           selectedCategory={selectedCategory}
           onCategorySelect={setSelectedCategory}
           allCategoryImage={
-            initialCategories.find(
+            filteredCategories.find(
               (c) => c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all'
             )?.image_url
           }

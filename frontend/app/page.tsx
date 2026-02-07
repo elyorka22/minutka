@@ -48,14 +48,29 @@ async function HomeData() {
         getBotSettingsServer().catch(() => []),
       ]);
 
-    // Создаем карту связей категорий и ресторанов
+    // Создаем карту связей категорий и ресторанов/магазинов
     const categoryRestaurantMap: { [categoryId: string]: string[] } = {};
+    const categoryStoreMap: { [categoryId: string]: string[] } = {};
+    
     if (relations && Array.isArray(relations)) {
       relations.forEach((rel: any) => {
-        if (!categoryRestaurantMap[rel.category_id]) {
-          categoryRestaurantMap[rel.category_id] = [];
+        // Проверяем, является ли связанный ресторан рестораном или магазином
+        const restaurant = restaurantsResult.data?.find((r: any) => r.id === rel.restaurant_id);
+        const store = storesResult.data?.find((s: any) => s.id === rel.restaurant_id);
+        
+        if (restaurant && restaurant.type === 'restaurant') {
+          // Это ресторан
+          if (!categoryRestaurantMap[rel.category_id]) {
+            categoryRestaurantMap[rel.category_id] = [];
+          }
+          categoryRestaurantMap[rel.category_id].push(rel.restaurant_id);
+        } else if (store && store.type === 'store') {
+          // Это магазин
+          if (!categoryStoreMap[rel.category_id]) {
+            categoryStoreMap[rel.category_id] = [];
+          }
+          categoryStoreMap[rel.category_id].push(rel.restaurant_id);
         }
-        categoryRestaurantMap[rel.category_id].push(rel.restaurant_id);
       });
     }
 
@@ -71,6 +86,7 @@ async function HomeData() {
         initialBanners={banners || []}
         initialPharmaciesStores={pharmaciesStores || []}
         initialCategoryRestaurantMap={categoryRestaurantMap}
+        initialCategoryStoreMap={categoryStoreMap}
         appSlogan={appSlogan}
       />
     );
@@ -85,6 +101,7 @@ async function HomeData() {
         initialBanners={[]}
         initialPharmaciesStores={[]}
         initialCategoryRestaurantMap={{}}
+        initialCategoryStoreMap={{}}
         appSlogan="Tez va oson, uydan chiqmasdan"
       />
     );
