@@ -390,6 +390,39 @@ export async function getMenuItems(restaurantId: string, includeUnavailable: boo
   }
 }
 
+// Track menu view for statistics
+export async function trackMenuView(restaurantId: string, data?: {
+  userAgent?: string;
+  referer?: string;
+  telegramUserId?: bigint;
+}): Promise<void> {
+  try {
+    await api.post('/api/menu-views', {
+      restaurant_id: restaurantId,
+      user_agent: data?.userAgent,
+      referer: data?.referer,
+      telegram_user_id: data?.telegramUserId ? data.telegramUserId.toString() : undefined,
+    });
+  } catch (error) {
+    console.error('Error tracking menu view:', error);
+    // Не пробрасываем ошибку, чтобы не мешать пользователю
+  }
+}
+
+// Get menu view statistics
+export async function getMenuViewStatistics(restaurantId: string, startDate?: string, endDate?: string): Promise<any> {
+  try {
+    const params: any = { restaurant_id: restaurantId };
+    if (startDate) params.start_date = startDate;
+    if (endDate) params.end_date = endDate;
+    const response = await api.get<{ success: boolean; data: any }>('/api/menu-views/statistics', { params });
+    return response.data.data || {};
+  } catch (error) {
+    console.error('Error fetching menu view statistics:', error);
+    return {};
+  }
+}
+
 export async function createMenuItem(menuItemData: {
   restaurant_id: string;
   name: string;

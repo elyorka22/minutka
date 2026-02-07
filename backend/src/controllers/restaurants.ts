@@ -169,7 +169,7 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
     });
   }
   try {
-    const { name, description, phone, image_url, is_active, is_featured, admin_telegram_id, admin_phone, admin_password, type, delivery_text } = req.body;
+    const { name, description, phone, image_url, is_active, is_featured, admin_telegram_id, admin_phone, admin_password, type, delivery_text, menu_button_text } = req.body;
 
     console.log('Creating restaurant with data:', {
       name,
@@ -410,7 +410,7 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
 export async function updateRestaurant(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, phone, image_url, delivery_text, is_active, is_featured, working_hours, type } = req.body;
+    const { name, description, phone, image_url, delivery_text, is_active, is_featured, working_hours, type, menu_button_text } = req.body;
 
     // Валидация ID
     if (!id || !validateString(id, 1, 100)) {
@@ -494,6 +494,16 @@ export async function updateRestaurant(req: AuthenticatedRequest, res: Response)
         });
       }
       updateData.type = type;
+    }
+    if (menu_button_text !== undefined) {
+      // Валидация текста кнопки
+      if (menu_button_text && menu_button_text.length > 100) {
+        return res.status(400).json({
+          success: false,
+          error: 'Текст кнопки меню не должен превышать 100 символов'
+        });
+      }
+      updateData.menu_button_text = menu_button_text || 'Меню';
     }
 
     const { data, error } = await supabase

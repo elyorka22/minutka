@@ -14,6 +14,7 @@ export interface Restaurant {
   telegram_chat_id: number | null;
   phone: string | null;
   delivery_text: string | null;
+  menu_button_text?: string | null; // Текст кнопки меню для Telegram
   is_active: boolean;
   is_featured: boolean;
   created_at: string;
