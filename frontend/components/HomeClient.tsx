@@ -47,6 +47,8 @@ export default function HomeClient({
 }: HomeClientProps) {
   const router = useRouter();
   const { user } = useAuth();
+  const router = useRouter();
+  const { user } = useAuth();
   const [selectedTab, setSelectedTab] = useState<'restaurants' | 'stores'>('restaurants');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -213,12 +215,28 @@ export default function HomeClient({
               <p className="text-sm text-gray-600">{appSlogan}</p>
             </div>
             <div className="flex items-center gap-3">
-              <Link
-                href="/login"
+              <button
+                onClick={() => {
+                  if (user) {
+                    // Если пользователь уже авторизован, редиректим в зависимости от роли
+                    const role = user.role;
+                    if (role === 'super_admin') {
+                      router.push('/admin');
+                    } else if (role === 'restaurant_admin') {
+                      router.push('/restaurant-admin');
+                    } else {
+                      // Клиент - показываем страницу с сообщением
+                      router.push('/client-access-denied');
+                    }
+                  } else {
+                    // Если не авторизован, идем на страницу входа
+                    router.push('/login');
+                  }
+                }}
                 className="px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm"
               >
                 🔐 Kirish
-              </Link>
+              </button>
             </div>
           </div>
         </div>
