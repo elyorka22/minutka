@@ -129,8 +129,8 @@ export default function HomeClient({
       }
       // Фильтр по категории
       if (selectedCategory) {
-        const restaurantIds = initialCategoryRestaurantMap[selectedCategory] || [];
-        if (!restaurantIds.includes(s.id)) {
+        const storeIds = initialCategoryStoreMap[selectedCategory] || [];
+        if (!storeIds.includes(s.id)) {
           return false;
         }
       }
