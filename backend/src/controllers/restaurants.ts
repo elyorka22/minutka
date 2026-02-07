@@ -169,7 +169,7 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
     });
   }
   try {
-    const { name, description, phone, image_url, is_active, is_featured, admin_telegram_id, admin_phone, admin_password } = req.body;
+    const { name, description, phone, image_url, is_active, is_featured, admin_telegram_id, admin_phone, admin_password, type, delivery_text } = req.body;
 
     console.log('Creating restaurant with data:', {
       name,
@@ -227,7 +227,15 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
       });
     }
 
-    // Создаем ресторан
+    // Валидация типа (restaurant или store)
+    if (type && type !== 'restaurant' && type !== 'store') {
+      return res.status(400).json({
+        success: false,
+        error: 'Тип должен быть "restaurant" или "store"'
+      });
+    }
+
+    // Создаем ресторан или магазин
     const { data: restaurant, error: restaurantError } = await supabase
       .from('restaurants')
       .insert({
@@ -237,6 +245,8 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
         image_url: image_url || null,
         is_active: is_active ?? true,
         is_featured: is_featured ?? false,
+        type: type || 'restaurant', // По умолчанию restaurant для обратной совместимости
+        delivery_text: delivery_text || null,
         telegram_chat_id: null
       })
       .select()
