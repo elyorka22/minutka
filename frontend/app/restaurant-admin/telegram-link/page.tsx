@@ -92,7 +92,7 @@ export default function TelegramLinkPage() {
         // Очищаем поле после успешной отправки
         setMessageText(`${restaurant.name} - ${restaurant.menu_button_text || 'Меню'}`);
       } else {
-        showError(result.message || result.error || 'Не удалось отправить сообщение');
+        showError(result.message || (result as any).error || 'Не удалось отправить сообщение');
       }
     } catch (error: any) {
       console.error('Error sending Telegram link message:', error);

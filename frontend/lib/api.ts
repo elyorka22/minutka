@@ -432,9 +432,9 @@ export async function sendTelegramLinkMessage(
   restaurantId: string, 
   messageText: string,
   groupIdentifier?: string | null
-): Promise<{ success: boolean; message: string; data?: any }> {
+): Promise<{ success: boolean; message: string; error?: string; data?: any }> {
   try {
-    const response = await api.post<{ success: boolean; message: string; data?: any }>('/api/telegram-link/send', {
+    const response = await api.post<{ success: boolean; message: string; error?: string; data?: any }>('/api/telegram-link/send', {
       restaurant_id: restaurantId,
       message_text: messageText,
       group_username: groupIdentifier || undefined // Может быть @username (для публичных групп) или chat_id (число в виде строки, например "-1001234567890")
