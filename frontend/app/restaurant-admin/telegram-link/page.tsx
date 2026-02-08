@@ -92,11 +92,28 @@ export default function TelegramLinkPage() {
         // Очищаем поле после успешной отправки
         setMessageText(`${restaurant.name} - ${restaurant.menu_button_text || 'Меню'}`);
       } else {
-        showError(result.message || 'Не удалось отправить сообщение');
+        showError(result.message || result.error || 'Не удалось отправить сообщение');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error sending Telegram link message:', error);
-      showError(handleApiError(error));
+      
+      // Пытаемся извлечь понятное сообщение об ошибке из ответа
+      let errorMessage = 'Не удалось отправить сообщение в Telegram';
+      
+      if (error?.response?.data) {
+        const errorData = error.response.data;
+        if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        } else if (errorData.details) {
+          errorMessage = `${errorData.error || 'Ошибка'}: ${errorData.details}`;
+        }
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      showError(errorMessage);
     } finally {
       setSending(false);
     }
