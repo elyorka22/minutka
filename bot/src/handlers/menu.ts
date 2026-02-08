@@ -29,6 +29,11 @@ export async function menuHandler(ctx: Context) {
       return;
     }
 
+    console.log('[MenuHandler] Found menu messages:', menuMessages?.length || 0);
+    if (menuMessages && menuMessages.length > 0) {
+      console.log('[MenuHandler] Menu messages restaurant IDs:', menuMessages.map(m => m.restaurant_id));
+    }
+
     if (!menuMessages || menuMessages.length === 0) {
       await ctx.reply('📋 Меню пока не созданы. Создайте меню через админ-панель ресторана.');
       return;
@@ -36,6 +41,8 @@ export async function menuHandler(ctx: Context) {
 
     // Получаем информацию о ресторанах для фильтрации активных
     const restaurantIds = menuMessages.map(m => m.restaurant_id);
+    console.log('[MenuHandler] Fetching restaurants for IDs:', restaurantIds);
+    
     const { data: restaurants, error: restaurantsError } = await supabase
       .from('restaurants')
       .select('id, name, is_active')
@@ -47,19 +54,24 @@ export async function menuHandler(ctx: Context) {
       return;
     }
 
-    // Создаем мапу активных ресторанов
-    const activeRestaurants = new Map<string, string>();
+    console.log('[MenuHandler] Found restaurants:', restaurants?.length || 0);
+    if (restaurants && restaurants.length > 0) {
+      console.log('[MenuHandler] Restaurants:', restaurants.map(r => ({ id: r.id, name: r.name, is_active: r.is_active })));
+    }
+
+    // Убираем фильтрацию по is_active - отправляем все меню
+    // Админ сам удалит ненужные
+    const restaurantMap = new Map<string, string>();
     restaurants?.forEach(r => {
-      if (r.is_active) {
-        activeRestaurants.set(r.id, r.name);
-      }
+      restaurantMap.set(r.id, r.name);
     });
 
-    // Отправляем все активные меню
+    // Отправляем все меню (без фильтрации по is_active)
     let sentCount = 0;
     for (const menuMessage of menuMessages) {
-      // Пропускаем неактивные рестораны
-      if (!activeRestaurants.has(menuMessage.restaurant_id)) {
+      // Пропускаем только если ресторан вообще не найден в БД
+      if (!restaurantMap.has(menuMessage.restaurant_id)) {
+        console.log(`[MenuHandler] Skipping menu for restaurant ${menuMessage.restaurant_id} - restaurant not found in DB`);
         continue;
       }
 

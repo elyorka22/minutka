@@ -112,7 +112,7 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     console.log('[sendTelegramLinkMessage] Message text:', message_text);
 
     // Сохраняем сообщение в БД для использования командой /меню (без отправки админу)
-    const { error: upsertError } = await supabase
+    const { data: savedMessage, error: upsertError } = await supabase
       .from('restaurant_menu_messages')
       .upsert(
         {
@@ -127,10 +127,12 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
           onConflict: 'restaurant_id',
           ignoreDuplicates: false
         }
-      );
+      )
+      .select();
 
     if (upsertError) {
       console.error('[sendTelegramLinkMessage] Error saving message to DB:', upsertError);
+      console.error('[sendTelegramLinkMessage] Upsert error details:', JSON.stringify(upsertError, null, 2));
       return res.status(500).json({
         success: false,
         error: 'Не удалось сохранить сообщение в базу данных',
@@ -139,6 +141,7 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     }
 
     console.log('[sendTelegramLinkMessage] Message saved to DB for restaurant:', restaurant_id);
+    console.log('[sendTelegramLinkMessage] Saved message data:', JSON.stringify(savedMessage, null, 2));
     
     res.json({
       success: true,
