@@ -25,7 +25,6 @@ import pharmaciesStoresRouter from './routes/pharmacies-stores';
 import pharmacyStoreCategoryRelationsRouter from './routes/pharmacy-store-category-relations';
 import couriersRouter from './routes/couriers';
 import menuViewsRouter from './routes/menuViews';
-import telegramLinkRouter from './routes/telegram-link';
 import { generalLimiter, strictLimiter, createUpdateLimiter } from './middleware/rateLimit';
 import { bigIntSerializerMiddleware } from './middleware/bigintSerializer';
 
@@ -105,7 +104,6 @@ app.use('/api/pharmacies-stores', pharmaciesStoresRouter);
 app.use('/api/pharmacy-store-category-relations', pharmacyStoreCategoryRelationsRouter);
 app.use('/api/couriers', couriersRouter);
 app.use('/api/menu-views', menuViewsRouter);
-app.use('/api/telegram-link', telegramLinkRouter);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

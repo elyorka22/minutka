@@ -16,7 +16,6 @@ const navigation = [
   { name: 'Архив заказов', href: '/restaurant-admin/orders/archive', icon: '📚' },
   { name: 'Меню', href: '/restaurant-admin/menu', icon: '🍽️' },
   { name: 'Повара', href: '/restaurant-admin/chefs', icon: '👨‍🍳' },
-  { name: 'Ссылка для Telegram', href: '/restaurant-admin/telegram-link', icon: '🔗' },
   { name: 'Настройки', href: '/restaurant-admin/settings', icon: '⚙️' },
   { name: 'Изменить пароль', href: '/restaurant-admin/change-password', icon: '🔐' },
 ];

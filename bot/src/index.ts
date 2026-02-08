@@ -11,7 +11,6 @@ import { locationHandler } from './handlers/location';
 import { orderStatusHandler } from './handlers/orderStatus';
 import { courierHandler, courierToggleActiveHandler } from './handlers/courier';
 import { botInfoHandler, partnershipHandler, chatIdHandler } from './handlers/botInfo';
-import { menuHandler } from './handlers/menu';
 import { initBot as initRestaurantNotification } from './services/restaurantNotification';
 import { initBot as initUserNotification } from './services/userNotification';
 import { initBot as initAdminNotification } from './services/adminNotification';
@@ -75,11 +74,6 @@ bot.start(async (ctx) => {
   }
 });
 
-// Команда /меню для отправки меню в группу
-bot.command('меню', async (ctx) => {
-  console.log('[Bot] Command /меню received via bot.command');
-  await menuHandler(ctx);
-});
 
 // Команда /restaurants удалена, так как рестораны доступны на сайте
 
@@ -116,12 +110,6 @@ bot.on('callback_query', async (ctx: Context) => {
 bot.on('text', async (ctx) => {
   const text = (ctx.message as any)?.text;
   
-  // Проверяем, не является ли это командой /меню
-  if (text && text.startsWith('/меню')) {
-    console.log('[Bot] Command /меню received via bot.on(text)');
-    await menuHandler(ctx);
-    return;
-  }
   
   // Проверяем, не является ли это кнопкой меню
   // Получаем актуальные тексты кнопок из БД для сравнения

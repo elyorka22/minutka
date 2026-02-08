@@ -425,26 +425,6 @@ export async function getMenuViewStatistics(restaurantId: string, startDate?: st
   }
 }
 
-/**
- * Отправить сообщение с кнопкой меню в Telegram бот админу ресторана
- */
-export async function sendTelegramLinkMessage(
-  restaurantId: string, 
-  messageText: string,
-  groupIdentifier?: string | null
-): Promise<{ success: boolean; message: string; error?: string; data?: any }> {
-  try {
-    const response = await api.post<{ success: boolean; message: string; error?: string; data?: any }>('/api/telegram-link/send', {
-      restaurant_id: restaurantId,
-      message_text: messageText,
-      group_username: groupIdentifier || undefined // Может быть @username (для публичных групп) или chat_id (число в виде строки, например "-1001234567890")
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error sending Telegram link message:', error);
-    throw error;
-  }
-}
 
 export async function createMenuItem(menuItemData: {
   restaurant_id: string;
