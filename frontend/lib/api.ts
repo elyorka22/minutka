@@ -473,9 +473,15 @@ export async function deleteMenuItem(id: string): Promise<void> {
 }
 
 // Restaurant Admins API
-export async function getRestaurantAdmins(restaurantId?: string): Promise<any[]> {
+export async function getRestaurantAdmins(restaurantId?: string, withRestaurants: boolean = false): Promise<any[]> {
   try {
-    const params = restaurantId ? { restaurant_id: restaurantId } : {};
+    const params: any = {};
+    if (restaurantId) {
+      params.restaurant_id = restaurantId;
+    }
+    if (withRestaurants) {
+      params.with_restaurants = 'true';
+    }
     const response = await api.get<{ success: boolean; data: any[] }>('/api/restaurant-admins', { params });
     return response.data.data || [];
   } catch (error) {

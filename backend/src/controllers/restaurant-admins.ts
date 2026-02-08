@@ -12,16 +12,35 @@ import { AuthenticatedRequest } from '../middleware/auth';
 /**
  * GET /api/restaurant-admins
  * Получить список админов ресторана
- * Query params: restaurant_id (optional)
+ * Query params: restaurant_id (optional), with_restaurants (optional) - включить информацию о ресторанах
  */
 export async function getRestaurantAdmins(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id } = req.query;
+    const { restaurant_id, with_restaurants } = req.query;
 
-    let query = supabase
-      .from('restaurant_admins')
-      .select('*')
-      .order('created_at', { ascending: false });
+    let query;
+    
+    if (with_restaurants === 'true') {
+      // Если запрашиваем с ресторанами, делаем join
+      query = supabase
+        .from('restaurant_admins')
+        .select(`
+          *,
+          restaurants (
+            id,
+            name,
+            description,
+            image_url,
+            is_active
+          )
+        `)
+        .order('created_at', { ascending: false });
+    } else {
+      query = supabase
+        .from('restaurant_admins')
+        .select('*')
+        .order('created_at', { ascending: false });
+    }
 
     if (restaurant_id) {
       query = query.eq('restaurant_id', restaurant_id);

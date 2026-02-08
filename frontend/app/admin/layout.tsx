@@ -19,6 +19,7 @@ const navigation = [
   { name: 'Пользователи', href: '/admin/users', icon: '👥' },
   { name: 'Баннеры', href: '/admin/banners', icon: '🖼️' },
   { name: 'Категории', href: '/admin/categories', icon: '🏷️' },
+  { name: 'Админы', href: '/admin/admins', icon: '👥' },
   { name: 'Повара', href: '/admin/chefs', icon: '👨‍🍳' },
   { name: 'Курьеры', href: '/admin/couriers', icon: '🚚' },
   { name: 'Супер-админы', href: '/admin/super-admins', icon: '🛡️' },
