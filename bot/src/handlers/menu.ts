@@ -67,28 +67,36 @@ export async function menuHandler(ctx: Context) {
         }
         
         // Формируем кнопку для Telegram Web App согласно Telegram Bot API
-        // Формат должен быть точно таким, как указано в документации Telegram
+        // Используем прямой формат объекта, как требует Telegram Bot API
+        const webAppButton = {
+          text: menuMessage.button_text || 'Меню',
+          web_app: {
+            url: menuMessage.menu_url
+          }
+        };
+        
         const replyMarkup = {
           inline_keyboard: [
-            [
-              {
-                text: menuMessage.button_text || 'Меню',
-                web_app: {
-                  url: menuMessage.menu_url
-                }
-              }
-            ]
+            [webAppButton]
           ]
         };
         
         console.log(`[MenuHandler] Reply markup format:`, JSON.stringify(replyMarkup, null, 2));
         console.log(`[MenuHandler] Button text: "${menuMessage.button_text}"`);
         console.log(`[MenuHandler] Menu URL: "${menuMessage.menu_url}"`);
+        console.log(`[MenuHandler] Web App button object:`, JSON.stringify(webAppButton, null, 2));
         
-        // Отправляем сообщение через ctx.reply с правильным форматом
-        await ctx.reply(menuMessage.message_text, {
-          reply_markup: replyMarkup as any // Используем as any для обхода проверки типов Telegraf
-        });
+        // Отправляем сообщение через ctx.telegram.sendMessage напрямую
+        // Это обходит проверку типов Telegraf и использует прямой формат Telegram Bot API
+        const result = await ctx.telegram.sendMessage(
+          ctx.chat!.id,
+          menuMessage.message_text,
+          {
+            reply_markup: replyMarkup
+          }
+        );
+        
+        console.log(`[MenuHandler] Telegram API response:`, result);
         sentCount++;
         console.log(`[MenuHandler] Successfully sent menu ${sentCount} for restaurant ${menuMessage.restaurant_id}`);
         
