@@ -11,6 +11,7 @@ import { locationHandler } from './handlers/location';
 import { orderStatusHandler } from './handlers/orderStatus';
 import { courierHandler, courierToggleActiveHandler } from './handlers/courier';
 import { botInfoHandler, partnershipHandler, chatIdHandler } from './handlers/botInfo';
+import { menuHandler } from './handlers/menu';
 import { initBot as initRestaurantNotification } from './services/restaurantNotification';
 import { initBot as initUserNotification } from './services/userNotification';
 import { initBot as initAdminNotification } from './services/adminNotification';
@@ -73,6 +74,12 @@ bot.start(async (ctx) => {
     }
   }
 });
+
+// Команда /меню для отправки меню в группу
+bot.command('меню', async (ctx) => {
+  await menuHandler(ctx);
+});
+
 // Команда /restaurants удалена, так как рестораны доступны на сайте
 
 // Callback query handlers (inline keyboard buttons)

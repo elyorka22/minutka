@@ -314,8 +314,38 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     }
     console.log('[sendTelegramLinkMessage] Telegram API success response:', JSON.stringify(data, null, 2));
     
+    // Сохраняем сообщение в БД для использования командой /меню
+    try {
+      const { error: upsertError } = await supabase
+        .from('restaurant_menu_messages')
+        .upsert(
+          {
+            restaurant_id: restaurant_id,
+            message_text: message_text,
+            button_text: buttonText,
+            menu_url: menuUrl,
+            telegram_message_id: data.result?.message_id || null,
+            updated_at: new Date().toISOString()
+          },
+          {
+            onConflict: 'restaurant_id',
+            ignoreDuplicates: false
+          }
+        );
+
+      if (upsertError) {
+        console.error('[sendTelegramLinkMessage] Error saving message to DB:', upsertError);
+        // Не прерываем выполнение, так как сообщение уже отправлено
+      } else {
+        console.log('[sendTelegramLinkMessage] Message saved to DB for restaurant:', restaurant_id);
+      }
+    } catch (dbError: any) {
+      console.error('[sendTelegramLinkMessage] Error saving message to DB (catch):', dbError);
+      // Не прерываем выполнение, так как сообщение уже отправлено
+    }
+    
     const successMessage = sendToGroup 
-      ? 'Сообщение успешно отправлено в группу ресторана! Кнопка будет работать в группе.'
+      ? 'Сообщение успешно отправлено в группу ресторана! Кнопка будет работать в группе. Теперь можно использовать команду /меню в группе.'
       : 'Сообщение успешно отправлено админу! Для работы в группе добавьте telegram_chat_id группы в настройках ресторана.';
     
     res.json({
