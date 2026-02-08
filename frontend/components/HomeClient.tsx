@@ -215,42 +215,65 @@ export default function HomeClient({
             <div className="flex items-center gap-3">
               <button
                 onClick={async () => {
-                  // Если идет загрузка, ждем
-                  if (authLoading) {
+                  // Получаем telegram_id из Telegram Web App или localStorage
+                  const { getTelegramWebAppUser, getTelegramUserId } = await import('@/lib/telegram-webapp');
+                  const webAppUser = getTelegramWebAppUser();
+                  let telegramId: string | null = null;
+
+                  if (webAppUser) {
+                    telegramId = webAppUser.id.toString();
+                    localStorage.setItem('telegram_id', telegramId);
+                  } else {
+                    telegramId = getTelegramUserId();
+                  }
+
+                  if (!telegramId) {
+                    // Если telegram_id не найден, идем на страницу входа
+                    router.push('/login');
                     return;
                   }
 
-                  // Проверяем, есть ли пользователь в localStorage (на случай, если контекст еще не обновился)
-                  const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-                  const telegramId = typeof window !== 'undefined' ? localStorage.getItem('telegram_id') : null;
+                  // Проверяем роль пользователя через API
+                  try {
+                    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
+                    const response = await fetch(`${API_BASE_URL}/api/auth/me?telegram_id=${telegramId}`);
+                    const data = await response.json();
 
-                  if (user || storedUser) {
-                    // Если пользователь уже авторизован, редиректим в зависимости от роли
-                    let userData = user;
-                    if (!userData && storedUser) {
-                      try {
-                        userData = JSON.parse(storedUser);
-                      } catch (e) {
-                        console.error('Error parsing stored user:', e);
-                      }
-                    }
+                    if (response.ok && data.success) {
+                      const role = data.data.role;
+                      console.log('[HomeClient] User role detected:', role);
 
-                    if (userData) {
-                      const role = userData.role;
+                      // Сохраняем данные пользователя в localStorage
+                      localStorage.setItem('user', JSON.stringify(data.data));
+                      localStorage.setItem('last_activity', Date.now().toString());
+
+                      // Редиректим в зависимости от роли
                       if (role === 'super_admin') {
                         router.push('/admin');
                       } else if (role === 'restaurant_admin') {
-                        router.push('/restaurant-admin');
+                        // Проверяем, есть ли у админа несколько ресторанов
+                        if (data.data.user?.hasMultipleRestaurants) {
+                          router.push('/restaurant-admin/select-restaurant');
+                        } else {
+                          // Сохраняем restaurant_id для админа с одним рестораном
+                          if (data.data.user?.restaurant_id) {
+                            localStorage.setItem('selected_restaurant_id', data.data.user.restaurant_id);
+                          }
+                          router.push('/restaurant-admin');
+                        }
                       } else {
                         // Клиент - показываем страницу с сообщением
                         router.push('/client-access-denied');
                       }
-                      return;
+                    } else {
+                      // Пользователь не найден, идем на страницу входа
+                      router.push('/login');
                     }
+                  } catch (error) {
+                    console.error('[HomeClient] Error checking user role:', error);
+                    // При ошибке идем на страницу входа
+                    router.push('/login');
                   }
-
-                  // Если не авторизован, идем на страницу входа
-                  router.push('/login');
                 }}
                 className="px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm"
               >
