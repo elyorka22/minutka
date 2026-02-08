@@ -77,6 +77,7 @@ bot.start(async (ctx) => {
 
 // Команда /меню для отправки меню в группу
 bot.command('меню', async (ctx) => {
+  console.log('[Bot] Command /меню received via bot.command');
   await menuHandler(ctx);
 });
 
@@ -114,6 +115,13 @@ bot.on('callback_query', async (ctx: Context) => {
 // Обработка текстовых сообщений (заказ, адрес или кнопки меню)
 bot.on('text', async (ctx) => {
   const text = (ctx.message as any)?.text;
+  
+  // Проверяем, не является ли это командой /меню
+  if (text && text.startsWith('/меню')) {
+    console.log('[Bot] Command /меню received via bot.on(text)');
+    await menuHandler(ctx);
+    return;
+  }
   
   // Проверяем, не является ли это кнопкой меню
   // Получаем актуальные тексты кнопок из БД для сравнения

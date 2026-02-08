@@ -12,6 +12,11 @@ import { supabase } from '../config/supabase';
  */
 export async function menuHandler(ctx: Context) {
   try {
+    console.log('[MenuHandler] Command /меню received');
+    console.log('[MenuHandler] Chat type:', ctx.chat?.type);
+    console.log('[MenuHandler] Chat ID:', ctx.chat?.id);
+    console.log('[MenuHandler] User ID:', ctx.from?.id);
+    
     // Проверяем, что команда вызвана в группе
     const chatType = ctx.chat?.type;
     if (chatType !== 'group' && chatType !== 'supergroup') {
