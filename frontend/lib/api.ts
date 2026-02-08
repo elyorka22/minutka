@@ -431,13 +431,13 @@ export async function getMenuViewStatistics(restaurantId: string, startDate?: st
 export async function sendTelegramLinkMessage(
   restaurantId: string, 
   messageText: string,
-  groupUsername?: string | null
+  groupIdentifier?: string | null
 ): Promise<{ success: boolean; message: string; data?: any }> {
   try {
     const response = await api.post<{ success: boolean; message: string; data?: any }>('/api/telegram-link/send', {
       restaurant_id: restaurantId,
       message_text: messageText,
-      group_username: groupUsername || undefined
+      group_username: groupIdentifier || undefined // Может быть @username или chat_id в виде строки
     });
     return response.data;
   } catch (error) {

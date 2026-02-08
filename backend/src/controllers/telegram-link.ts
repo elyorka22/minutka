@@ -87,21 +87,33 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     console.log('[sendTelegramLinkMessage] Restaurant telegram_chat_id:', restaurant.telegram_chat_id);
 
     // Определяем, куда отправлять сообщение
-    // Приоритет: group_username из запроса > telegram_chat_id группы ресторана > telegram_id админа
+    // Приоритет: group_username/group_chat_id из запроса > telegram_id админа
     let targetChatId: number | string | null = null;
     let sendToGroup = false;
 
-    // Если передан username группы в запросе, используем его
-    if (group_username && typeof group_username === 'string' && group_username.startsWith('@')) {
-      targetChatId = group_username;
-      sendToGroup = true;
-      console.log('[sendTelegramLinkMessage] Sending to restaurant group (username from request):', targetChatId);
-    } else if (restaurant.telegram_chat_id) {
-      // Если у ресторана есть telegram_chat_id (группа), отправляем туда
-      targetChatId = Number(restaurant.telegram_chat_id);
-      sendToGroup = true;
-      console.log('[sendTelegramLinkMessage] Sending to restaurant group (telegram_chat_id):', targetChatId);
-    } else {
+    // Если передан username или chat_id группы в запросе, используем его
+    const groupIdentifier = group_username || group_chat_id;
+    if (groupIdentifier) {
+      if (typeof groupIdentifier === 'string' && groupIdentifier.startsWith('@')) {
+        // Username группы
+        targetChatId = groupIdentifier;
+        sendToGroup = true;
+        console.log('[sendTelegramLinkMessage] Sending to restaurant group (username from request):', targetChatId);
+      } else if (typeof groupIdentifier === 'string' && /^-?\d+$/.test(groupIdentifier)) {
+        // Chat ID группы (число в виде строки)
+        targetChatId = parseInt(groupIdentifier);
+        sendToGroup = true;
+        console.log('[sendTelegramLinkMessage] Sending to restaurant group (chat_id from request):', targetChatId);
+      } else if (typeof groupIdentifier === 'number') {
+        // Chat ID группы (число)
+        targetChatId = groupIdentifier;
+        sendToGroup = true;
+        console.log('[sendTelegramLinkMessage] Sending to restaurant group (chat_id from request):', targetChatId);
+      }
+    }
+    
+    // Если группа не указана, отправляем админу
+    if (!targetChatId) {
       // Иначе отправляем админу
       let adminTelegramId: bigint | null = null;
 
