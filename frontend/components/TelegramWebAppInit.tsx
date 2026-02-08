@@ -24,10 +24,8 @@ export default function TelegramWebAppInit() {
     if (webAppUser) {
       // Сохраняем telegram_id в localStorage для использования в приложении
       telegramId = webAppUser.id.toString();
-      if (!localStorage.getItem('telegram_id')) {
-        localStorage.setItem('telegram_id', telegramId);
-        console.log('[TelegramWebApp] Detected user from Telegram Web App:', telegramId);
-      }
+      localStorage.setItem('telegram_id', telegramId);
+      console.log('[TelegramWebApp] Detected user from Telegram Web App:', telegramId);
     } else {
       // Если не в Telegram Web App, пытаемся получить из localStorage
       telegramId = getTelegramUserId();
@@ -36,8 +34,9 @@ export default function TelegramWebAppInit() {
       }
     }
 
-    // Если есть telegram_id, проверяем роль и автоматически редиректим
-    if (telegramId) {
+    // Если есть telegram_id и мы в Telegram Web App, проверяем роль и автоматически редиректим
+    // Проверяем, что редирект еще не был выполнен (чтобы избежать бесконечных редиректов)
+    if (telegramId && webAppUser && !sessionStorage.getItem('role_redirect_done')) {
       checkUserRoleAndRedirect(telegramId);
     }
   }, [router]);
@@ -51,6 +50,13 @@ export default function TelegramWebAppInit() {
       if (response.ok && data.success) {
         const role = data.data.role;
         console.log('[TelegramWebApp] User role detected:', role);
+
+        // Помечаем, что редирект выполнен
+        sessionStorage.setItem('role_redirect_done', 'true');
+
+        // Сохраняем данные пользователя в localStorage
+        localStorage.setItem('user', JSON.stringify(data.data));
+        localStorage.setItem('last_activity', Date.now().toString());
 
         // Автоматически редиректим в зависимости от роли
         if (role === 'super_admin') {
@@ -73,8 +79,8 @@ export default function TelegramWebAppInit() {
           console.log('[TelegramWebApp] User is a client, staying on homepage');
         }
       } else {
-        // Пользователь не найден или требуется пароль (сотрудник)
-        console.log('[TelegramWebApp] User not found or requires password');
+        // Пользователь не найден
+        console.log('[TelegramWebApp] User not found');
       }
     } catch (error) {
       console.error('[TelegramWebApp] Error checking user role:', error);
