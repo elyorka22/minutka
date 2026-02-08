@@ -138,6 +138,7 @@ export async function updateRestaurant(id: string, restaurantData: {
   is_featured?: boolean;
   type?: 'restaurant' | 'store';
   working_hours?: WorkingHours | null;
+  telegram_chat_id?: number | string | null;
 }): Promise<Restaurant> {
   const response = await api.patch<{ success: boolean; data: Restaurant }>(`/api/restaurants/${id}`, restaurantData);
   return response.data.data;
@@ -427,11 +428,16 @@ export async function getMenuViewStatistics(restaurantId: string, startDate?: st
 /**
  * Отправить сообщение с кнопкой меню в Telegram бот админу ресторана
  */
-export async function sendTelegramLinkMessage(restaurantId: string, messageText: string): Promise<{ success: boolean; message: string; data?: any }> {
+export async function sendTelegramLinkMessage(
+  restaurantId: string, 
+  messageText: string,
+  groupUsername?: string | null
+): Promise<{ success: boolean; message: string; data?: any }> {
   try {
     const response = await api.post<{ success: boolean; message: string; data?: any }>('/api/telegram-link/send', {
       restaurant_id: restaurantId,
-      message_text: messageText
+      message_text: messageText,
+      group_username: groupUsername || undefined
     });
     return response.data;
   } catch (error) {

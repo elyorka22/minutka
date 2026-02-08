@@ -20,8 +20,8 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
   try {
     console.log('[sendTelegramLinkMessage] Request received');
     console.log('[sendTelegramLinkMessage] User:', req.user);
-    const { restaurant_id, message_text } = req.body;
-    console.log('[sendTelegramLinkMessage] Request body:', { restaurant_id, message_text });
+    const { restaurant_id, message_text, group_username } = req.body;
+    console.log('[sendTelegramLinkMessage] Request body:', { restaurant_id, message_text, group_username });
 
     // Валидация
     if (!validateUuid(restaurant_id)) {
@@ -87,12 +87,17 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     console.log('[sendTelegramLinkMessage] Restaurant telegram_chat_id:', restaurant.telegram_chat_id);
 
     // Определяем, куда отправлять сообщение
-    // Приоритет: telegram_chat_id группы ресторана > telegram_id админа
-    let targetChatId: number | null = null;
+    // Приоритет: group_username из запроса > telegram_chat_id группы ресторана > telegram_id админа
+    let targetChatId: number | string | null = null;
     let sendToGroup = false;
 
-    // Если у ресторана есть telegram_chat_id (группа), отправляем туда
-    if (restaurant.telegram_chat_id) {
+    // Если передан username группы в запросе, используем его
+    if (group_username && typeof group_username === 'string' && group_username.startsWith('@')) {
+      targetChatId = group_username;
+      sendToGroup = true;
+      console.log('[sendTelegramLinkMessage] Sending to restaurant group (username from request):', targetChatId);
+    } else if (restaurant.telegram_chat_id) {
+      // Если у ресторана есть telegram_chat_id (группа), отправляем туда
       targetChatId = Number(restaurant.telegram_chat_id);
       sendToGroup = true;
       console.log('[sendTelegramLinkMessage] Sending to restaurant group (telegram_chat_id):', targetChatId);
@@ -167,13 +172,26 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     console.log('[sendTelegramLinkMessage] Sending message to chat_id:', targetChatId);
     console.log('[sendTelegramLinkMessage] Telegram API URL:', TELEGRAM_API_URL);
 
+    // Telegram Bot API поддерживает chat_id как число или username группы (начинающийся с @)
+    let chatIdForApi: number | string;
+    if (targetChatId === null) {
+      throw new Error('targetChatId is null');
+    }
+    if (typeof targetChatId === 'string' && targetChatId.startsWith('@')) {
+      chatIdForApi = targetChatId;
+    } else if (typeof targetChatId === 'number') {
+      chatIdForApi = targetChatId;
+    } else {
+      chatIdForApi = Number(targetChatId);
+    }
+
     const response = await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        chat_id: targetChatId,
+        chat_id: chatIdForApi,
         text: message_text,
         reply_markup: replyMarkup,
       }),

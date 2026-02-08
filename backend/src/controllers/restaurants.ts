@@ -410,7 +410,7 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
 export async function updateRestaurant(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, phone, image_url, delivery_text, is_active, is_featured, working_hours, type, menu_button_text } = req.body;
+    const { name, description, phone, image_url, delivery_text, is_active, is_featured, working_hours, type, menu_button_text, telegram_chat_id } = req.body;
 
     // Валидация ID
     if (!id || !validateString(id, 1, 100)) {
@@ -504,6 +504,30 @@ export async function updateRestaurant(req: AuthenticatedRequest, res: Response)
         });
       }
       updateData.menu_button_text = menu_button_text || 'Меню';
+    }
+    if (telegram_chat_id !== undefined) {
+      // telegram_chat_id может быть числом (chat_id) или строкой (username группы)
+      // В БД хранится как BIGINT, но для username групп мы не можем сохранить строку
+      // Поэтому для username групп сохраняем null и используем username напрямую при отправке
+      if (telegram_chat_id !== null && telegram_chat_id !== '') {
+        // Если это число, сохраняем как число
+        if (typeof telegram_chat_id === 'number' || /^-?\d+$/.test(String(telegram_chat_id))) {
+          updateData.telegram_chat_id = typeof telegram_chat_id === 'number' ? telegram_chat_id : parseInt(String(telegram_chat_id));
+        } else if (typeof telegram_chat_id === 'string' && telegram_chat_id.startsWith('@')) {
+          // Для username групп сохраняем null (будем использовать username напрямую при отправке)
+          // В будущем можно добавить отдельное поле для username
+          updateData.telegram_chat_id = null;
+          // Сохраняем username в отдельном поле или используем напрямую при отправке
+          // Пока что будем использовать username из запроса при отправке
+        } else {
+          return res.status(400).json({
+            success: false,
+            error: 'Неверный формат telegram_chat_id. Укажите число (chat_id) или username группы начинающийся с @'
+          });
+        }
+      } else {
+        updateData.telegram_chat_id = null;
+      }
     }
 
     const { data, error } = await supabase

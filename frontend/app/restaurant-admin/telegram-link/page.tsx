@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getMyRestaurant, sendTelegramLinkMessage } from '@/lib/api';
+import { getMyRestaurant, sendTelegramLinkMessage, updateRestaurant } from '@/lib/api';
 import { Restaurant } from '@/lib/types';
 import { useToast } from '@/contexts/ToastContext';
 import { handleApiError } from '@/lib/errorHandler';
@@ -15,7 +15,9 @@ export default function TelegramLinkPage() {
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [messageText, setMessageText] = useState('');
+  const [groupChatId, setGroupChatId] = useState('');
 
   useEffect(() => {
     async function loadRestaurant() {
@@ -30,6 +32,10 @@ export default function TelegramLinkPage() {
         setRestaurant(data);
         // Устанавливаем текст по умолчанию
         setMessageText(`${data.name} - ${data.menu_button_text || 'Меню'}`);
+        // Устанавливаем chat_id группы если есть
+        if (data.telegram_chat_id) {
+          setGroupChatId(data.telegram_chat_id.toString());
+        }
       } catch (error) {
         console.error('Error loading restaurant:', error);
         showError(handleApiError(error));
@@ -39,6 +45,53 @@ export default function TelegramLinkPage() {
     }
     loadRestaurant();
   }, [showError]);
+
+  // Функция для извлечения chat_id или username из ссылки
+  const parseGroupIdentifier = (input: string): string | null => {
+    if (!input.trim()) return null;
+    
+    // Если это число (chat_id), возвращаем как есть
+    if (/^-?\d+$/.test(input.trim())) {
+      return input.trim();
+    }
+    
+    // Если это ссылка t.me/username или @username, извлекаем username
+    const linkMatch = input.match(/(?:t\.me\/|@)([a-zA-Z0-9_]+)/);
+    if (linkMatch) {
+      return `@${linkMatch[1]}`;
+    }
+    
+    // Если уже начинается с @, возвращаем как есть
+    if (input.trim().startsWith('@')) {
+      return input.trim();
+    }
+    
+    return null;
+  };
+
+  const handleSaveGroupChatId = async () => {
+    if (!restaurant) return;
+
+    const parsedId = parseGroupIdentifier(groupChatId);
+    
+    try {
+      setSaving(true);
+      // Сохраняем chat_id (число) или null для username групп
+      const chatIdToSave = parsedId && !parsedId.startsWith('@') 
+        ? parseInt(parsedId) 
+        : null;
+      const updated = await updateRestaurant(restaurant.id, {
+        telegram_chat_id: chatIdToSave
+      });
+      setRestaurant(updated);
+      showSuccess('Chat ID группы успешно сохранен!');
+    } catch (error) {
+      console.error('Error saving group chat ID:', error);
+      showError(handleApiError(error));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleCreate = async () => {
     if (!restaurant) return;
@@ -50,10 +103,18 @@ export default function TelegramLinkPage() {
 
     try {
       setSending(true);
-      const result = await sendTelegramLinkMessage(restaurant.id, messageText.trim());
+      // Если указан username группы, передаем его в запросе
+      const parsedId = parseGroupIdentifier(groupChatId);
+      const groupUsername = parsedId && parsedId.startsWith('@') ? parsedId : null;
+      
+      const result = await sendTelegramLinkMessage(
+        restaurant.id, 
+        messageText.trim(),
+        groupUsername
+      );
       
       if (result.success) {
-        showSuccess('Сообщение успешно отправлено в Telegram!');
+        showSuccess(result.message || 'Сообщение успешно отправлено в Telegram!');
         // Очищаем поле после успешной отправки
         setMessageText(`${restaurant.name} - ${restaurant.menu_button_text || 'Меню'}`);
       } else {
@@ -93,7 +154,37 @@ export default function TelegramLinkPage() {
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-900 mb-6">🔗 Ссылка для Telegram</h1>
 
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Настройка группы</h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Chat ID группы или ссылка на группу
+              </label>
+              <input
+                type="text"
+                value={groupChatId}
+                onChange={(e) => setGroupChatId(e.target.value)}
+                placeholder="-1001234567890 или @groupname или t.me/groupname"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Укажите chat_id группы (число) или ссылку на публичную группу. Сообщения будут отправляться напрямую в группу.
+              </p>
+            </div>
+
+            <button
+              onClick={handleSaveGroupChatId}
+              disabled={saving}
+              className="w-full px-6 py-3 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? 'Сохранение...' : 'Сохранить Chat ID'}
+            </button>
+          </div>
+        </div>
+
         <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Отправка сообщения</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
