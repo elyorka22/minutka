@@ -46,7 +46,7 @@ export default function HomeClient({
   appSlogan,
 }: HomeClientProps) {
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, login } = useAuth();
   const [selectedTab, setSelectedTab] = useState<'restaurants' | 'stores'>('restaurants');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -215,63 +215,33 @@ export default function HomeClient({
             <div className="flex items-center gap-3">
               <button
                 onClick={async () => {
-                  // Получаем telegram_id из Telegram Web App или localStorage
-                  const { getTelegramWebAppUser, getTelegramUserId } = await import('@/lib/telegram-webapp');
-                  const webAppUser = getTelegramWebAppUser();
-                  let telegramId: string | null = null;
-
-                  if (webAppUser) {
-                    telegramId = webAppUser.id.toString();
-                    localStorage.setItem('telegram_id', telegramId);
-                  } else {
-                    telegramId = getTelegramUserId();
-                  }
-
-                  if (!telegramId) {
-                    // Если telegram_id не найден, идем на страницу входа
-                    router.push('/login');
-                    return;
-                  }
-
-                  // Проверяем роль пользователя через API
                   try {
-                    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
-                    const response = await fetch(`${API_BASE_URL}/api/auth/me?telegram_id=${telegramId}`);
-                    const data = await response.json();
+                    // Получаем telegram_id из Telegram Web App или localStorage
+                    const { getTelegramWebAppUser, getTelegramUserId } = await import('@/lib/telegram-webapp');
+                    const webAppUser = getTelegramWebAppUser();
+                    let telegramId: string | null = null;
 
-                    if (response.ok && data.success) {
-                      const role = data.data.role;
-                      console.log('[HomeClient] User role detected:', role);
-
-                      // Сохраняем данные пользователя в localStorage
-                      localStorage.setItem('user', JSON.stringify(data.data));
-                      localStorage.setItem('last_activity', Date.now().toString());
-
-                      // Редиректим в зависимости от роли
-                      if (role === 'super_admin') {
-                        router.push('/admin');
-                      } else if (role === 'restaurant_admin') {
-                        // Проверяем, есть ли у админа несколько ресторанов
-                        if (data.data.user?.hasMultipleRestaurants) {
-                          router.push('/restaurant-admin/select-restaurant');
-                        } else {
-                          // Сохраняем restaurant_id для админа с одним рестораном
-                          if (data.data.user?.restaurant_id) {
-                            localStorage.setItem('selected_restaurant_id', data.data.user.restaurant_id);
-                          }
-                          router.push('/restaurant-admin');
-                        }
-                      } else {
-                        // Клиент - показываем страницу с сообщением
-                        router.push('/client-access-denied');
-                      }
+                    if (webAppUser) {
+                      telegramId = webAppUser.id.toString();
+                      localStorage.setItem('telegram_id', telegramId);
                     } else {
-                      // Пользователь не найден, идем на страницу входа
-                      router.push('/login');
+                      telegramId = getTelegramUserId();
                     }
-                  } catch (error) {
-                    console.error('[HomeClient] Error checking user role:', error);
-                    // При ошибке идем на страницу входа
+
+                    if (!telegramId) {
+                      // Если telegram_id не найден, идем на страницу входа
+                      router.push('/login');
+                      return;
+                    }
+
+                    console.log('[HomeClient] Attempting automatic login with telegram_id:', telegramId);
+
+                    // Используем функцию login из AuthContext для автоматического входа
+                    // Это обеспечит правильное сохранение пользователя и автоматический редирект
+                    await login(telegramId);
+                  } catch (error: any) {
+                    console.error('[HomeClient] Error during automatic login:', error);
+                    // Если автоматический вход не удался (пользователь не найден или требуется пароль), идем на страницу входа
                     router.push('/login');
                   }
                 }}
