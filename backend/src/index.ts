@@ -25,6 +25,7 @@ import pharmaciesStoresRouter from './routes/pharmacies-stores';
 import pharmacyStoreCategoryRelationsRouter from './routes/pharmacy-store-category-relations';
 import couriersRouter from './routes/couriers';
 import menuViewsRouter from './routes/menuViews';
+import telegramLinkRouter from './routes/telegram-link';
 import { generalLimiter, strictLimiter, createUpdateLimiter } from './middleware/rateLimit';
 import { bigIntSerializerMiddleware } from './middleware/bigintSerializer';
 
