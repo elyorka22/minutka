@@ -144,13 +144,29 @@ export async function processRestaurantId(ctx: Context, restaurantId: string, ch
       return;
     }
 
-    // Формируем кнопку для Telegram Web App используя Telegraf API
-    const replyMarkup = Markup.inlineKeyboard([
-      Markup.button.webApp(menuMessage.button_text, menuMessage.menu_url)
-    ]);
+    // Формируем кнопку для Telegram Web App
+    // Используем прямой формат объекта согласно Telegram Bot API
+    const replyMarkup = {
+      inline_keyboard: [
+        [
+          {
+            text: menuMessage.button_text,
+            web_app: {
+              url: menuMessage.menu_url
+            }
+          }
+        ]
+      ]
+    };
+
+    console.log('[MenuHandler] Reply markup:', JSON.stringify(replyMarkup, null, 2));
+    console.log('[MenuHandler] Menu URL:', menuMessage.menu_url);
+    console.log('[MenuHandler] Button text:', menuMessage.button_text);
 
     // Отправляем сообщение в группу
-    await ctx.reply(menuMessage.message_text, replyMarkup);
+    await ctx.reply(menuMessage.message_text, {
+      reply_markup: replyMarkup
+    });
 
     // Удаляем сессию
     if (userId) menuSessions.delete(userId);
