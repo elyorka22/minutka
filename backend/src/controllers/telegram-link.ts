@@ -190,32 +190,8 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     console.log('[sendTelegramLinkMessage] Sending message to chat_id:', targetChatId);
     console.log('[sendTelegramLinkMessage] Telegram API URL:', TELEGRAM_API_URL);
 
-    // Telegram Bot API поддерживает chat_id как число или username группы (начинающийся с @)
-    let chatIdForApi: number | string;
-    if (typeof targetChatId === 'string' && targetChatId.startsWith('@')) {
-      chatIdForApi = targetChatId;
-    } else if (typeof targetChatId === 'number') {
-      chatIdForApi = targetChatId;
-    } else if (targetChatId === null || targetChatId === undefined) {
-      console.error('[sendTelegramLinkMessage] targetChatId is null or undefined');
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to determine target chat ID',
-        message: 'Target chat ID is null or undefined'
-      });
-    } else {
-      // Пытаемся преобразовать в число
-      const parsed = Number(targetChatId);
-      if (isNaN(parsed)) {
-        console.error('[sendTelegramLinkMessage] Invalid targetChatId format:', targetChatId);
-        return res.status(400).json({
-          success: false,
-          error: 'Invalid chat ID format',
-          message: `Chat ID must be a number or username starting with @, got: ${targetChatId}`
-        });
-      }
-      chatIdForApi = parsed;
-    }
+    // targetChatId всегда число (telegram_id админа)
+    const chatIdForApi = targetChatId;
     
     console.log('[sendTelegramLinkMessage] Final chat_id for API:', chatIdForApi);
 
