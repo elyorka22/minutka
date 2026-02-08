@@ -73,7 +73,7 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     // Получаем информацию о ресторане
     const { data: restaurant, error: restaurantError } = await supabase
       .from('restaurants')
-      .select('id, name, menu_button_text')
+      .select('id, name, menu_button_text, telegram_chat_id')
       .eq('id', restaurant_id)
       .single();
 
@@ -84,33 +84,50 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
       });
     }
 
-    // Получаем telegram_id админа ресторана
-    let adminTelegramId: bigint | null = null;
+    console.log('[sendTelegramLinkMessage] Restaurant telegram_chat_id:', restaurant.telegram_chat_id);
 
-    if (req.user?.role === 'restaurant_admin') {
-      // Используем telegram_id текущего админа
-      adminTelegramId = BigInt(req.user.telegram_id);
-      console.log('[sendTelegramLinkMessage] Using current admin telegram_id:', adminTelegramId.toString());
+    // Определяем, куда отправлять сообщение
+    // Приоритет: telegram_chat_id группы ресторана > telegram_id админа
+    let targetChatId: number | null = null;
+    let sendToGroup = false;
+
+    // Если у ресторана есть telegram_chat_id (группа), отправляем туда
+    if (restaurant.telegram_chat_id) {
+      targetChatId = Number(restaurant.telegram_chat_id);
+      sendToGroup = true;
+      console.log('[sendTelegramLinkMessage] Sending to restaurant group (telegram_chat_id):', targetChatId);
     } else {
-      // Для super_admin - получаем первого активного админа ресторана
-      const { data: adminRecord, error: adminError } = await supabase
-        .from('restaurant_admins')
-        .select('telegram_id')
-        .eq('restaurant_id', restaurant_id)
-        .eq('is_active', true)
-        .limit(1)
-        .single();
+      // Иначе отправляем админу
+      let adminTelegramId: bigint | null = null;
 
-      if (adminError || !adminRecord) {
-        console.error('[sendTelegramLinkMessage] Admin not found:', adminError);
-        return res.status(404).json({
-          success: false,
-          error: 'Restaurant admin not found'
-        });
+      if (req.user?.role === 'restaurant_admin') {
+        // Используем telegram_id текущего админа
+        adminTelegramId = BigInt(req.user.telegram_id);
+        console.log('[sendTelegramLinkMessage] Using current admin telegram_id:', adminTelegramId.toString());
+      } else {
+        // Для super_admin - получаем первого активного админа ресторана
+        const { data: adminRecord, error: adminError } = await supabase
+          .from('restaurant_admins')
+          .select('telegram_id')
+          .eq('restaurant_id', restaurant_id)
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+
+        if (adminError || !adminRecord) {
+          console.error('[sendTelegramLinkMessage] Admin not found:', adminError);
+          return res.status(404).json({
+            success: false,
+            error: 'Restaurant admin not found'
+          });
+        }
+
+        adminTelegramId = BigInt(adminRecord.telegram_id);
+        console.log('[sendTelegramLinkMessage] Found admin telegram_id:', adminTelegramId.toString());
       }
 
-      adminTelegramId = BigInt(adminRecord.telegram_id);
-      console.log('[sendTelegramLinkMessage] Found admin telegram_id:', adminTelegramId.toString());
+      targetChatId = Number(adminTelegramId);
+      console.log('[sendTelegramLinkMessage] Sending to admin (telegram_id):', targetChatId);
     }
 
     // Получаем URL меню
@@ -147,8 +164,7 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
       });
     }
 
-    const chatId = Number(adminTelegramId);
-    console.log('[sendTelegramLinkMessage] Sending message to chat_id:', chatId);
+    console.log('[sendTelegramLinkMessage] Sending message to chat_id:', targetChatId);
     console.log('[sendTelegramLinkMessage] Telegram API URL:', TELEGRAM_API_URL);
 
     const response = await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
@@ -157,7 +173,7 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        chat_id: chatId,
+        chat_id: targetChatId,
         text: message_text,
         reply_markup: replyMarkup,
       }),
