@@ -214,22 +214,43 @@ export default function HomeClient({
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={() => {
-                  if (user) {
-                    // Если пользователь уже авторизован, редиректим в зависимости от роли
-                    const role = user.role;
-                    if (role === 'super_admin') {
-                      router.push('/admin');
-                    } else if (role === 'restaurant_admin') {
-                      router.push('/restaurant-admin');
-                    } else {
-                      // Клиент - показываем страницу с сообщением
-                      router.push('/client-access-denied');
-                    }
-                  } else {
-                    // Если не авторизован, идем на страницу входа
-                    router.push('/login');
+                onClick={async () => {
+                  // Если идет загрузка, ждем
+                  if (authLoading) {
+                    return;
                   }
+
+                  // Проверяем, есть ли пользователь в localStorage (на случай, если контекст еще не обновился)
+                  const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+                  const telegramId = typeof window !== 'undefined' ? localStorage.getItem('telegram_id') : null;
+
+                  if (user || storedUser) {
+                    // Если пользователь уже авторизован, редиректим в зависимости от роли
+                    let userData = user;
+                    if (!userData && storedUser) {
+                      try {
+                        userData = JSON.parse(storedUser);
+                      } catch (e) {
+                        console.error('Error parsing stored user:', e);
+                      }
+                    }
+
+                    if (userData) {
+                      const role = userData.role;
+                      if (role === 'super_admin') {
+                        router.push('/admin');
+                      } else if (role === 'restaurant_admin') {
+                        router.push('/restaurant-admin');
+                      } else {
+                        // Клиент - показываем страницу с сообщением
+                        router.push('/client-access-denied');
+                      }
+                      return;
+                    }
+                  }
+
+                  // Если не авторизован, идем на страницу входа
+                  router.push('/login');
                 }}
                 className="px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm"
               >
