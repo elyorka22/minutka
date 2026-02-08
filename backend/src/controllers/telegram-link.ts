@@ -258,12 +258,30 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     }
 
     if (!response.ok || !data.ok) {
-      console.error('[sendTelegramLinkMessage] Telegram API error:', data);
-      console.error('[sendTelegramLinkMessage] Full error response:', responseText);
+      console.error('[sendTelegramLinkMessage] Telegram API error response:');
+      console.error('[sendTelegramLinkMessage] Status:', response.status);
+      console.error('[sendTelegramLinkMessage] Response text:', responseText);
+      console.error('[sendTelegramLinkMessage] Parsed data:', JSON.stringify(data, null, 2));
+      
+      const errorDescription = data.description || data.error_description || responseText || 'Unknown error';
+      console.error('[sendTelegramLinkMessage] Error description:', errorDescription);
+      
+      // Более понятные сообщения об ошибках
+      let userFriendlyError = 'Не удалось отправить сообщение в Telegram';
+      if (errorDescription.includes('chat not found') || errorDescription.includes('Chat not found')) {
+        userFriendlyError = 'Группа не найдена. Убедитесь, что бот добавлен в группу и группа имеет публичный username.';
+      } else if (errorDescription.includes('bot was blocked') || errorDescription.includes('bot is not a member')) {
+        userFriendlyError = 'Бот не является участником группы. Добавьте бота в группу как администратора.';
+      } else if (errorDescription.includes('not enough rights')) {
+        userFriendlyError = 'У бота недостаточно прав для отправки сообщений в группу.';
+      } else if (errorDescription.includes('chat_id is empty')) {
+        userFriendlyError = 'Неверный формат chat_id или username группы.';
+      }
+      
       return res.status(500).json({
         success: false,
-        error: 'Failed to send message to Telegram',
-        details: data.description || data.error_description || responseText || 'Unknown error'
+        error: userFriendlyError,
+        details: errorDescription
       });
     }
     console.log('[sendTelegramLinkMessage] Telegram API success response:', JSON.stringify(data, null, 2));
