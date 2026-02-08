@@ -169,14 +169,19 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
       });
     }
 
+    if (!targetChatId) {
+      console.error('[sendTelegramLinkMessage] targetChatId is null or undefined');
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to determine target chat ID'
+      });
+    }
+
     console.log('[sendTelegramLinkMessage] Sending message to chat_id:', targetChatId);
     console.log('[sendTelegramLinkMessage] Telegram API URL:', TELEGRAM_API_URL);
 
     // Telegram Bot API поддерживает chat_id как число или username группы (начинающийся с @)
     let chatIdForApi: number | string;
-    if (targetChatId === null) {
-      throw new Error('targetChatId is null');
-    }
     if (typeof targetChatId === 'string' && targetChatId.startsWith('@')) {
       chatIdForApi = targetChatId;
     } else if (typeof targetChatId === 'number') {
