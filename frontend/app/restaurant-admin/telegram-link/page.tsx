@@ -149,16 +149,16 @@ export default function TelegramLinkPage() {
                 
                 <div className="mb-4 p-4 bg-white rounded-lg border border-green-200">
                   <p className="text-sm font-semibold text-gray-700 mb-2">
-                    📋 Код для использования в группе:
+                    📋 Команда для использования в группе:
                   </p>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 px-4 py-3 bg-gray-100 rounded-lg text-base font-mono text-gray-800 break-all">
-                      /меню {restaurant.id}
+                    <code className="flex-1 px-4 py-3 bg-gray-100 rounded-lg text-base font-mono text-gray-800 text-center">
+                      /меню
                     </code>
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(`/меню ${restaurant.id}`);
-                        showSuccess('Код скопирован!');
+                        navigator.clipboard.writeText('/меню');
+                        showSuccess('Команда скопирована!');
                       }}
                       className="px-4 py-3 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors whitespace-nowrap"
                     >
@@ -174,9 +174,8 @@ export default function TelegramLinkPage() {
                   <ol className="text-sm text-gray-600 list-decimal list-inside space-y-1">
                     <li>Добавьте бота в группу Telegram как администратора</li>
                     <li>В группе отправьте команду: <code className="bg-white px-1 py-0.5 rounded text-primary-600 font-mono">/меню</code></li>
-                    <li>Бот попросит ввести ID ресторана</li>
-                    <li>Введите или вставьте ID: <code className="bg-white px-1 py-0.5 rounded text-primary-600 font-mono">{restaurant.id}</code></li>
-                    <li>Бот отправит сообщение с кнопкой меню в группу</li>
+                    <li>Бот отправит все существующие меню в группу</li>
+                    <li>Удалите ненужные сообщения, оставьте только свое меню</li>
                   </ol>
                 </div>
               </div>

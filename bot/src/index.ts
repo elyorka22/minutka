@@ -11,7 +11,7 @@ import { locationHandler } from './handlers/location';
 import { orderStatusHandler } from './handlers/orderStatus';
 import { courierHandler, courierToggleActiveHandler } from './handlers/courier';
 import { botInfoHandler, partnershipHandler, chatIdHandler } from './handlers/botInfo';
-import { menuHandler, processRestaurantId, isWaitingForRestaurantId, getMenuSessionChatId } from './handlers/menu';
+import { menuHandler } from './handlers/menu';
 import { initBot as initRestaurantNotification } from './services/restaurantNotification';
 import { initBot as initUserNotification } from './services/userNotification';
 import { initBot as initAdminNotification } from './services/adminNotification';
@@ -121,17 +121,6 @@ bot.on('text', async (ctx) => {
     console.log('[Bot] Command /меню received via bot.on(text)');
     await menuHandler(ctx);
     return;
-  }
-
-  // Проверяем, ожидает ли пользователь ввода ID ресторана для команды /меню
-  const userId = ctx.from?.id;
-  if (userId && isWaitingForRestaurantId(userId)) {
-    const chatId = getMenuSessionChatId(userId);
-    if (chatId && ctx.chat?.id === chatId) {
-      console.log('[Bot] Processing restaurant ID input for /меню command');
-      await processRestaurantId(ctx, text.trim(), chatId);
-      return;
-    }
   }
   
   // Проверяем, не является ли это кнопкой меню
