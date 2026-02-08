@@ -111,6 +111,8 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
 
     // Если передан username или chat_id группы в запросе, используем его
     const groupIdentifier = group_username;
+    console.log('[sendTelegramLinkMessage] Group identifier from request:', groupIdentifier, 'Type:', typeof groupIdentifier);
+    
     if (groupIdentifier) {
       if (typeof groupIdentifier === 'string' && groupIdentifier.startsWith('@')) {
         // Username группы (публичная группа)
@@ -119,16 +121,21 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
         console.log('[sendTelegramLinkMessage] Sending to restaurant group (username from request):', targetChatId);
       } else if (typeof groupIdentifier === 'string' && /^-?\d+$/.test(groupIdentifier)) {
         // Chat ID группы (число в виде строки) - работает для всех групп
-        targetChatId = parseInt(groupIdentifier, 10);
-        sendToGroup = true;
-        console.log('[sendTelegramLinkMessage] Sending to restaurant group (chat_id from request):', targetChatId);
+        const parsedChatId = parseInt(groupIdentifier, 10);
+        if (isNaN(parsedChatId)) {
+          console.error('[sendTelegramLinkMessage] Failed to parse chat_id from string:', groupIdentifier);
+        } else {
+          targetChatId = parsedChatId;
+          sendToGroup = true;
+          console.log('[sendTelegramLinkMessage] Sending to restaurant group (chat_id from request, parsed):', targetChatId);
+        }
       } else if (typeof groupIdentifier === 'number') {
         // Chat ID группы (число) - работает для всех групп
         targetChatId = groupIdentifier;
         sendToGroup = true;
-        console.log('[sendTelegramLinkMessage] Sending to restaurant group (chat_id from request):', targetChatId);
+        console.log('[sendTelegramLinkMessage] Sending to restaurant group (chat_id from request, number):', targetChatId);
       } else {
-        console.warn('[sendTelegramLinkMessage] Invalid group identifier format:', groupIdentifier);
+        console.warn('[sendTelegramLinkMessage] Invalid group identifier format:', groupIdentifier, 'Type:', typeof groupIdentifier);
       }
     }
     
@@ -226,9 +233,28 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
       chatIdForApi = targetChatId;
     } else if (typeof targetChatId === 'number') {
       chatIdForApi = targetChatId;
+    } else if (targetChatId === null || targetChatId === undefined) {
+      console.error('[sendTelegramLinkMessage] targetChatId is null or undefined');
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to determine target chat ID',
+        message: 'Target chat ID is null or undefined'
+      });
     } else {
-      chatIdForApi = Number(targetChatId);
+      // Пытаемся преобразовать в число
+      const parsed = Number(targetChatId);
+      if (isNaN(parsed)) {
+        console.error('[sendTelegramLinkMessage] Invalid targetChatId format:', targetChatId);
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid chat ID format',
+          message: `Chat ID must be a number or username starting with @, got: ${targetChatId}`
+        });
+      }
+      chatIdForApi = parsed;
     }
+    
+    console.log('[sendTelegramLinkMessage] Final chat_id for API:', chatIdForApi);
 
     const response = await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
       method: 'POST',
@@ -301,12 +327,29 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
       }
     });
   } catch (error: any) {
-    console.error('Error in sendTelegramLinkMessage:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to send Telegram link message',
-      message: error.message
-    });
+    console.error('[sendTelegramLinkMessage] Unexpected error occurred:');
+    console.error('[sendTelegramLinkMessage] Error type:', typeof error);
+    console.error('[sendTelegramLinkMessage] Error constructor:', error?.constructor?.name);
+    console.error('[sendTelegramLinkMessage] Error message:', error?.message);
+    console.error('[sendTelegramLinkMessage] Error stack:', error?.stack);
+    
+    // Безопасная сериализация ошибки
+    let errorMessage = 'Failed to send Telegram link message';
+    if (error?.message) {
+      errorMessage = String(error.message);
+    }
+    
+    // Проверяем, не был ли ответ уже отправлен
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to send Telegram link message',
+        message: errorMessage,
+        details: process.env.NODE_ENV === 'development' ? error?.stack : undefined
+      });
+    } else {
+      console.error('[sendTelegramLinkMessage] Response already sent, cannot send error response');
+    }
   }
 }
 
