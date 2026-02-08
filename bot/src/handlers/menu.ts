@@ -2,7 +2,7 @@
 // Menu Handler - Команда /меню для групп
 // ============================================
 
-import { Context } from 'telegraf';
+import { Context, Markup } from 'telegraf';
 import { supabase } from '../config/supabase';
 
 // Простое хранилище сессий для ожидания ID ресторана
@@ -144,24 +144,13 @@ export async function processRestaurantId(ctx: Context, restaurantId: string, ch
       return;
     }
 
-    // Формируем кнопку для Telegram Web App
-    const replyMarkup = {
-      inline_keyboard: [
-        [
-          {
-            text: menuMessage.button_text,
-            web_app: {
-              url: menuMessage.menu_url
-            }
-          }
-        ]
-      ]
-    };
+    // Формируем кнопку для Telegram Web App используя Telegraf API
+    const replyMarkup = Markup.inlineKeyboard([
+      Markup.button.webApp(menuMessage.button_text, menuMessage.menu_url)
+    ]);
 
     // Отправляем сообщение в группу
-    await ctx.reply(menuMessage.message_text, {
-      reply_markup: replyMarkup
-    });
+    await ctx.reply(menuMessage.message_text, replyMarkup);
 
     // Удаляем сессию
     if (userId) menuSessions.delete(userId);
