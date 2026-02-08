@@ -18,7 +18,10 @@ const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
  */
 export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Response) {
   try {
+    console.log('[sendTelegramLinkMessage] Request received');
+    console.log('[sendTelegramLinkMessage] User:', req.user);
     const { restaurant_id, message_text } = req.body;
+    console.log('[sendTelegramLinkMessage] Request body:', { restaurant_id, message_text });
 
     // Валидация
     if (!validateUuid(restaurant_id)) {
