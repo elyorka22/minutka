@@ -87,6 +87,7 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     if (req.user?.role === 'restaurant_admin') {
       // Используем telegram_id текущего админа
       adminTelegramId = BigInt(req.user.telegram_id);
+      console.log('[sendTelegramLinkMessage] Using current admin telegram_id:', adminTelegramId.toString());
     } else {
       // Для super_admin - получаем первого активного админа ресторана
       const { data: adminRecord, error: adminError } = await supabase
@@ -98,6 +99,7 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
         .single();
 
       if (adminError || !adminRecord) {
+        console.error('[sendTelegramLinkMessage] Admin not found:', adminError);
         return res.status(404).json({
           success: false,
           error: 'Restaurant admin not found'
@@ -105,12 +107,17 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
       }
 
       adminTelegramId = BigInt(adminRecord.telegram_id);
+      console.log('[sendTelegramLinkMessage] Found admin telegram_id:', adminTelegramId.toString());
     }
 
     // Получаем URL меню
     const baseUrl = process.env.FRONTEND_URL || 'https://minutka-chi.vercel.app';
     const menuUrl = `${baseUrl}/menu/${restaurant.id}`;
     const buttonText = restaurant.menu_button_text || 'Меню';
+
+    console.log('[sendTelegramLinkMessage] Menu URL:', menuUrl);
+    console.log('[sendTelegramLinkMessage] Button text:', buttonText);
+    console.log('[sendTelegramLinkMessage] Message text:', message_text);
 
     // Формируем кнопку для Telegram Web App
     const replyMarkup = {
@@ -126,13 +133,20 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
       ]
     };
 
+    console.log('[sendTelegramLinkMessage] Reply markup:', JSON.stringify(replyMarkup, null, 2));
+
     // Отправляем сообщение в Telegram бот
     if (!TELEGRAM_BOT_TOKEN) {
+      console.error('[sendTelegramLinkMessage] Telegram bot token is not configured');
       return res.status(500).json({
         success: false,
         error: 'Telegram bot token is not configured'
       });
     }
+
+    const chatId = Number(adminTelegramId);
+    console.log('[sendTelegramLinkMessage] Sending message to chat_id:', chatId);
+    console.log('[sendTelegramLinkMessage] Telegram API URL:', TELEGRAM_API_URL);
 
     const response = await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
       method: 'POST',
@@ -140,15 +154,19 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        chat_id: Number(adminTelegramId),
+        chat_id: chatId,
         text: message_text,
         reply_markup: replyMarkup,
       }),
     });
 
+    console.log('[sendTelegramLinkMessage] Telegram API response status:', response.status);
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({})) as { description?: string };
-      console.error('Telegram API error:', errorData);
+      console.error('[sendTelegramLinkMessage] Telegram API error:', errorData);
+      const errorText = await response.text().catch(() => '');
+      console.error('[sendTelegramLinkMessage] Full error response:', errorText);
       return res.status(500).json({
         success: false,
         error: 'Failed to send message to Telegram',
@@ -157,6 +175,7 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     }
 
     const data = await response.json() as { ok: boolean; result?: { message_id: number }; description?: string };
+    console.log('[sendTelegramLinkMessage] Telegram API success response:', JSON.stringify(data, null, 2));
     
     res.json({
       success: true,
