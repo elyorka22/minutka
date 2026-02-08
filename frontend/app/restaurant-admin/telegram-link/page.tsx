@@ -224,6 +224,35 @@ export default function TelegramLinkPage() {
                 <li>Кнопка откроет меню ресторана прямо в Telegram Web App</li>
               </ul>
             </div>
+
+            <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+              <p className="text-sm text-gray-700 font-semibold mb-2">
+                🤖 <strong>Команда /меню для групп:</strong>
+              </p>
+              <p className="text-sm text-gray-600 mb-2">
+                После создания сообщения вы можете использовать команду <code className="bg-white px-2 py-1 rounded text-primary-600 font-mono">/меню</code> в группе Telegram для отправки меню.
+              </p>
+              <div className="mt-3 p-3 bg-white rounded border border-green-200">
+                <p className="text-xs text-gray-500 mb-1">ID ресторана (скопируйте для команды /меню):</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 px-3 py-2 bg-gray-100 rounded text-sm font-mono text-gray-800 break-all">
+                    {restaurant.id}
+                  </code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(restaurant.id);
+                      showSuccess('ID ресторана скопирован!');
+                    }}
+                    className="px-3 py-2 bg-primary-500 text-white rounded text-sm font-semibold hover:bg-primary-600 transition-colors whitespace-nowrap"
+                  >
+                    📋 Копировать
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-gray-600 mt-2">
+                <strong>Использование в группе:</strong> <code className="bg-white px-1 py-0.5 rounded text-primary-600 font-mono">/меню {restaurant.id}</code>
+              </p>
+            </div>
           </div>
         </div>
       </div>
