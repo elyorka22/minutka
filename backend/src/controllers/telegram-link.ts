@@ -131,6 +131,14 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
         console.log('[sendTelegramLinkMessage] Found admin telegram_id:', adminTelegramId.toString());
       }
 
+      if (!adminTelegramId) {
+        console.error('[sendTelegramLinkMessage] Admin telegram_id is null');
+        return res.status(404).json({
+          success: false,
+          error: 'Restaurant admin telegram_id not found'
+        });
+      }
+
       targetChatId = Number(adminTelegramId);
       console.log('[sendTelegramLinkMessage] Sending to admin (telegram_id):', targetChatId);
     }
