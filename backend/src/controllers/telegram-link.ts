@@ -212,33 +212,30 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
 
     console.log('[sendTelegramLinkMessage] Telegram API response status:', response.status);
 
-    if (!response.ok) {
-      let errorData: any = {};
-      let errorText = '';
-      try {
-        errorText = await response.text();
-        if (errorText) {
-          try {
-            errorData = JSON.parse(errorText);
-          } catch (e) {
-            // Если не JSON, используем текст как описание
-            errorData = { description: errorText };
-          }
-        }
-      } catch (e) {
-        console.error('[sendTelegramLinkMessage] Error reading error response:', e);
-        errorData = { description: 'Failed to read error response' };
-      }
-      console.error('[sendTelegramLinkMessage] Telegram API error:', errorData);
-      console.error('[sendTelegramLinkMessage] Full error response:', errorText);
+    // Читаем ответ один раз
+    const responseText = await response.text();
+    let data: any;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('[sendTelegramLinkMessage] Failed to parse response as JSON:', e);
+      console.error('[sendTelegramLinkMessage] Response text:', responseText);
       return res.status(500).json({
         success: false,
-        error: 'Failed to send message to Telegram',
-        details: errorData.description || errorData.error_description || errorText || 'Unknown error'
+        error: 'Failed to parse Telegram API response',
+        details: responseText || 'Unknown error'
       });
     }
 
-    const data = await response.json() as { ok: boolean; result?: { message_id: number }; description?: string };
+    if (!response.ok || !data.ok) {
+      console.error('[sendTelegramLinkMessage] Telegram API error:', data);
+      console.error('[sendTelegramLinkMessage] Full error response:', responseText);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to send message to Telegram',
+        details: data.description || data.error_description || responseText || 'Unknown error'
+      });
+    }
     console.log('[sendTelegramLinkMessage] Telegram API success response:', JSON.stringify(data, null, 2));
     
     const successMessage = sendToGroup 
