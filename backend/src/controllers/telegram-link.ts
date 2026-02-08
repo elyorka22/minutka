@@ -213,14 +213,28 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     console.log('[sendTelegramLinkMessage] Telegram API response status:', response.status);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({})) as { description?: string };
+      let errorData: any = {};
+      let errorText = '';
+      try {
+        errorText = await response.text();
+        if (errorText) {
+          try {
+            errorData = JSON.parse(errorText);
+          } catch (e) {
+            // Если не JSON, используем текст как описание
+            errorData = { description: errorText };
+          }
+        }
+      } catch (e) {
+        console.error('[sendTelegramLinkMessage] Error reading error response:', e);
+        errorData = { description: 'Failed to read error response' };
+      }
       console.error('[sendTelegramLinkMessage] Telegram API error:', errorData);
-      const errorText = await response.text().catch(() => '');
       console.error('[sendTelegramLinkMessage] Full error response:', errorText);
       return res.status(500).json({
         success: false,
         error: 'Failed to send message to Telegram',
-        details: errorData.description || 'Unknown error'
+        details: errorData.description || errorData.error_description || errorText || 'Unknown error'
       });
     }
 
