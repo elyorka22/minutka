@@ -235,24 +235,72 @@ export async function getCurrentUser(req: Request, res: Response) {
     ]);
 
     // Определяем роль пользователя
-    // Если пользователь является сотрудником, требуем пароль через /api/auth/login
     // Приоритет: super_admin > restaurant_admin > chef
+    // Для автоматического редиректа возвращаем роль сотрудника без полных данных
     if (superAdminResult.data && !superAdminResult.error) {
-      return res.status(401).json({
-        success: false,
-        error: 'Для входа сотрудника требуется пароль. Используйте форму входа для сотрудников.'
+      return res.json({
+        success: true,
+        data: {
+          role: 'super_admin',
+          user: {
+            id: superAdminResult.data.id,
+            telegram_id: superAdminResult.data.telegram_id,
+            is_active: superAdminResult.data.is_active
+          },
+          telegram_id: telegramId.toString()
+        }
       });
     }
     if (restaurantAdminResult.data && !restaurantAdminResult.error) {
-      return res.status(401).json({
-        success: false,
-        error: 'Для входа сотрудника требуется пароль. Используйте форму входа для сотрудников.'
-      });
+      // У админа может быть несколько ресторанов
+      const { data: adminRecords, error: adminError } = await supabase
+        .from('restaurant_admins')
+        .select('*')
+        .eq('telegram_id', telegramId)
+        .eq('is_active', true);
+
+      if (adminError) {
+        throw adminError;
+      }
+
+      const adminData = adminRecords || [];
+      const firstAdmin = adminData[0];
+
+      if (adminData.length > 1) {
+        return res.json({
+          success: true,
+          data: {
+            role: 'restaurant_admin',
+            user: {
+              ...firstAdmin,
+              hasMultipleRestaurants: true,
+              restaurantCount: adminData.length
+            },
+            telegram_id: telegramId.toString()
+          }
+        });
+      } else {
+        return res.json({
+          success: true,
+          data: {
+            role: 'restaurant_admin',
+            user: {
+              ...firstAdmin,
+              restaurant_id: firstAdmin.restaurant_id
+            },
+            telegram_id: telegramId.toString()
+          }
+        });
+      }
     }
     if (chefResult.data && !chefResult.error) {
-      return res.status(401).json({
-        success: false,
-        error: 'Для входа сотрудника требуется пароль. Используйте форму входа для сотрудников.'
+      return res.json({
+        success: true,
+        data: {
+          role: 'chef',
+          user: chefResult.data,
+          telegram_id: telegramId.toString()
+        }
       });
     }
 
