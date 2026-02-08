@@ -196,11 +196,16 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     const data = await response.json() as { ok: boolean; result?: { message_id: number }; description?: string };
     console.log('[sendTelegramLinkMessage] Telegram API success response:', JSON.stringify(data, null, 2));
     
+    const successMessage = sendToGroup 
+      ? 'Сообщение успешно отправлено в группу ресторана! Кнопка будет работать в группе.'
+      : 'Сообщение успешно отправлено админу! Для работы в группе добавьте telegram_chat_id группы в настройках ресторана.';
+    
     res.json({
       success: true,
-      message: 'Message sent successfully to Telegram',
+      message: successMessage,
       data: {
-        message_id: data.result?.message_id
+        message_id: data.result?.message_id,
+        sent_to_group: sendToGroup
       }
     });
   } catch (error: any) {
