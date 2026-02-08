@@ -14,8 +14,9 @@ export default function TelegramLinkPage() {
   const { showSuccess, showError } = useToast();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [messageText, setMessageText] = useState('');
+  const [codeShown, setCodeShown] = useState(false);
 
   useEffect(() => {
     async function loadRestaurant() {
@@ -49,25 +50,24 @@ export default function TelegramLinkPage() {
     }
 
     try {
-      setSending(true);
-      // Отправляем сообщение админу (без указания группы)
+      setSaving(true);
+      // Сохраняем сообщение в БД (без отправки админу)
       const result = await sendTelegramLinkMessage(
         restaurant.id, 
         messageText.trim(),
-        null // Не указываем группу, отправляем админу
+        null
       );
       
       if (result.success) {
-        showSuccess('Сообщение успешно сохранено! Теперь используйте команду /меню в группе для отправки.');
-        // Не очищаем поле, чтобы можно было редактировать
+        showSuccess('Сообщение успешно создано!');
+        setCodeShown(true);
       } else {
-        showError(result.message || result.error || 'Не удалось сохранить сообщение');
+        showError(result.message || result.error || 'Не удалось создать сообщение');
       }
     } catch (error: any) {
-      console.error('Error sending Telegram link message:', error);
+      console.error('Error creating Telegram link message:', error);
       
-      // Пытаемся извлечь понятное сообщение об ошибке из ответа
-      let errorMessage = 'Не удалось отправить сообщение в Telegram';
+      let errorMessage = 'Не удалось создать сообщение';
       
       if (error?.response?.data) {
         const errorData = error.response.data;
@@ -84,7 +84,7 @@ export default function TelegramLinkPage() {
       
       showError(errorMessage);
     } finally {
-      setSending(false);
+      setSaving(false);
     }
   };
 
@@ -135,49 +135,52 @@ export default function TelegramLinkPage() {
 
             <button
               onClick={handleCreate}
-              disabled={sending || !messageText.trim()}
+              disabled={saving || !messageText.trim()}
               className="w-full px-6 py-3 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {sending ? 'Сохранение...' : 'Сохранить'}
+              {saving ? 'Создание...' : 'Создать'}
             </button>
 
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-gray-700 font-semibold mb-2">
-                💡 <strong>Как это работает:</strong>
-              </p>
-              <ol className="text-sm text-gray-600 list-decimal list-inside space-y-1">
-                <li>Введите текст сообщения</li>
-                <li>Нажмите кнопку "Сохранить"</li>
-                <li>Сообщение будет сохранено в системе</li>
-                <li>В группе Telegram отправьте команду <code className="bg-white px-1 py-0.5 rounded text-primary-600 font-mono">/меню</code></li>
-                <li>Бот попросит ввести ID ресторана</li>
-                <li>Введите ID ресторана (показан ниже)</li>
-                <li>Бот отправит сообщение с кнопкой меню в группу</li>
-              </ol>
-            </div>
+            {codeShown && (
+              <div className="mt-6 p-6 bg-green-50 rounded-lg border-2 border-green-300">
+                <p className="text-lg font-bold text-gray-900 mb-4 text-center">
+                  ✅ Сообщение создано!
+                </p>
+                
+                <div className="mb-4 p-4 bg-white rounded-lg border border-green-200">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    📋 Код для использования в группе:
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <code className="flex-1 px-4 py-3 bg-gray-100 rounded-lg text-base font-mono text-gray-800 break-all">
+                      /меню {restaurant.id}
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`/меню ${restaurant.id}`);
+                        showSuccess('Код скопирован!');
+                      }}
+                      className="px-4 py-3 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors whitespace-nowrap"
+                    >
+                      📋 Копировать
+                    </button>
+                  </div>
+                </div>
 
-            <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-              <p className="text-sm text-gray-700 font-semibold mb-2">
-                🤖 <strong>ID ресторана для команды /меню:</strong>
-              </p>
-              <div className="mt-3 p-3 bg-white rounded border border-green-200">
-                <p className="text-xs text-gray-500 mb-1">Скопируйте этот ID для использования в команде /меню:</p>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 px-3 py-2 bg-gray-100 rounded text-sm font-mono text-gray-800 break-all">
-                    {restaurant.id}
-                  </code>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(restaurant.id);
-                      showSuccess('ID ресторана скопирован!');
-                    }}
-                    className="px-3 py-2 bg-primary-500 text-white rounded text-sm font-semibold hover:bg-primary-600 transition-colors whitespace-nowrap"
-                  >
-                    📋 Копировать
-                  </button>
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm font-semibold text-gray-700 mb-2">
+                    📖 <strong>Как использовать:</strong>
+                  </p>
+                  <ol className="text-sm text-gray-600 list-decimal list-inside space-y-1">
+                    <li>Добавьте бота в группу Telegram как администратора</li>
+                    <li>В группе отправьте команду: <code className="bg-white px-1 py-0.5 rounded text-primary-600 font-mono">/меню</code></li>
+                    <li>Бот попросит ввести ID ресторана</li>
+                    <li>Введите или вставьте ID: <code className="bg-white px-1 py-0.5 rounded text-primary-600 font-mono">{restaurant.id}</code></li>
+                    <li>Бот отправит сообщение с кнопкой меню в группу</li>
+                  </ol>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

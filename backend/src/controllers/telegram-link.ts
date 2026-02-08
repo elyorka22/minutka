@@ -102,49 +102,6 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
       });
     }
 
-    console.log('[sendTelegramLinkMessage] Restaurant telegram_chat_id:', restaurant.telegram_chat_id);
-
-    // Всегда отправляем админу (сообщение сохраняется в БД для использования командой /меню)
-    let adminTelegramId: bigint | null = null;
-
-    if (req.user?.role === 'restaurant_admin') {
-      // Используем telegram_id текущего админа
-      adminTelegramId = BigInt(req.user.telegram_id);
-      console.log('[sendTelegramLinkMessage] Using current admin telegram_id:', adminTelegramId.toString());
-    } else {
-      // Для super_admin - получаем первого активного админа ресторана
-      const { data: adminRecord, error: adminError } = await supabase
-        .from('restaurant_admins')
-        .select('telegram_id')
-        .eq('restaurant_id', restaurant_id)
-        .eq('is_active', true)
-        .limit(1)
-        .single();
-
-      if (adminError || !adminRecord) {
-        console.error('[sendTelegramLinkMessage] Admin not found:', adminError);
-        return res.status(404).json({
-          success: false,
-          error: 'Restaurant admin not found'
-        });
-      }
-
-      adminTelegramId = BigInt(adminRecord.telegram_id);
-      console.log('[sendTelegramLinkMessage] Found admin telegram_id:', adminTelegramId.toString());
-    }
-
-    if (!adminTelegramId) {
-      console.error('[sendTelegramLinkMessage] Admin telegram_id is null');
-      return res.status(404).json({
-        success: false,
-        error: 'Restaurant admin telegram_id not found'
-      });
-    }
-
-    const targetChatId = Number(adminTelegramId);
-    const sendToGroup = false; // Всегда отправляем админу
-    console.log('[sendTelegramLinkMessage] Sending to admin (telegram_id):', targetChatId);
-
     // Получаем URL меню
     const baseUrl = process.env.FRONTEND_URL || 'https://minutka-chi.vercel.app';
     const menuUrl = `${baseUrl}/menu/${restaurant.id}`;
@@ -154,143 +111,40 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     console.log('[sendTelegramLinkMessage] Button text:', buttonText);
     console.log('[sendTelegramLinkMessage] Message text:', message_text);
 
-    // Формируем кнопку для Telegram Web App
-    const replyMarkup = {
-      inline_keyboard: [
-        [
-          {
-            text: buttonText,
-            web_app: {
-              url: menuUrl
-            }
-          }
-        ]
-      ]
-    };
+    // Сохраняем сообщение в БД для использования командой /меню (без отправки админу)
+    const { error: upsertError } = await supabase
+      .from('restaurant_menu_messages')
+      .upsert(
+        {
+          restaurant_id: restaurant_id,
+          message_text: message_text,
+          button_text: buttonText,
+          menu_url: menuUrl,
+          telegram_message_id: null, // Не отправляем, поэтому null
+          updated_at: new Date().toISOString()
+        },
+        {
+          onConflict: 'restaurant_id',
+          ignoreDuplicates: false
+        }
+      );
 
-    console.log('[sendTelegramLinkMessage] Reply markup:', JSON.stringify(replyMarkup, null, 2));
-
-    // Отправляем сообщение в Telegram бот
-    if (!TELEGRAM_BOT_TOKEN) {
-      console.error('[sendTelegramLinkMessage] Telegram bot token is not configured');
+    if (upsertError) {
+      console.error('[sendTelegramLinkMessage] Error saving message to DB:', upsertError);
       return res.status(500).json({
         success: false,
-        error: 'Telegram bot token is not configured'
+        error: 'Не удалось сохранить сообщение в базу данных',
+        details: upsertError.message
       });
     }
 
-    if (!targetChatId) {
-      console.error('[sendTelegramLinkMessage] targetChatId is null or undefined');
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to determine target chat ID'
-      });
-    }
-
-    console.log('[sendTelegramLinkMessage] Sending message to chat_id:', targetChatId);
-    console.log('[sendTelegramLinkMessage] Telegram API URL:', TELEGRAM_API_URL);
-
-    // targetChatId всегда число (telegram_id админа)
-    const chatIdForApi = targetChatId;
-    
-    console.log('[sendTelegramLinkMessage] Final chat_id for API:', chatIdForApi);
-
-    const response = await fetch(`${TELEGRAM_API_URL}/sendMessage`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        chat_id: chatIdForApi,
-        text: message_text,
-        reply_markup: replyMarkup,
-      }),
-    });
-
-    console.log('[sendTelegramLinkMessage] Telegram API response status:', response.status);
-
-    // Читаем ответ один раз
-    const responseText = await response.text();
-    let data: any;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      console.error('[sendTelegramLinkMessage] Failed to parse response as JSON:', e);
-      console.error('[sendTelegramLinkMessage] Response text:', responseText);
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to parse Telegram API response',
-        details: responseText || 'Unknown error'
-      });
-    }
-
-    if (!response.ok || !data.ok) {
-      console.error('[sendTelegramLinkMessage] Telegram API error response:');
-      console.error('[sendTelegramLinkMessage] Status:', response.status);
-      console.error('[sendTelegramLinkMessage] Response text:', responseText);
-      console.error('[sendTelegramLinkMessage] Parsed data:', JSON.stringify(data, null, 2));
-      
-      const errorDescription = data.description || data.error_description || responseText || 'Unknown error';
-      console.error('[sendTelegramLinkMessage] Error description:', errorDescription);
-      
-      // Более понятные сообщения об ошибках
-      let userFriendlyError = 'Не удалось отправить сообщение в Telegram';
-      if (errorDescription.includes('chat not found') || errorDescription.includes('Chat not found')) {
-        userFriendlyError = 'Группа не найдена. Убедитесь, что бот добавлен в группу и группа имеет публичный username.';
-      } else if (errorDescription.includes('bot was blocked') || errorDescription.includes('bot is not a member')) {
-        userFriendlyError = 'Бот не является участником группы. Добавьте бота в группу как администратора.';
-      } else if (errorDescription.includes('not enough rights')) {
-        userFriendlyError = 'У бота недостаточно прав для отправки сообщений в группу.';
-      } else if (errorDescription.includes('chat_id is empty')) {
-        userFriendlyError = 'Неверный формат chat_id или username группы.';
-      }
-      
-      return res.status(500).json({
-        success: false,
-        error: userFriendlyError,
-        details: errorDescription
-      });
-    }
-    console.log('[sendTelegramLinkMessage] Telegram API success response:', JSON.stringify(data, null, 2));
-    
-    // Сохраняем сообщение в БД для использования командой /меню
-    try {
-      const { error: upsertError } = await supabase
-        .from('restaurant_menu_messages')
-        .upsert(
-          {
-            restaurant_id: restaurant_id,
-            message_text: message_text,
-            button_text: buttonText,
-            menu_url: menuUrl,
-            telegram_message_id: data.result?.message_id || null,
-            updated_at: new Date().toISOString()
-          },
-          {
-            onConflict: 'restaurant_id',
-            ignoreDuplicates: false
-          }
-        );
-
-      if (upsertError) {
-        console.error('[sendTelegramLinkMessage] Error saving message to DB:', upsertError);
-        // Не прерываем выполнение, так как сообщение уже отправлено
-      } else {
-        console.log('[sendTelegramLinkMessage] Message saved to DB for restaurant:', restaurant_id);
-      }
-    } catch (dbError: any) {
-      console.error('[sendTelegramLinkMessage] Error saving message to DB (catch):', dbError);
-      // Не прерываем выполнение, так как сообщение уже отправлено
-    }
-    
-    const successMessage = 'Сообщение успешно сохранено! Теперь используйте команду /меню в группе для отправки.';
+    console.log('[sendTelegramLinkMessage] Message saved to DB for restaurant:', restaurant_id);
     
     res.json({
       success: true,
-      message: successMessage,
+      message: 'Сообщение успешно создано! Используйте код в группе для отправки.',
       data: {
-        message_id: data.result?.message_id,
-        sent_to_group: sendToGroup
+        restaurant_id: restaurant_id
       }
     });
   } catch (error: any) {
