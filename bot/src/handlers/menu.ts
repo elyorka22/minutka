@@ -18,6 +18,7 @@ export async function menuHandler(ctx: Context) {
     console.log('[MenuHandler] Chat ID:', ctx.chat?.id);
     
     // Получаем все сохраненные меню из БД
+    console.log('[MenuHandler] Fetching menu messages from database...');
     const { data: menuMessages, error: menuError } = await supabase
       .from('restaurant_menu_messages')
       .select('restaurant_id, message_text, button_text, menu_url')
@@ -25,55 +26,32 @@ export async function menuHandler(ctx: Context) {
 
     if (menuError) {
       console.error('[MenuHandler] Error fetching menu messages:', menuError);
+      console.error('[MenuHandler] Error code:', menuError.code);
+      console.error('[MenuHandler] Error message:', menuError.message);
+      console.error('[MenuHandler] Error details:', menuError.details);
+      console.error('[MenuHandler] Error hint:', menuError.hint);
       await ctx.reply('❌ Произошла ошибка при получении меню. Попробуйте позже.');
       return;
     }
 
-    console.log('[MenuHandler] Found menu messages:', menuMessages?.length || 0);
+    console.log('[MenuHandler] Query result - menuMessages:', menuMessages);
+    console.log('[MenuHandler] Found menu messages count:', menuMessages?.length || 0);
     if (menuMessages && menuMessages.length > 0) {
       console.log('[MenuHandler] Menu messages restaurant IDs:', menuMessages.map(m => m.restaurant_id));
+      console.log('[MenuHandler] First menu message:', JSON.stringify(menuMessages[0], null, 2));
     }
 
     if (!menuMessages || menuMessages.length === 0) {
+      console.log('[MenuHandler] No menu messages found in database');
       await ctx.reply('📋 Меню пока не созданы. Создайте меню через админ-панель ресторана.');
       return;
     }
 
-    // Получаем информацию о ресторанах для фильтрации активных
-    const restaurantIds = menuMessages.map(m => m.restaurant_id);
-    console.log('[MenuHandler] Fetching restaurants for IDs:', restaurantIds);
-    
-    const { data: restaurants, error: restaurantsError } = await supabase
-      .from('restaurants')
-      .select('id, name, is_active')
-      .in('id', restaurantIds);
-
-    if (restaurantsError) {
-      console.error('[MenuHandler] Error fetching restaurants:', restaurantsError);
-      await ctx.reply('❌ Произошла ошибка при получении информации о ресторанах.');
-      return;
-    }
-
-    console.log('[MenuHandler] Found restaurants:', restaurants?.length || 0);
-    if (restaurants && restaurants.length > 0) {
-      console.log('[MenuHandler] Restaurants:', restaurants.map(r => ({ id: r.id, name: r.name, is_active: r.is_active })));
-    }
-
-    // Убираем фильтрацию по is_active - отправляем все меню
+    // Убираем проверку ресторанов - отправляем все меню напрямую
     // Админ сам удалит ненужные
-    const restaurantMap = new Map<string, string>();
-    restaurants?.forEach(r => {
-      restaurantMap.set(r.id, r.name);
-    });
-
-    // Отправляем все меню (без фильтрации по is_active)
     let sentCount = 0;
     for (const menuMessage of menuMessages) {
-      // Пропускаем только если ресторан вообще не найден в БД
-      if (!restaurantMap.has(menuMessage.restaurant_id)) {
-        console.log(`[MenuHandler] Skipping menu for restaurant ${menuMessage.restaurant_id} - restaurant not found in DB`);
-        continue;
-      }
+      console.log(`[MenuHandler] Processing menu for restaurant ${menuMessage.restaurant_id}`);
 
       // Формируем кнопку для Telegram Web App
       const replyMarkup = {
@@ -90,24 +68,41 @@ export async function menuHandler(ctx: Context) {
       };
 
       try {
+        console.log(`[MenuHandler] Sending menu message:`, {
+          text: menuMessage.message_text,
+          button_text: menuMessage.button_text,
+          menu_url: menuMessage.menu_url
+        });
+        
         // Отправляем сообщение
         await ctx.reply(menuMessage.message_text, {
           reply_markup: replyMarkup
         });
         sentCount++;
+        console.log(`[MenuHandler] Successfully sent menu ${sentCount} for restaurant ${menuMessage.restaurant_id}`);
         
         // Небольшая задержка между сообщениями, чтобы не перегружать API
         await new Promise(resolve => setTimeout(resolve, 100));
       } catch (sendError: any) {
         console.error(`[MenuHandler] Error sending menu for restaurant ${menuMessage.restaurant_id}:`, sendError);
+        console.error(`[MenuHandler] Send error details:`, {
+          message: sendError.message,
+          code: sendError.code,
+          response: sendError.response
+        });
         // Продолжаем отправку остальных меню даже если одно не отправилось
       }
     }
 
-    console.log(`[MenuHandler] Sent ${sentCount} menu messages to chat ${ctx.chat?.id}`);
+    console.log(`[MenuHandler] Total sent: ${sentCount} out of ${menuMessages.length} menu messages to chat ${ctx.chat?.id}`);
     
     if (sentCount === 0) {
+      console.log('[MenuHandler] No menus were sent. Possible reasons:');
+      console.log('[MenuHandler] - All restaurants not found in DB');
+      console.log('[MenuHandler] - All send attempts failed');
       await ctx.reply('📋 Нет активных меню для отправки.');
+    } else {
+      console.log(`[MenuHandler] Successfully sent ${sentCount} menu message(s)`);
     }
   } catch (error: any) {
     console.error('Error in menu handler:', error);

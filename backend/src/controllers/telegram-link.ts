@@ -112,6 +112,14 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     console.log('[sendTelegramLinkMessage] Message text:', message_text);
 
     // Сохраняем сообщение в БД для использования командой /меню (без отправки админу)
+    console.log('[sendTelegramLinkMessage] Attempting to save message to DB...');
+    console.log('[sendTelegramLinkMessage] Data to save:', {
+      restaurant_id,
+      message_text,
+      button_text: buttonText,
+      menu_url: menuUrl
+    });
+    
     const { data: savedMessage, error: upsertError } = await supabase
       .from('restaurant_menu_messages')
       .upsert(
@@ -132,7 +140,10 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
 
     if (upsertError) {
       console.error('[sendTelegramLinkMessage] Error saving message to DB:', upsertError);
-      console.error('[sendTelegramLinkMessage] Upsert error details:', JSON.stringify(upsertError, null, 2));
+      console.error('[sendTelegramLinkMessage] Upsert error code:', upsertError.code);
+      console.error('[sendTelegramLinkMessage] Upsert error message:', upsertError.message);
+      console.error('[sendTelegramLinkMessage] Upsert error details:', upsertError.details);
+      console.error('[sendTelegramLinkMessage] Upsert error hint:', upsertError.hint);
       return res.status(500).json({
         success: false,
         error: 'Не удалось сохранить сообщение в базу данных',
@@ -140,8 +151,21 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
       });
     }
 
-    console.log('[sendTelegramLinkMessage] Message saved to DB for restaurant:', restaurant_id);
+    console.log('[sendTelegramLinkMessage] Message saved successfully to DB for restaurant:', restaurant_id);
     console.log('[sendTelegramLinkMessage] Saved message data:', JSON.stringify(savedMessage, null, 2));
+    
+    // Проверяем, что данные действительно сохранились
+    const { data: verifyMessage, error: verifyError } = await supabase
+      .from('restaurant_menu_messages')
+      .select('*')
+      .eq('restaurant_id', restaurant_id)
+      .single();
+    
+    if (verifyError) {
+      console.error('[sendTelegramLinkMessage] Error verifying saved message:', verifyError);
+    } else {
+      console.log('[sendTelegramLinkMessage] Verified saved message:', JSON.stringify(verifyMessage, null, 2));
+    }
     
     res.json({
       success: true,
