@@ -3,7 +3,7 @@
 // Упрощенная версия: отправляет все существующие меню
 // ============================================
 
-import { Context } from 'telegraf';
+import { Context, Markup } from 'telegraf';
 import { supabase } from '../config/supabase';
 
 /**
@@ -53,20 +53,6 @@ export async function menuHandler(ctx: Context) {
     for (const menuMessage of menuMessages) {
       console.log(`[MenuHandler] Processing menu for restaurant ${menuMessage.restaurant_id}`);
 
-      // Формируем кнопку для Telegram Web App
-      const replyMarkup = {
-        inline_keyboard: [
-          [
-            {
-              text: menuMessage.button_text,
-              web_app: {
-                url: menuMessage.menu_url
-              }
-            }
-          ]
-        ]
-      };
-
       try {
         console.log(`[MenuHandler] Sending menu message:`, {
           text: menuMessage.message_text,
@@ -74,9 +60,34 @@ export async function menuHandler(ctx: Context) {
           menu_url: menuMessage.menu_url
         });
         
-        // Отправляем сообщение
+        // Проверяем, что URL валидный HTTPS
+        if (!menuMessage.menu_url.startsWith('https://')) {
+          console.error(`[MenuHandler] Invalid URL format (must be HTTPS): ${menuMessage.menu_url}`);
+          throw new Error(`Invalid URL format: ${menuMessage.menu_url}`);
+        }
+        
+        // Формируем кнопку для Telegram Web App согласно Telegram Bot API
+        // Формат должен быть точно таким, как указано в документации Telegram
+        const replyMarkup = {
+          inline_keyboard: [
+            [
+              {
+                text: menuMessage.button_text || 'Меню',
+                web_app: {
+                  url: menuMessage.menu_url
+                }
+              }
+            ]
+          ]
+        };
+        
+        console.log(`[MenuHandler] Reply markup format:`, JSON.stringify(replyMarkup, null, 2));
+        console.log(`[MenuHandler] Button text: "${menuMessage.button_text}"`);
+        console.log(`[MenuHandler] Menu URL: "${menuMessage.menu_url}"`);
+        
+        // Отправляем сообщение через ctx.reply с правильным форматом
         await ctx.reply(menuMessage.message_text, {
-          reply_markup: replyMarkup
+          reply_markup: replyMarkup as any // Используем as any для обхода проверки типов Telegraf
         });
         sentCount++;
         console.log(`[MenuHandler] Successfully sent menu ${sentCount} for restaurant ${menuMessage.restaurant_id}`);
