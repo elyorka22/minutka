@@ -20,8 +20,26 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
   try {
     console.log('[sendTelegramLinkMessage] Request received');
     console.log('[sendTelegramLinkMessage] User:', req.user);
+    console.log('[sendTelegramLinkMessage] Request body raw:', JSON.stringify(req.body));
+    
     const { restaurant_id, message_text, group_username } = req.body;
-    console.log('[sendTelegramLinkMessage] Request body:', { restaurant_id, message_text, group_username });
+    console.log('[sendTelegramLinkMessage] Request body parsed:', { restaurant_id, message_text, group_username });
+    
+    if (!restaurant_id) {
+      console.error('[sendTelegramLinkMessage] Missing restaurant_id in request body');
+      return res.status(400).json({
+        success: false,
+        error: 'restaurant_id is required'
+      });
+    }
+    
+    if (!message_text) {
+      console.error('[sendTelegramLinkMessage] Missing message_text in request body');
+      return res.status(400).json({
+        success: false,
+        error: 'message_text is required'
+      });
+    }
 
     // Валидация
     if (!validateUuid(restaurant_id)) {
