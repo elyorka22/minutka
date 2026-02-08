@@ -46,7 +46,7 @@ export default function HomeClient({
   appSlogan,
 }: HomeClientProps) {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [selectedTab, setSelectedTab] = useState<'restaurants' | 'stores'>('restaurants');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
