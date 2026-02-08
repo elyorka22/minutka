@@ -74,14 +74,17 @@ export default function TelegramLinkPage() {
 
     try {
       setSending(true);
-      // Если указан username группы, передаем его в запросе
+      // Парсим идентификатор группы (может быть chat_id или username)
       const parsedId = parseGroupIdentifier(groupChatId);
-      const groupUsername = parsedId && parsedId.startsWith('@') ? parsedId : null;
+      
+      // Если это число (chat_id), передаем как есть
+      // Если это username (начинается с @), передаем как username
+      const groupIdentifier = parsedId || null;
       
       const result = await sendTelegramLinkMessage(
         restaurant.id, 
         messageText.trim(),
-        groupUsername
+        groupIdentifier
       );
       
       if (result.success) {
@@ -129,7 +132,7 @@ export default function TelegramLinkPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chat ID группы или ссылка на группу (необязательно)
+                Chat ID группы или username (необязательно)
               </label>
               <input
                 type="text"
@@ -138,9 +141,33 @@ export default function TelegramLinkPage() {
                 placeholder="-1001234567890 или @groupname или t.me/groupname"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Если указано, сообщение отправится напрямую в группу. Если не указано, отправится админу.
-              </p>
+              <div className="mt-2 space-y-1">
+                <p className="text-xs text-gray-500">
+                  Если указано, сообщение отправится напрямую в группу. Если не указано, отправится админу.
+                </p>
+                <details className="text-xs text-gray-600">
+                  <summary className="cursor-pointer font-medium text-primary-600 hover:text-primary-700">
+                    📖 Как получить Chat ID группы?
+                  </summary>
+                  <div className="mt-2 pl-4 space-y-2 border-l-2 border-primary-200">
+                    <p><strong>Способ 1 (рекомендуется):</strong></p>
+                    <ol className="list-decimal list-inside space-y-1 ml-2">
+                      <li>Добавьте бота <code className="bg-gray-100 px-1 rounded">@userinfobot</code> в вашу группу</li>
+                      <li>Отправьте любое сообщение в группу</li>
+                      <li>Бот ответит с информацией, включая Chat ID (число вида <code className="bg-gray-100 px-1 rounded">-1001234567890</code>)</li>
+                    </ol>
+                    <p className="mt-2"><strong>Способ 2:</strong></p>
+                    <ol className="list-decimal list-inside space-y-1 ml-2">
+                      <li>Добавьте вашего бота в группу как администратора</li>
+                      <li>Для публичных групп можно использовать username (например, <code className="bg-gray-100 px-1 rounded">@groupname</code>)</li>
+                      <li>Для приватных групп обязательно нужен Chat ID (число)</li>
+                    </ol>
+                    <p className="mt-2 text-orange-600">
+                      ⚠️ <strong>Важно:</strong> Бот должен быть добавлен в группу и иметь права на отправку сообщений!
+                    </p>
+                  </div>
+                </details>
+              </div>
             </div>
 
             <div>
@@ -169,14 +196,15 @@ export default function TelegramLinkPage() {
             </button>
 
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-gray-700 font-semibold mb-2">
                 💡 <strong>Как это работает:</strong>
               </p>
-              <ul className="mt-2 text-sm text-gray-600 list-disc list-inside space-y-1">
+              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
                 <li>Введите текст сообщения</li>
+                <li>При необходимости укажите Chat ID или username группы</li>
                 <li>Нажмите кнопку "Создать"</li>
-                <li>Сообщение с кнопкой меню будет автоматически отправлено вам в Telegram бот</li>
-                <li>Кнопка откроет меню ресторана прямо в Telegram</li>
+                <li>Сообщение с кнопкой меню будет отправлено в указанную группу или админу</li>
+                <li>Кнопка откроет меню ресторана прямо в Telegram Web App</li>
               </ul>
             </div>
           </div>

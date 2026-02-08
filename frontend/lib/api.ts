@@ -437,7 +437,7 @@ export async function sendTelegramLinkMessage(
     const response = await api.post<{ success: boolean; message: string; data?: any }>('/api/telegram-link/send', {
       restaurant_id: restaurantId,
       message_text: messageText,
-      group_username: groupIdentifier || undefined // Может быть @username или chat_id в виде строки
+      group_username: groupIdentifier || undefined // Может быть @username (для публичных групп) или chat_id (число в виде строки, например "-1001234567890")
     });
     return response.data;
   } catch (error) {

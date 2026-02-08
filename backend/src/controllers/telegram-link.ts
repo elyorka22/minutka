@@ -113,20 +113,22 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     const groupIdentifier = group_username;
     if (groupIdentifier) {
       if (typeof groupIdentifier === 'string' && groupIdentifier.startsWith('@')) {
-        // Username группы
+        // Username группы (публичная группа)
         targetChatId = groupIdentifier;
         sendToGroup = true;
         console.log('[sendTelegramLinkMessage] Sending to restaurant group (username from request):', targetChatId);
       } else if (typeof groupIdentifier === 'string' && /^-?\d+$/.test(groupIdentifier)) {
-        // Chat ID группы (число в виде строки)
-        targetChatId = parseInt(groupIdentifier);
+        // Chat ID группы (число в виде строки) - работает для всех групп
+        targetChatId = parseInt(groupIdentifier, 10);
         sendToGroup = true;
         console.log('[sendTelegramLinkMessage] Sending to restaurant group (chat_id from request):', targetChatId);
       } else if (typeof groupIdentifier === 'number') {
-        // Chat ID группы (число)
+        // Chat ID группы (число) - работает для всех групп
         targetChatId = groupIdentifier;
         sendToGroup = true;
         console.log('[sendTelegramLinkMessage] Sending to restaurant group (chat_id from request):', targetChatId);
+      } else {
+        console.warn('[sendTelegramLinkMessage] Invalid group identifier format:', groupIdentifier);
       }
     }
     
