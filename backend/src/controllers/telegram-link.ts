@@ -104,83 +104,46 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
 
     console.log('[sendTelegramLinkMessage] Restaurant telegram_chat_id:', restaurant.telegram_chat_id);
 
-    // Определяем, куда отправлять сообщение
-    // Приоритет: group_username из запроса > telegram_id админа
-    let targetChatId: number | string | null = null;
-    let sendToGroup = false;
+    // Всегда отправляем админу (сообщение сохраняется в БД для использования командой /меню)
+    let adminTelegramId: bigint | null = null;
 
-    // Если передан username или chat_id группы в запросе, используем его
-    const groupIdentifier = group_username;
-    console.log('[sendTelegramLinkMessage] Group identifier from request:', groupIdentifier, 'Type:', typeof groupIdentifier);
-    
-    if (groupIdentifier) {
-      if (typeof groupIdentifier === 'string' && groupIdentifier.startsWith('@')) {
-        // Username группы (публичная группа)
-        targetChatId = groupIdentifier;
-        sendToGroup = true;
-        console.log('[sendTelegramLinkMessage] Sending to restaurant group (username from request):', targetChatId);
-      } else if (typeof groupIdentifier === 'string' && /^-?\d+$/.test(groupIdentifier)) {
-        // Chat ID группы (число в виде строки) - работает для всех групп
-        const parsedChatId = parseInt(groupIdentifier, 10);
-        if (isNaN(parsedChatId)) {
-          console.error('[sendTelegramLinkMessage] Failed to parse chat_id from string:', groupIdentifier);
-        } else {
-          targetChatId = parsedChatId;
-          sendToGroup = true;
-          console.log('[sendTelegramLinkMessage] Sending to restaurant group (chat_id from request, parsed):', targetChatId);
-        }
-      } else if (typeof groupIdentifier === 'number') {
-        // Chat ID группы (число) - работает для всех групп
-        targetChatId = groupIdentifier;
-        sendToGroup = true;
-        console.log('[sendTelegramLinkMessage] Sending to restaurant group (chat_id from request, number):', targetChatId);
-      } else {
-        console.warn('[sendTelegramLinkMessage] Invalid group identifier format:', groupIdentifier, 'Type:', typeof groupIdentifier);
-      }
-    }
-    
-    // Если группа не указана, отправляем админу
-    if (!targetChatId) {
-      // Иначе отправляем админу
-      let adminTelegramId: bigint | null = null;
+    if (req.user?.role === 'restaurant_admin') {
+      // Используем telegram_id текущего админа
+      adminTelegramId = BigInt(req.user.telegram_id);
+      console.log('[sendTelegramLinkMessage] Using current admin telegram_id:', adminTelegramId.toString());
+    } else {
+      // Для super_admin - получаем первого активного админа ресторана
+      const { data: adminRecord, error: adminError } = await supabase
+        .from('restaurant_admins')
+        .select('telegram_id')
+        .eq('restaurant_id', restaurant_id)
+        .eq('is_active', true)
+        .limit(1)
+        .single();
 
-      if (req.user?.role === 'restaurant_admin') {
-        // Используем telegram_id текущего админа
-        adminTelegramId = BigInt(req.user.telegram_id);
-        console.log('[sendTelegramLinkMessage] Using current admin telegram_id:', adminTelegramId.toString());
-      } else {
-        // Для super_admin - получаем первого активного админа ресторана
-        const { data: adminRecord, error: adminError } = await supabase
-          .from('restaurant_admins')
-          .select('telegram_id')
-          .eq('restaurant_id', restaurant_id)
-          .eq('is_active', true)
-          .limit(1)
-          .single();
-
-        if (adminError || !adminRecord) {
-          console.error('[sendTelegramLinkMessage] Admin not found:', adminError);
-          return res.status(404).json({
-            success: false,
-            error: 'Restaurant admin not found'
-          });
-        }
-
-        adminTelegramId = BigInt(adminRecord.telegram_id);
-        console.log('[sendTelegramLinkMessage] Found admin telegram_id:', adminTelegramId.toString());
-      }
-
-      if (!adminTelegramId) {
-        console.error('[sendTelegramLinkMessage] Admin telegram_id is null');
+      if (adminError || !adminRecord) {
+        console.error('[sendTelegramLinkMessage] Admin not found:', adminError);
         return res.status(404).json({
           success: false,
-          error: 'Restaurant admin telegram_id not found'
+          error: 'Restaurant admin not found'
         });
       }
 
-      targetChatId = Number(adminTelegramId);
-      console.log('[sendTelegramLinkMessage] Sending to admin (telegram_id):', targetChatId);
+      adminTelegramId = BigInt(adminRecord.telegram_id);
+      console.log('[sendTelegramLinkMessage] Found admin telegram_id:', adminTelegramId.toString());
     }
+
+    if (!adminTelegramId) {
+      console.error('[sendTelegramLinkMessage] Admin telegram_id is null');
+      return res.status(404).json({
+        success: false,
+        error: 'Restaurant admin telegram_id not found'
+      });
+    }
+
+    const targetChatId = Number(adminTelegramId);
+    const sendToGroup = false; // Всегда отправляем админу
+    console.log('[sendTelegramLinkMessage] Sending to admin (telegram_id):', targetChatId);
 
     // Получаем URL меню
     const baseUrl = process.env.FRONTEND_URL || 'https://minutka-chi.vercel.app';
@@ -344,9 +307,7 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
       // Не прерываем выполнение, так как сообщение уже отправлено
     }
     
-    const successMessage = sendToGroup 
-      ? 'Сообщение успешно отправлено в группу ресторана! Кнопка будет работать в группе. Теперь можно использовать команду /меню в группе.'
-      : 'Сообщение успешно отправлено админу! Для работы в группе добавьте telegram_chat_id группы в настройках ресторана.';
+    const successMessage = 'Сообщение успешно сохранено! Теперь используйте команду /меню в группе для отправки.';
     
     res.json({
       success: true,

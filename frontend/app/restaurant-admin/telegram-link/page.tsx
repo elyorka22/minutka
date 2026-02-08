@@ -16,7 +16,6 @@ export default function TelegramLinkPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [messageText, setMessageText] = useState('');
-  const [groupChatId, setGroupChatId] = useState('');
 
   useEffect(() => {
     async function loadRestaurant() {
@@ -41,29 +40,6 @@ export default function TelegramLinkPage() {
     loadRestaurant();
   }, [showError]);
 
-  // Функция для извлечения chat_id или username из ссылки
-  const parseGroupIdentifier = (input: string): string | null => {
-    if (!input.trim()) return null;
-    
-    // Если это число (chat_id), возвращаем как есть
-    if (/^-?\d+$/.test(input.trim())) {
-      return input.trim();
-    }
-    
-    // Если это ссылка t.me/username или @username, извлекаем username
-    const linkMatch = input.match(/(?:t\.me\/|@)([a-zA-Z0-9_]+)/);
-    if (linkMatch) {
-      return `@${linkMatch[1]}`;
-    }
-    
-    // Если уже начинается с @, возвращаем как есть
-    if (input.trim().startsWith('@')) {
-      return input.trim();
-    }
-    
-    return null;
-  };
-
   const handleCreate = async () => {
     if (!restaurant) return;
 
@@ -74,25 +50,18 @@ export default function TelegramLinkPage() {
 
     try {
       setSending(true);
-      // Парсим идентификатор группы (может быть chat_id или username)
-      const parsedId = parseGroupIdentifier(groupChatId);
-      
-      // Если это число (chat_id), передаем как есть
-      // Если это username (начинается с @), передаем как username
-      const groupIdentifier = parsedId || null;
-      
+      // Отправляем сообщение админу (без указания группы)
       const result = await sendTelegramLinkMessage(
         restaurant.id, 
         messageText.trim(),
-        groupIdentifier
+        null // Не указываем группу, отправляем админу
       );
       
       if (result.success) {
-        showSuccess(result.message || 'Сообщение успешно отправлено в Telegram!');
-        // Очищаем поле после успешной отправки
-        setMessageText(`${restaurant.name} - ${restaurant.menu_button_text || 'Меню'}`);
+        showSuccess('Сообщение успешно сохранено! Теперь используйте команду /меню в группе для отправки.');
+        // Не очищаем поле, чтобы можно было редактировать
       } else {
-        showError(result.message || result.error || 'Не удалось отправить сообщение');
+        showError(result.message || result.error || 'Не удалось сохранить сообщение');
       }
     } catch (error: any) {
       console.error('Error sending Telegram link message:', error);
@@ -149,46 +118,6 @@ export default function TelegramLinkPage() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Chat ID группы или username (необязательно)
-              </label>
-              <input
-                type="text"
-                value={groupChatId}
-                onChange={(e) => setGroupChatId(e.target.value)}
-                placeholder="-1001234567890 или @groupname или t.me/groupname"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
-              <div className="mt-2 space-y-1">
-                <p className="text-xs text-gray-500">
-                  Если указано, сообщение отправится напрямую в группу. Если не указано, отправится админу.
-                </p>
-                <details className="text-xs text-gray-600">
-                  <summary className="cursor-pointer font-medium text-primary-600 hover:text-primary-700">
-                    📖 Как получить Chat ID группы?
-                  </summary>
-                  <div className="mt-2 pl-4 space-y-2 border-l-2 border-primary-200">
-                    <p><strong>Способ 1 (рекомендуется):</strong></p>
-                    <ol className="list-decimal list-inside space-y-1 ml-2">
-                      <li>Добавьте бота <code className="bg-gray-100 px-1 rounded">@userinfobot</code> в вашу группу</li>
-                      <li>Отправьте любое сообщение в группу</li>
-                      <li>Бот ответит с информацией, включая Chat ID (число вида <code className="bg-gray-100 px-1 rounded">-1001234567890</code>)</li>
-                    </ol>
-                    <p className="mt-2"><strong>Способ 2:</strong></p>
-                    <ol className="list-decimal list-inside space-y-1 ml-2">
-                      <li>Добавьте вашего бота в группу как администратора</li>
-                      <li>Для публичных групп можно использовать username (например, <code className="bg-gray-100 px-1 rounded">@groupname</code>)</li>
-                      <li>Для приватных групп обязательно нужен Chat ID (число)</li>
-                    </ol>
-                    <p className="mt-2 text-orange-600">
-                      ⚠️ <strong>Важно:</strong> Бот должен быть добавлен в группу и иметь права на отправку сообщений!
-                    </p>
-                  </div>
-                </details>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Текст сообщения
               </label>
               <textarea
@@ -209,31 +138,30 @@ export default function TelegramLinkPage() {
               disabled={sending || !messageText.trim()}
               className="w-full px-6 py-3 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {sending ? 'Отправка...' : 'Создать'}
+              {sending ? 'Сохранение...' : 'Сохранить'}
             </button>
 
             <div className="mt-4 p-4 bg-blue-50 rounded-lg">
               <p className="text-sm text-gray-700 font-semibold mb-2">
                 💡 <strong>Как это работает:</strong>
               </p>
-              <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+              <ol className="text-sm text-gray-600 list-decimal list-inside space-y-1">
                 <li>Введите текст сообщения</li>
-                <li>При необходимости укажите Chat ID или username группы</li>
-                <li>Нажмите кнопку "Создать"</li>
-                <li>Сообщение с кнопкой меню будет отправлено в указанную группу или админу</li>
-                <li>Кнопка откроет меню ресторана прямо в Telegram Web App</li>
-              </ul>
+                <li>Нажмите кнопку "Сохранить"</li>
+                <li>Сообщение будет сохранено в системе</li>
+                <li>В группе Telegram отправьте команду <code className="bg-white px-1 py-0.5 rounded text-primary-600 font-mono">/меню</code></li>
+                <li>Бот попросит ввести ID ресторана</li>
+                <li>Введите ID ресторана (показан ниже)</li>
+                <li>Бот отправит сообщение с кнопкой меню в группу</li>
+              </ol>
             </div>
 
             <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
               <p className="text-sm text-gray-700 font-semibold mb-2">
-                🤖 <strong>Команда /меню для групп:</strong>
-              </p>
-              <p className="text-sm text-gray-600 mb-2">
-                После создания сообщения вы можете использовать команду <code className="bg-white px-2 py-1 rounded text-primary-600 font-mono">/меню</code> в группе Telegram для отправки меню.
+                🤖 <strong>ID ресторана для команды /меню:</strong>
               </p>
               <div className="mt-3 p-3 bg-white rounded border border-green-200">
-                <p className="text-xs text-gray-500 mb-1">ID ресторана (скопируйте для команды /меню):</p>
+                <p className="text-xs text-gray-500 mb-1">Скопируйте этот ID для использования в команде /меню:</p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 px-3 py-2 bg-gray-100 rounded text-sm font-mono text-gray-800 break-all">
                     {restaurant.id}
@@ -249,9 +177,6 @@ export default function TelegramLinkPage() {
                   </button>
                 </div>
               </div>
-              <p className="text-xs text-gray-600 mt-2">
-                <strong>Использование в группе:</strong> <code className="bg-white px-1 py-0.5 rounded text-primary-600 font-mono">/меню {restaurant.id}</code>
-              </p>
             </div>
           </div>
         </div>
