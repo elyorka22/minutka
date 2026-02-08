@@ -51,9 +51,15 @@ export default function AdminAdminsPage() {
     }
 
     try {
+      const telegramId = parseInt(formData.telegram_id, 10);
+      if (isNaN(telegramId)) {
+        showError('Telegram ID должен быть числом');
+        return;
+      }
+
       await createRestaurantAdmin({
         restaurant_id: formData.restaurant_id,
-        telegram_id: formData.telegram_id,
+        telegram_id: telegramId,
         password: formData.password,
         is_active: true,
       });
