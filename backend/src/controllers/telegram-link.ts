@@ -87,12 +87,12 @@ export async function sendTelegramLinkMessage(req: AuthenticatedRequest, res: Re
     console.log('[sendTelegramLinkMessage] Restaurant telegram_chat_id:', restaurant.telegram_chat_id);
 
     // Определяем, куда отправлять сообщение
-    // Приоритет: group_username/group_chat_id из запроса > telegram_id админа
+    // Приоритет: group_username из запроса > telegram_id админа
     let targetChatId: number | string | null = null;
     let sendToGroup = false;
 
     // Если передан username или chat_id группы в запросе, используем его
-    const groupIdentifier = group_username || group_chat_id;
+    const groupIdentifier = group_username;
     if (groupIdentifier) {
       if (typeof groupIdentifier === 'string' && groupIdentifier.startsWith('@')) {
         // Username группы
