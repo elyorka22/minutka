@@ -15,13 +15,7 @@ export default function RestaurantAdminCouriersPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [formData, setFormData] = useState({
-    telegram_id: '',
-    username: '',
-    first_name: '',
-    last_name: '',
-    phone: '',
-  });
+  const [telegramId, setTelegramId] = useState('');
   const restaurantId = useRestaurantId();
 
   useEffect(() => {
@@ -42,12 +36,12 @@ export default function RestaurantAdminCouriersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.telegram_id || !formData.telegram_id.trim()) {
+    if (!telegramId || !telegramId.trim()) {
       alert('Telegram ID обязателен');
       return;
     }
 
-    const telegramIdNum = parseInt(formData.telegram_id);
+    const telegramIdNum = parseInt(telegramId.trim());
     if (isNaN(telegramIdNum)) {
       alert('Telegram ID должен быть числом');
       return;
@@ -57,23 +51,13 @@ export default function RestaurantAdminCouriersPage() {
       setSaving(true);
       const courierData = {
         telegram_id: telegramIdNum,
-        username: formData.username || null,
-        first_name: formData.first_name || null,
-        last_name: formData.last_name || null,
-        phone: formData.phone || null,
       };
 
       const newCourier = await createCourier(courierData);
       setCouriers([...couriers, newCourier]);
       
       setShowForm(false);
-      setFormData({
-        telegram_id: '',
-        username: '',
-        first_name: '',
-        last_name: '',
-        phone: '',
-      });
+      setTelegramId('');
     } catch (error) {
       console.error('Error creating courier:', error);
       alert(handleApiError(error));
@@ -103,68 +87,22 @@ export default function RestaurantAdminCouriersPage() {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Добавить нового курьера</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Telegram ID <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.telegram_id}
-                  onChange={(e) => setFormData({ ...formData, telegram_id: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="123456789"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="@username"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Имя
-                </label>
-                <input
-                  type="text"
-                  value={formData.first_name}
-                  onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Имя"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Фамилия
-                </label>
-                <input
-                  type="text"
-                  value={formData.last_name}
-                  onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="Фамилия"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Телефон
-                </label>
-                <input
-                  type="text"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  placeholder="+998901234567"
-                />
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Telegram ID <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={telegramId}
+                onChange={(e) => setTelegramId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="123456789"
+                required
+                autoFocus
+              />
+              <p className="mt-1 text-xs text-gray-500">
+                Введите Telegram ID курьера. Остальные данные будут заполнены автоматически при первом входе.
+              </p>
             </div>
             <div className="flex gap-3">
               <button
@@ -178,13 +116,7 @@ export default function RestaurantAdminCouriersPage() {
                 type="button"
                 onClick={() => {
                   setShowForm(false);
-                  setFormData({
-                    telegram_id: '',
-                    username: '',
-                    first_name: '',
-                    last_name: '',
-                    phone: '',
-                  });
+                  setTelegramId('');
                 }}
                 className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
               >
