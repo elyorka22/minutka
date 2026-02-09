@@ -158,8 +158,10 @@ export async function notifyRestaurantAdminsAboutNewOrder(
     ]);
 
     // Отправляем уведомление всем админам ресторана
+    // ВАЖНО: Это уведомление только для админов, НЕ для курьеров
     const notificationPromises = admins.map(async (admin) => {
       try {
+        console.log(`[Admin Notification] Sending to restaurant admin ${admin.telegram_id} with button "Передать курьеру"`);
         await botInstance!.telegram.sendMessage(
           admin.telegram_id,
           message,
@@ -168,6 +170,7 @@ export async function notifyRestaurantAdminsAboutNewOrder(
             reply_markup: keyboard.reply_markup
           }
         );
+        console.log(`[Admin Notification] Successfully sent to restaurant admin ${admin.telegram_id}`);
       } catch (error: any) {
         console.error(`Error sending notification to restaurant admin ${admin.telegram_id}:`, error);
       }
@@ -453,11 +456,16 @@ export async function notifyCouriersAboutOrder(
     const keyboard = Markup.inlineKeyboard(keyboardButtons);
 
     // Отправляем уведомление всем активным курьерам
+    // ВАЖНО: Курьеры получают только подтвержденные заказы с кнопкой "✅ Olmoq"
+    // Это уведомление отправляется только после того, как админ нажал "Передать курьеру"
+    console.log(`[Courier Notification] Sending confirmed order to ${couriers.length} couriers with button "✅ Olmoq"`);
     const notificationPromises = couriers.map(async (courier) => {
       try {
         const chatId = courier.telegram_chat_id || courier.telegram_id;
         
-        // Отправляем сообщение
+        console.log(`[Courier Notification] Sending to courier ${courier.telegram_id} (chat_id: ${chatId})`);
+        
+        // Отправляем сообщение с кнопкой "✅ Olmoq" (только для курьеров)
         const result = await botInstance!.telegram.sendMessage(
           chatId,
           message,
@@ -466,6 +474,8 @@ export async function notifyCouriersAboutOrder(
             reply_markup: keyboard.reply_markup
           }
         );
+        
+        console.log(`[Courier Notification] Successfully sent to courier ${courier.telegram_id} with button "✅ Olmoq"`);
         
         // Если есть координаты, отправляем также location для удобства
         if (hasLocation) {
