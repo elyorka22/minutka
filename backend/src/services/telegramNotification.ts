@@ -384,7 +384,7 @@ export async function notifyRestaurantAdminsAboutNewOrder(
     }
 
     // Получаем всех активных админов ресторана с включенными уведомлениями
-    const { data: admins, error } = await supabase
+    let { data: admins, error } = await supabase
       .from('restaurant_admins')
       .select('telegram_id')
       .eq('restaurant_id', restaurantId)
@@ -392,6 +392,26 @@ export async function notifyRestaurantAdminsAboutNewOrder(
       .eq('notifications_enabled', true);
 
     if (error || !admins || admins.length === 0) {
+      return;
+    }
+
+    // ВАЖНО: Исключаем курьеров из получения админских уведомлений
+    // Курьеры должны получать уведомления только после нажатия админом "Передать курьеру"
+    const adminTelegramIds = admins.map(admin => admin.telegram_id);
+    const { data: couriers, error: courierCheckError } = await supabase
+      .from('couriers')
+      .select('telegram_id')
+      .in('telegram_id', adminTelegramIds)
+      .eq('is_active', true);
+
+    if (couriers && couriers.length > 0) {
+      console.log(`[Backend Admin Notification] WARNING: Found ${couriers.length} users who are both admins and couriers. Excluding them from admin notifications.`);
+      const courierTelegramIds = new Set(couriers.map(c => c.telegram_id));
+      admins = admins.filter(admin => !courierTelegramIds.has(admin.telegram_id));
+    }
+
+    if (!admins || admins.length === 0) {
+      console.log(`[Backend Admin Notification] No admins left after excluding couriers for restaurant ${restaurantId}`);
       return;
     }
 
