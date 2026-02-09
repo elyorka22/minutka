@@ -70,7 +70,8 @@ export async function notifyCouriersAboutOrder(
   restaurantId?: string | null
 ): Promise<Array<{ courier_id: number; message_id: number }> | null> {
   try {
-    console.log(`[Courier Notification] Starting notification for order ${orderId}, restaurantId: ${restaurantId || 'general'}`);
+    console.log(`[Courier Notification - BACKEND] WARNING: This function should only be called from API endpoints, not from order creation!`);
+    console.log(`[Courier Notification - BACKEND] Starting notification for order ${orderId}, restaurantId: ${restaurantId || 'general'}`);
     
     // Получаем активных курьеров
     // Если restaurantId указан - только курьеры этого ресторана
