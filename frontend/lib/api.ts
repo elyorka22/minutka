@@ -139,6 +139,8 @@ export async function updateRestaurant(id: string, restaurantData: {
   type?: 'restaurant' | 'store';
   working_hours?: WorkingHours | null;
   telegram_chat_id?: number | string | null;
+  chef_notifications_enabled?: boolean;
+  admin_notifications_enabled?: boolean;
 }): Promise<Restaurant> {
   const response = await api.patch<{ success: boolean; data: Restaurant }>(`/api/restaurants/${id}`, restaurantData);
   return response.data.data;
