@@ -35,16 +35,17 @@ export async function sendOrderToRestaurant(
   }
 
   // Получаем настройки ресторана
-  const { data: restaurant, error: restaurantError } = await supabase
+  const { data: restaurantData, error: restaurantError } = await supabase
     .from('restaurants')
     .select('chef_notifications_enabled, admin_notifications_enabled')
     .eq('id', restaurantId)
     .single();
 
-  if (restaurantError || !restaurant) {
+  // Используем значения по умолчанию, если настройки не найдены
+  const restaurant = restaurantData || { chef_notifications_enabled: true, admin_notifications_enabled: true };
+
+  if (restaurantError) {
     console.error('Error fetching restaurant settings:', restaurantError);
-    // Используем значения по умолчанию
-    restaurant = { chef_notifications_enabled: true, admin_notifications_enabled: true };
   }
 
   const chefNotificationsEnabled = restaurant.chef_notifications_enabled ?? true;
