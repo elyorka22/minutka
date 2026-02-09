@@ -70,9 +70,7 @@ export async function sendOrderToChef(
 
     // Если уведомления для повара выключены, отправляем админу
     if (!chefNotificationsEnabled && adminNotificationsEnabled) {
-      // Импортируем функцию уведомления админов
-      const { notifyRestaurantAdminsAboutNewOrder } = await import('./telegramNotification');
-      
+      // Вызываем функцию уведомления админов напрямую (она определена в этом же файле)
       await notifyRestaurantAdminsAboutNewOrder(
         restaurantId,
         orderId,
