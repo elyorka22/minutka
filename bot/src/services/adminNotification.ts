@@ -408,13 +408,15 @@ export async function notifyCouriersAboutOrder(
     const generalCouriers = generalCouriersResult.data || [];
     const couriers = [...restaurantCouriers, ...generalCouriers];
 
-    if (error) {
-      console.error('Error fetching active couriers:', error);
-      return;
+    if (restaurantCouriersResult.error) {
+      console.error('Error fetching restaurant couriers:', restaurantCouriersResult.error);
+    }
+    if (generalCouriersResult.error) {
+      console.error('Error fetching general couriers:', generalCouriersResult.error);
     }
 
     if (!couriers || couriers.length === 0) {
-      console.log('No active couriers found');
+      console.log('No active couriers found for order:', orderId);
       return;
     }
 
@@ -422,16 +424,20 @@ export async function notifyCouriersAboutOrder(
     const address = orderData.address || 'Ko\'rsatilmagan';
     const hasLocation = orderData.latitude && orderData.longitude;
 
-    const message = `📦 *Yangi buyurtma*\n\n` +
+    // ВАЖНО: Курьеры получают только подтвержденные заказы от админа
+    // Это уведомление отправляется только после того, как админ нажал "Передать курьеру"
+    const message = `📦 *Tasdiqlangan buyurtma*\n\n` +
       `🆔 Buyurtma: #${orderId.slice(0, 8)}\n` +
       `🍽️ Restoran: ${orderData.restaurantName}\n` +
       `💰 Narx: ${orderData.total}\n` +
       (hasLocation ? `📍 Geolokatsiya: ${orderData.latitude?.toFixed(6)}, ${orderData.longitude?.toFixed(6)}\n` : `📍 Manzil: ${address}\n`) +
       `📝 Buyurtma: ${orderData.orderText}\n` +
       `📞 Mijoz: \`${userPhone}\`\n\n` +
+      `✅ *Buyurtma tasdiqlandi va yetkazib berishga tayyor*\n` +
       `⚠️ *Kim birinchi olsa, shu buyurtmani oladi!*`;
 
-    // Создаем клавиатуру с кнопкой "Взять заказ" и кнопкой "Открыть на карте" (если есть координаты)
+    // Создаем клавиатуру с кнопкой "Взять заказ" (только для курьеров)
+    // ВАЖНО: Курьеры НЕ должны получать кнопку "Передать курьеру" - это только для админов
     const keyboardButtons: any[] = [
       [Markup.button.callback('✅ Olmoq', `courier:take:${orderId}`)]
     ];
