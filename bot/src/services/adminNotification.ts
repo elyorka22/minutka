@@ -375,11 +375,38 @@ export async function notifyCouriersAboutOrder(
   }
 
   try {
-    // Получаем всех активных курьеров
-    const { data: couriers, error } = await supabase
-      .from('couriers')
-      .select('telegram_id, telegram_chat_id, first_name')
-      .eq('is_active', true);
+    // Получаем информацию о заказе для фильтрации курьеров по ресторану
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .select('restaurant_id')
+      .eq('id', orderId)
+      .single();
+
+    if (orderError || !order) {
+      console.error('Error fetching order for courier notification:', orderError);
+      return;
+    }
+
+    // Получаем курьеров: сначала курьеры ресторана, затем общие курьеры (restaurant_id IS NULL)
+    const [restaurantCouriersResult, generalCouriersResult] = await Promise.all([
+      // Курьеры ресторана
+      supabase
+        .from('couriers')
+        .select('telegram_id, telegram_chat_id, first_name')
+        .eq('is_active', true)
+        .eq('restaurant_id', order.restaurant_id),
+      // Общие курьеры (restaurant_id IS NULL)
+      supabase
+        .from('couriers')
+        .select('telegram_id, telegram_chat_id, first_name')
+        .eq('is_active', true)
+        .is('restaurant_id', null)
+    ]);
+
+    // Объединяем курьеров: сначала курьеры ресторана, затем общие
+    const restaurantCouriers = restaurantCouriersResult.data || [];
+    const generalCouriers = generalCouriersResult.data || [];
+    const couriers = [...restaurantCouriers, ...generalCouriers];
 
     if (error) {
       console.error('Error fetching active couriers:', error);
