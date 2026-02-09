@@ -15,6 +15,8 @@ export interface Restaurant {
   phone: string | null;
   delivery_text: string | null;
   menu_button_text?: string | null; // Текст кнопки меню для Telegram
+  chef_notifications_enabled?: boolean; // Включены ли уведомления для поваров
+  admin_notifications_enabled?: boolean; // Включены ли уведомления для админов
   is_active: boolean;
   is_featured: boolean;
   created_at: string;
