@@ -10,14 +10,22 @@ import { AuthenticatedRequest } from '../middleware/auth';
 
 /**
  * GET /api/couriers
- * Получить всех курьеров (только для super_admin)
+ * Получить курьеров
+ * - super_admin: всех курьеров
+ * - restaurant_admin: только курьеров своего ресторана
  */
 export async function getCouriers(req: AuthenticatedRequest, res: Response) {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('couriers')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select('*');
+
+    // Если это ресторан-админ, фильтруем по его restaurant_id
+    if (req.user?.role === 'restaurant_admin' && req.user.restaurant_id) {
+      query = query.eq('restaurant_id', req.user.restaurant_id);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       throw error;
@@ -39,7 +47,9 @@ export async function getCouriers(req: AuthenticatedRequest, res: Response) {
 
 /**
  * POST /api/couriers
- * Создать нового курьера (только для super_admin)
+ * Создать нового курьера
+ * - super_admin: может создать курьера для любого ресторана или без ресторана
+ * - restaurant_admin: может создать курьера только для своего ресторана (restaurant_id устанавливается автоматически)
  */
 export async function createCourier(req: AuthenticatedRequest, res: Response) {
   try {
@@ -71,13 +81,33 @@ export async function createCourier(req: AuthenticatedRequest, res: Response) {
       });
     }
 
-    // Валидация restaurant_id если указан
-    if (restaurant_id !== undefined && restaurant_id !== null && restaurant_id !== '') {
-      if (!validateUuid(restaurant_id)) {
-        return res.status(400).json({
+    // Определяем restaurant_id для курьера
+    let finalRestaurantId: string | null = null;
+
+    if (req.user?.role === 'restaurant_admin') {
+      // Ресторан-админ может создать курьера только для своего ресторана
+      if (!req.user.restaurant_id) {
+        return res.status(403).json({
           success: false,
-          error: 'Invalid restaurant_id format'
+          error: 'Restaurant admin must have a restaurant_id'
         });
+      }
+      finalRestaurantId = req.user.restaurant_id;
+      
+      // Игнорируем restaurant_id из body, если он указан (для безопасности)
+      console.log('Restaurant admin creating courier for restaurant:', finalRestaurantId);
+    } else if (req.user?.role === 'super_admin') {
+      // Супер-админ может указать restaurant_id или оставить null
+      if (restaurant_id !== undefined && restaurant_id !== null && restaurant_id !== '') {
+        if (!validateUuid(restaurant_id)) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid restaurant_id format'
+          });
+        }
+        finalRestaurantId = restaurant_id;
+      } else {
+        finalRestaurantId = null; // Общий курьер
       }
     }
 
@@ -90,7 +120,7 @@ export async function createCourier(req: AuthenticatedRequest, res: Response) {
         first_name: validateString(first_name) ? first_name : null,
         last_name: validateString(last_name) ? last_name : null,
         phone: validateString(phone) ? phone : null,
-        restaurant_id: restaurant_id && restaurant_id !== '' ? restaurant_id : null,
+        restaurant_id: finalRestaurantId,
         is_active: true
       })
       .select()
@@ -251,15 +281,23 @@ export async function deleteCourier(req: AuthenticatedRequest, res: Response) {
 
 /**
  * GET /api/couriers/active
- * Получить всех активных курьеров
+ * Получить активных курьеров
+ * - super_admin: всех активных курьеров
+ * - restaurant_admin: только активных курьеров своего ресторана
  */
 export async function getActiveCouriers(req: AuthenticatedRequest, res: Response) {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('couriers')
       .select('*')
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
+      .eq('is_active', true);
+
+    // Если это ресторан-админ, фильтруем по его restaurant_id
+    if (req.user?.role === 'restaurant_admin' && req.user.restaurant_id) {
+      query = query.eq('restaurant_id', req.user.restaurant_id);
+    }
+
+    const { data, error } = await query.order('created_at', { ascending: false });
 
     if (error) {
       throw error;

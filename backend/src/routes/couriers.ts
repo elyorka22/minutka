@@ -10,14 +10,16 @@ import {
   deleteCourier,
   getActiveCouriers
 } from '../controllers/couriers';
-import { requireStaffAuth, requireSuperAdmin } from '../middleware/auth';
+import { requireStaffAuth, requireSuperAdmin, requireRestaurantAdmin } from '../middleware/auth';
 
 const router = Router();
 
-// Все маршруты требуют аутентификации super_admin
-router.get('/', requireStaffAuth, requireSuperAdmin, getCouriers);
-router.get('/active', requireStaffAuth, requireSuperAdmin, getActiveCouriers);
-router.post('/', requireStaffAuth, requireSuperAdmin, createCourier);
+// GET - супер-админы видят всех, ресторан-админы только своих
+router.get('/', requireStaffAuth, requireRestaurantAdmin, getCouriers);
+router.get('/active', requireStaffAuth, requireRestaurantAdmin, getActiveCouriers);
+// POST - супер-админы и ресторан-админы могут создавать
+router.post('/', requireStaffAuth, requireRestaurantAdmin, createCourier);
+// PUT и DELETE - только супер-админы
 router.put('/:id', requireStaffAuth, requireSuperAdmin, updateCourier);
 router.delete('/:id', requireStaffAuth, requireSuperAdmin, deleteCourier);
 
