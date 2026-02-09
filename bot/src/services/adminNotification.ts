@@ -76,6 +76,110 @@ export async function notifySuperAdminsAboutNewOrder(orderId: string, orderData:
 }
 
 /**
+ * Уведомить админов ресторана о новом заказе (когда повар выключен)
+ * Отправляет уведомление с кнопкой "Передать курьеру"
+ */
+export async function notifyRestaurantAdminsAboutNewOrder(
+  restaurantId: string,
+  orderId: string,
+  orderData: {
+    orderText: string;
+    address: string | null;
+    userName?: string;
+  }
+) {
+  console.log('=== notifyRestaurantAdminsAboutNewOrder called ===');
+  console.log('Parameters:', { restaurantId, orderId, orderData });
+  
+  if (!botInstance) {
+    console.error('Bot instance not initialized for admin notifications!');
+    return;
+  }
+
+  try {
+    // Получаем настройки ресторана
+    const { data: restaurant, error: restaurantError } = await supabase
+      .from('restaurants')
+      .select('admin_notifications_enabled')
+      .eq('id', restaurantId)
+      .single();
+
+    if (restaurantError) {
+      console.error('Error fetching restaurant settings:', restaurantError);
+    }
+
+    const adminNotificationsEnabled = restaurant?.admin_notifications_enabled ?? true;
+
+    if (!adminNotificationsEnabled) {
+      console.log(`Admin notifications are disabled for restaurant ${restaurantId}`);
+      return;
+    }
+
+    // Получаем всех активных админов ресторана
+    const { data: allAdmins, error: allAdminsError } = await supabase
+      .from('restaurant_admins')
+      .select('telegram_id, notifications_enabled, is_active')
+      .eq('restaurant_id', restaurantId)
+      .eq('is_active', true);
+
+    if (allAdminsError) {
+      console.error('Error fetching restaurant admins:', allAdminsError);
+      return;
+    }
+
+    if (!allAdmins || allAdmins.length === 0) {
+      console.log(`No active restaurant admins found for restaurant ${restaurantId}`);
+      return;
+    }
+
+    // Фильтруем админов с включенными уведомлениями
+    const admins = allAdmins.filter(admin => {
+      const enabled = admin.notifications_enabled === true;
+      return enabled;
+    });
+
+    if (admins.length === 0) {
+      console.log(`No restaurant admins with notifications enabled found for restaurant ${restaurantId}`);
+      return;
+    }
+
+    const userInfo = orderData.userName || 'Foydalanuvchi';
+
+    const message = `📋 *Yangi buyurtma*\n\n` +
+      `🆔 Buyurtma: #${orderId.slice(0, 8)}\n` +
+      `👤 Mijoz: ${userInfo}\n` +
+      `📝 Buyurtma: ${orderData.orderText}\n` +
+      `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
+      `Holat: ⏳ Tasdiqlanishni kutmoqda`;
+
+    // Создаем клавиатуру с кнопкой "Передать курьеру"
+    const keyboard = Markup.inlineKeyboard([
+      Markup.button.callback('🚚 Передать курьеру', `order:assign_courier:${orderId}`)
+    ]);
+
+    // Отправляем уведомление всем админам ресторана
+    const notificationPromises = admins.map(async (admin) => {
+      try {
+        await botInstance!.telegram.sendMessage(
+          admin.telegram_id,
+          message,
+          {
+            parse_mode: 'Markdown',
+            reply_markup: keyboard.reply_markup
+          }
+        );
+      } catch (error: any) {
+        console.error(`Error sending notification to restaurant admin ${admin.telegram_id}:`, error);
+      }
+    });
+
+    await Promise.all(notificationPromises);
+  } catch (error: any) {
+    console.error('Error notifying restaurant admins about new order:', error);
+  }
+}
+
+/**
  * Уведомить админов ресторана о готовом заказе (после нажатия поваром "Tayyor")
  * Отправляет уведомление с кнопкой "Передать курьеру"
  */
@@ -99,6 +203,24 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
   console.log('Bot instance is initialized, proceeding...');
 
   try {
+    // Получаем настройки ресторана
+    const { data: restaurant, error: restaurantError } = await supabase
+      .from('restaurants')
+      .select('admin_notifications_enabled')
+      .eq('id', restaurantId)
+      .single();
+
+    if (restaurantError) {
+      console.error('Error fetching restaurant settings:', restaurantError);
+    }
+
+    const adminNotificationsEnabled = restaurant?.admin_notifications_enabled ?? true;
+
+    if (!adminNotificationsEnabled) {
+      console.log(`Admin notifications are disabled for restaurant ${restaurantId}`);
+      return;
+    }
+
     // Получаем всех активных админов ресторана
     const { data: allAdmins, error: allAdminsError } = await supabase
       .from('restaurant_admins')

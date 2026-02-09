@@ -410,7 +410,7 @@ export async function createRestaurant(req: AuthenticatedRequest, res: Response)
 export async function updateRestaurant(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, phone, image_url, delivery_text, is_active, is_featured, working_hours, type, menu_button_text, telegram_chat_id } = req.body;
+    const { name, description, phone, image_url, delivery_text, is_active, is_featured, working_hours, type, menu_button_text, telegram_chat_id, chef_notifications_enabled, admin_notifications_enabled } = req.body;
 
     // Валидация ID
     if (!id || !validateString(id, 1, 100)) {
@@ -504,6 +504,12 @@ export async function updateRestaurant(req: AuthenticatedRequest, res: Response)
         });
       }
       updateData.menu_button_text = menu_button_text || 'Меню';
+    }
+    if (chef_notifications_enabled !== undefined) {
+      updateData.chef_notifications_enabled = Boolean(chef_notifications_enabled);
+    }
+    if (admin_notifications_enabled !== undefined) {
+      updateData.admin_notifications_enabled = Boolean(admin_notifications_enabled);
     }
     if (telegram_chat_id !== undefined) {
       // telegram_chat_id может быть числом (chat_id) или строкой (username группы)
