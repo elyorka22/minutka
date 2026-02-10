@@ -9,7 +9,6 @@ import Image from 'next/image';
 import MenuItem from '@/components/MenuItem';
 import MenuItemBanner from '@/components/MenuItemBanner';
 import Cart from '@/components/Cart';
-import CategoryCarousel from '@/components/CategoryCarousel';
 import { MenuCategory, MenuItem as MenuItemType } from '@/lib/types';
 import TableBookingButton from '@/components/TableBookingButton';
 
@@ -153,15 +152,22 @@ export default async function RestaurantPage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Regular Menu Section - Обычные карточки блюд в виде горизонтальных каруселей */}
+          {/* Regular Menu Section - Обычные карточки блюд */}
           {menuByCategory.length > 0 && (
             <div className="mb-8">
-              {menuByCategory.map((category, categoryIndex) => (
-                <CategoryCarousel 
-                  key={category.name} 
-                  category={category} 
-                  categoryIndex={categoryIndex}
-                />
+              {menuByCategory.map((category) => (
+                <div key={category.name} className="mb-8 last:mb-0">
+                  {menuByCategory.length > 1 && (
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                      {category.name}
+                    </h2>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
+                    {category.items.map((item) => (
+                      <MenuItem key={item.id} item={item} />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}
