@@ -57,7 +57,7 @@ export default function MenuItem({ item }: MenuItemProps) {
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-md overflow-hidden transition-all flex flex-col ${
+      className={`bg-white rounded-lg shadow-md overflow-hidden transition-all flex flex-col h-full ${
         !item.is_available
           ? 'opacity-75 grayscale-[0.3] cursor-not-allowed'
           : 'hover:shadow-lg'

@@ -199,25 +199,75 @@ export default function MenuPageClient({
         </section>
       )}
 
-      {/* Menu by Categories */}
+      {/* Menu by Categories - Horizontal Carousels */}
       <section className="max-w-4xl mx-auto px-4 pb-8">
         {filteredMenuByCategory.length > 0 ? (
-          filteredMenuByCategory.map((category) => (
-            <div key={category.name} className="mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">{category.name}</h2>
-              {category.items.length > 0 ? (
-                <div className="grid grid-cols-1 gap-4">
-                  {category.items.map((item) => (
-                    <MenuItem key={item.id} item={item} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>В этой категории пока нет блюд</p>
-                </div>
-              )}
-            </div>
-          ))
+          filteredMenuByCategory.map((category, categoryIndex) => {
+            const carouselId = `category-carousel-${categoryIndex}`;
+            
+            const scrollCategory = (direction: 'left' | 'right', carouselId: string) => {
+              const container = document.getElementById(carouselId);
+              if (container) {
+                const scrollAmount = 300;
+                const currentScroll = container.scrollLeft;
+                const newPosition = direction === 'left' 
+                  ? currentScroll - scrollAmount 
+                  : currentScroll + scrollAmount;
+                container.scrollTo({ left: newPosition, behavior: 'smooth' });
+              }
+            };
+
+            return (
+              <div key={category.name} className="mb-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">{category.name}</h2>
+                {category.items.length > 0 ? (
+                  <div className="relative">
+                    {/* Scroll Left Button */}
+                    <button
+                      onClick={() => scrollCategory('left', carouselId)}
+                      className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-10 h-10 rounded-full bg-white shadow-lg hover:shadow-xl transition-shadow"
+                      aria-label="Прокрутить влево"
+                    >
+                      <span className="text-2xl text-gray-600">‹</span>
+                    </button>
+
+                    {/* Horizontal Carousel */}
+                    <div
+                      id={carouselId}
+                      className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    >
+                      {category.items.map((item) => (
+                        <div key={item.id} className="flex-shrink-0 w-64">
+                          <MenuItem item={item} />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Scroll Right Button */}
+                    <button
+                      onClick={() => scrollCategory('right', carouselId)}
+                      className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-10 h-10 rounded-full bg-white shadow-lg hover:shadow-xl transition-shadow"
+                      aria-label="Прокрутить вправо"
+                    >
+                      <span className="text-2xl text-gray-600">›</span>
+                    </button>
+
+                    {/* Hide scrollbar */}
+                    <style jsx>{`
+                      #${carouselId}::-webkit-scrollbar {
+                        display: none;
+                      }
+                    `}</style>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>В этой категории пока нет блюд</p>
+                  </div>
+                )}
+              </div>
+            );
+          })
         ) : (
           <div className="text-center py-12 text-gray-500">
             <p>Меню пока пусто</p>
