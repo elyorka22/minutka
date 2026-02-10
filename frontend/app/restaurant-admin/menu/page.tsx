@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { MenuItem } from '@/lib/types';
-import { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem } from '@/lib/api';
+import { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem, getMenuCategories, MenuCategory } from '@/lib/api';
 import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
@@ -245,9 +245,30 @@ function MenuItemFormModal({
     description: item?.description || '',
     price: item?.price?.toString() || '',
     image_url: item?.image_url || '',
+    category: item?.category || '',
     is_available: item?.is_available ?? true,
     is_banner: item?.is_banner ?? false,
   });
+  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      if (!restaurantId) {
+        setLoadingCategories(false);
+        return;
+      }
+      try {
+        const cats = await getMenuCategories(restaurantId, true);
+        setCategories(cats);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
+    fetchCategories();
+  }, [restaurantId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -257,7 +278,7 @@ function MenuItemFormModal({
       name: formData.name,
       description: formData.description || null,
       price: parseInt(formData.price),
-      category: null, // Категория не используется для блюд ресторана
+      category: formData.category || null,
       image_url: formData.image_url || null,
       is_available: formData.is_available,
       is_banner: formData.is_banner,
@@ -318,6 +339,33 @@ function MenuItemFormModal({
                   min="0"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Категория
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">Без категории</option>
+                  {loadingCategories ? (
+                    <option disabled>Загрузка категорий...</option>
+                  ) : (
+                    categories
+                      .filter(cat => cat.is_active)
+                      .sort((a, b) => a.display_order - b.display_order)
+                      .map((category) => (
+                        <option key={category.id} value={category.name}>
+                          {category.name}
+                        </option>
+                      ))
+                  )}
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Выберите категорию из списка или оставьте пустым
+                </p>
               </div>
             </div>
 

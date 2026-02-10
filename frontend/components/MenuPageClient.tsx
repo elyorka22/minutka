@@ -31,6 +31,12 @@ export default function MenuPageClient({
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
 
+  // Отладочная информация
+  useEffect(() => {
+    console.log('MenuPageClient - menuCategories:', menuCategories);
+    console.log('MenuPageClient - active categories:', menuCategories.filter(cat => cat.is_active));
+  }, [menuCategories]);
+
   // Отслеживаем просмотр меню
   useEffect(() => {
     // Получаем Telegram user ID из window, если открыто в Telegram Web App
