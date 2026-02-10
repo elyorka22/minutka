@@ -3,7 +3,7 @@
 // ============================================
 
 import { notFound } from 'next/navigation';
-import { getRestaurantById, getMenuItems } from '@/lib/api';
+import { getRestaurantById, getMenuItems, getMenuCategories, MenuCategory as MenuCategoryType } from '@/lib/api';
 import { MenuCategory, MenuItem as MenuItemType } from '@/lib/types';
 import MenuPageClient from '@/components/MenuPageClient';
 
@@ -16,9 +16,10 @@ interface PageProps {
 }
 
 export default async function MenuPage({ params }: PageProps) {
-  const [restaurant, menuItems] = await Promise.all([
+  const [restaurant, menuItems, menuCategories] = await Promise.all([
     getRestaurantById(params.restaurantId).catch(() => null),
-    getMenuItems(params.restaurantId, true)
+    getMenuItems(params.restaurantId, true),
+    getMenuCategories(params.restaurantId, false).catch(() => [])
   ]);
 
   if (!restaurant || !restaurant.is_active) {
@@ -38,19 +39,54 @@ export default async function MenuPage({ params }: PageProps) {
     }
   });
 
-  // Группируем обычные элементы по категориям
-  const categoryMap = new Map<string, MenuItemType[]>();
-  regularItems.forEach((item) => {
-    const category = item.category || 'Без категории';
-    if (!categoryMap.has(category)) {
-      categoryMap.set(category, []);
-    }
-    categoryMap.get(category)!.push(item);
-  });
+  // Если есть категории меню из БД, используем их для группировки
+  if (menuCategories.length > 0) {
+    // Создаем карту категорий для быстрого поиска
+    const categoryMap = new Map<string, MenuItemType[]>();
+    
+    // Группируем блюда по названию категории (поле category в menu_items)
+    regularItems.forEach((item) => {
+      const categoryName = item.category || 'Без категории';
+      if (!categoryMap.has(categoryName)) {
+        categoryMap.set(categoryName, []);
+      }
+      categoryMap.get(categoryName)!.push(item);
+    });
 
-  categoryMap.forEach((items, category) => {
-    menuByCategory.push({ name: category, items });
-  });
+    // Создаем категории на основе данных из БД
+    menuCategories.forEach((dbCategory) => {
+      const items = categoryMap.get(dbCategory.name) || [];
+      if (items.length > 0 || dbCategory.is_active) {
+        menuByCategory.push({ 
+          name: dbCategory.name, 
+          items,
+          id: dbCategory.id,
+          image_url: dbCategory.image_url,
+          description: dbCategory.description
+        });
+      }
+    });
+
+    // Добавляем блюда без категории, если они есть
+    const uncategorizedItems = categoryMap.get('Без категории') || [];
+    if (uncategorizedItems.length > 0) {
+      menuByCategory.push({ name: 'Без категории', items: uncategorizedItems });
+    }
+  } else {
+    // Старая логика: группируем по полю category в menu_items
+    const categoryMap = new Map<string, MenuItemType[]>();
+    regularItems.forEach((item) => {
+      const category = item.category || 'Без категории';
+      if (!categoryMap.has(category)) {
+        categoryMap.set(category, []);
+      }
+      categoryMap.get(category)!.push(item);
+    });
+
+    categoryMap.forEach((items, category) => {
+      menuByCategory.push({ name: category, items });
+    });
+  }
 
   // Отслеживаем просмотр (делаем это на клиенте)
   return (
@@ -58,6 +94,7 @@ export default async function MenuPage({ params }: PageProps) {
       restaurant={restaurant}
       bannerItems={bannerItems}
       menuByCategory={menuByCategory}
+      menuCategories={menuCategories}
       restaurantId={params.restaurantId}
     />
   );

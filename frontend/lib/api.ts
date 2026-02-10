@@ -427,6 +427,70 @@ export async function getMenuViewStatistics(restaurantId: string, startDate?: st
   }
 }
 
+// Menu Categories API
+export interface MenuCategory {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  description?: string | null;
+  image_url?: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getMenuCategories(restaurantId: string, includeInactive: boolean = false): Promise<MenuCategory[]> {
+  try {
+    const params: any = { restaurant_id: restaurantId };
+    if (includeInactive) {
+      params.include_inactive = 'true';
+    }
+    const response = await api.get<{ success: boolean; data: MenuCategory[] }>('/api/menu-categories', { params });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching menu categories:', error);
+    return [];
+  }
+}
+
+export async function getMenuCategoryById(id: string): Promise<MenuCategory | null> {
+  try {
+    const response = await api.get<{ success: boolean; data: MenuCategory }>(`/api/menu-categories/${id}`);
+    return response.data.data || null;
+  } catch (error) {
+    console.error('Error fetching menu category:', error);
+    return null;
+  }
+}
+
+export async function createMenuCategory(data: {
+  restaurant_id: string;
+  name: string;
+  description?: string;
+  image_url?: string;
+  display_order?: number;
+  is_active?: boolean;
+}): Promise<MenuCategory> {
+  const response = await api.post<{ success: boolean; data: MenuCategory }>('/api/menu-categories', data);
+  return response.data.data;
+}
+
+export async function updateMenuCategory(id: string, data: {
+  name?: string;
+  description?: string;
+  image_url?: string;
+  display_order?: number;
+  is_active?: boolean;
+}): Promise<MenuCategory> {
+  const response = await api.patch<{ success: boolean; data: MenuCategory }>(`/api/menu-categories/${id}`, data);
+  return response.data.data;
+}
+
+export async function deleteMenuCategory(id: string): Promise<void> {
+  await api.delete(`/api/menu-categories/${id}`);
+}
+
 
 export async function createMenuItem(menuItemData: {
   restaurant_id: string;
