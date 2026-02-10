@@ -200,7 +200,7 @@ export default function MenuPageClient({
       )}
 
       {/* Menu by Categories - Horizontal Carousels */}
-      <section className="max-w-4xl mx-auto px-4 pb-8">
+      <section className="max-w-4xl mx-auto px-4 pb-8" style={{ overflow: 'visible' }}>
         {filteredMenuByCategory.length > 0 ? (
           filteredMenuByCategory.map((category, categoryIndex) => {
             const carouselId = `category-carousel-${categoryIndex}`;
@@ -221,7 +221,7 @@ export default function MenuPageClient({
               <div key={category.name} className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">{category.name}</h2>
                 {category.items.length > 0 ? (
-                  <div className="relative">
+                  <div className="relative" style={{ overflow: 'hidden', width: '100%' }}>
                     {/* Scroll Left Button */}
                     <button
                       onClick={() => scrollCategory('left', carouselId)}
@@ -244,7 +244,10 @@ export default function MenuPageClient({
                         width: '100%',
                         overflowX: 'auto',
                         overflowY: 'hidden',
-                        WebkitOverflowScrolling: 'touch'
+                        WebkitOverflowScrolling: 'touch',
+                        WebkitFlexWrap: 'nowrap',
+                        msFlexWrap: 'nowrap',
+                        alignItems: 'stretch'
                       }}
                     >
                       {category.items.map((item) => (
