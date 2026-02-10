@@ -64,6 +64,7 @@ export default function MenuItem({ item }: MenuItemProps) {
       }`}
       style={{ 
         width: '100%',
+        height: '100%',
         minWidth: 0
       }}
     >

@@ -246,7 +246,8 @@ export default function MenuPageClient({
                         overflowY: 'hidden',
                         WebkitOverflowScrolling: 'touch',
                         alignItems: 'stretch',
-                        boxSizing: 'border-box'
+                        boxSizing: 'border-box',
+                        alignContent: 'stretch'
                       } as React.CSSProperties}
                     >
                       {category.items.map((item) => (
@@ -254,13 +255,14 @@ export default function MenuPageClient({
                           key={item.id} 
                           className="flex-shrink-0"
                           style={{ 
-                            width: '180px',
-                            minWidth: '180px',
-                            maxWidth: '180px',
+                            width: '150px',
+                            minWidth: '150px',
+                            maxWidth: '150px',
                             flexShrink: 0,
                             flexGrow: 0,
-                            flexBasis: '180px',
-                            display: 'block'
+                            flexBasis: '150px',
+                            display: 'flex',
+                            height: '100%'
                           }}
                         >
                           <MenuItem item={item} />
