@@ -235,10 +235,24 @@ export default function MenuPageClient({
                     <div
                       id={carouselId}
                       className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                      style={{ 
+                        scrollbarWidth: 'none', 
+                        msOverflowStyle: 'none',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        flexWrap: 'nowrap'
+                      }}
                     >
                       {category.items.map((item) => (
-                        <div key={item.id} className="flex-shrink-0 w-64">
+                        <div 
+                          key={item.id} 
+                          className="flex-shrink-0"
+                          style={{ 
+                            width: '256px',
+                            minWidth: '256px',
+                            maxWidth: '256px'
+                          }}
+                        >
                           <MenuItem item={item} />
                         </div>
                       ))}
