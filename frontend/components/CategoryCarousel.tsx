@@ -65,11 +65,9 @@ export default function CategoryCarousel({ category, categoryIndex }: CategoryCa
             overflowX: 'auto',
             overflowY: 'hidden',
             WebkitOverflowScrolling: 'touch',
-            WebkitFlexWrap: 'nowrap',
-            msFlexWrap: 'nowrap',
             alignItems: 'stretch',
             boxSizing: 'border-box'
-          }}
+          } as React.CSSProperties}
         >
           {category.items.map((item) => (
             <div 

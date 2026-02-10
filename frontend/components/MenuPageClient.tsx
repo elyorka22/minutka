@@ -245,10 +245,9 @@ export default function MenuPageClient({
                         overflowX: 'auto',
                         overflowY: 'hidden',
                         WebkitOverflowScrolling: 'touch',
-                        WebkitFlexWrap: 'nowrap',
-                        msFlexWrap: 'nowrap',
-                        alignItems: 'stretch'
-                      }}
+                        alignItems: 'stretch',
+                        boxSizing: 'border-box'
+                      } as React.CSSProperties}
                     >
                       {category.items.map((item) => (
                         <div 
