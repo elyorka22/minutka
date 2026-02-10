@@ -343,30 +343,46 @@ function MenuItemFormModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Категория
+                  📂 Категория меню
                 </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="">Без категории</option>
-                  {loadingCategories ? (
-                    <option disabled>Загрузка категорий...</option>
-                  ) : (
-                    categories
-                      .filter(cat => cat.is_active)
-                      .sort((a, b) => a.display_order - b.display_order)
-                      .map((category) => (
-                        <option key={category.id} value={category.name}>
-                          {category.name}
-                        </option>
-                      ))
-                  )}
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Выберите категорию из списка или оставьте пустым
-                </p>
+                {loadingCategories ? (
+                  <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
+                    Загрузка категорий...
+                  </div>
+                ) : categories.length === 0 ? (
+                  <div className="w-full px-4 py-2 border border-yellow-300 rounded-lg bg-yellow-50 text-yellow-700 text-sm">
+                    ⚠️ Нет доступных категорий. Создайте категорию в разделе "Категории меню"
+                  </div>
+                ) : (
+                  <>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => {
+                        console.log('Category selected:', e.target.value);
+                        setFormData({ ...formData, category: e.target.value });
+                      }}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white text-gray-900"
+                    >
+                      <option value="">-- Без категории --</option>
+                      {categories
+                        .filter(cat => cat.is_active)
+                        .sort((a, b) => a.display_order - b.display_order)
+                        .map((category) => (
+                          <option key={category.id} value={category.name}>
+                            {category.name}
+                          </option>
+                        ))}
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Выберите категорию из списка. Блюдо будет отображаться в выбранной категории на странице меню.
+                    </p>
+                    {formData.category && (
+                      <p className="text-xs text-green-600 mt-1">
+                        ✓ Выбрана категория: <strong>{formData.category}</strong>
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
             </div>
 
