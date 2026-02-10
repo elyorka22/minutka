@@ -260,6 +260,7 @@ function MenuItemFormModal({
       }
       try {
         const cats = await getMenuCategories(restaurantId, true);
+        console.log('Loaded categories for menu form:', cats);
         setCategories(cats);
       } catch (error) {
         console.error('Error fetching categories:', error);
