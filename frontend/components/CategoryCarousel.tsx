@@ -66,7 +66,9 @@ export default function CategoryCarousel({ category, categoryIndex }: CategoryCa
             overflowY: 'hidden',
             WebkitOverflowScrolling: 'touch',
             WebkitFlexWrap: 'nowrap',
-            msFlexWrap: 'nowrap'
+            msFlexWrap: 'nowrap',
+            alignItems: 'stretch',
+            boxSizing: 'border-box'
           }}
         >
           {category.items.map((item) => (
@@ -79,7 +81,8 @@ export default function CategoryCarousel({ category, categoryIndex }: CategoryCa
                 maxWidth: '256px',
                 flexShrink: 0,
                 flexGrow: 0,
-                display: 'inline-flex'
+                flexBasis: '256px',
+                display: 'block'
               }}
             >
               <MenuItem item={item} />
