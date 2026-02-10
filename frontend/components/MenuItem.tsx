@@ -57,12 +57,17 @@ export default function MenuItem({ item }: MenuItemProps) {
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-md overflow-hidden transition-all flex flex-col h-full w-full ${
+      className={`bg-white rounded-lg shadow-md overflow-hidden transition-all flex flex-col ${
         !item.is_available
           ? 'opacity-75 grayscale-[0.3] cursor-not-allowed'
           : 'hover:shadow-lg'
       }`}
-      style={{ width: '100%', minWidth: 0 }}
+      style={{ 
+        width: '100%', 
+        height: '100%',
+        minWidth: 0,
+        maxWidth: '100%'
+      }}
     >
       {/* Картинка с плюсиком в правом нижнем углу */}
       {item.image_url && (

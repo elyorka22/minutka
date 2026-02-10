@@ -240,7 +240,11 @@ export default function MenuPageClient({
                         msOverflowStyle: 'none',
                         display: 'flex',
                         flexDirection: 'row',
-                        flexWrap: 'nowrap'
+                        flexWrap: 'nowrap',
+                        width: '100%',
+                        overflowX: 'auto',
+                        overflowY: 'hidden',
+                        WebkitOverflowScrolling: 'touch'
                       }}
                     >
                       {category.items.map((item) => (
@@ -250,10 +254,14 @@ export default function MenuPageClient({
                           style={{ 
                             width: '256px',
                             minWidth: '256px',
-                            maxWidth: '256px'
+                            maxWidth: '256px',
+                            flexShrink: 0,
+                            flexGrow: 0
                           }}
                         >
-                          <MenuItem item={item} />
+                          <div style={{ width: '100%', height: '100%' }}>
+                            <MenuItem item={item} />
+                          </div>
                         </div>
                       ))}
                     </div>
