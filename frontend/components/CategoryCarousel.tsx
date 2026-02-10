@@ -74,12 +74,12 @@ export default function CategoryCarousel({ category, categoryIndex }: CategoryCa
               key={item.id} 
               className="flex-shrink-0"
               style={{ 
-                width: '256px',
-                minWidth: '256px',
-                maxWidth: '256px',
+                width: '180px',
+                minWidth: '180px',
+                maxWidth: '180px',
                 flexShrink: 0,
                 flexGrow: 0,
-                flexBasis: '256px',
+                flexBasis: '180px',
                 display: 'block'
               }}
             >
