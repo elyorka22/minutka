@@ -5,7 +5,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MenuCategory, getMenuCategories, createMenuCategory, updateMenuCategory, deleteMenuCategory } from '@/lib/api';
+import { MenuCategory, getMenuCategories, createMenuCategory, updateMenuCategory, deleteMenuCategory, getMenuItems, updateMenuItem } from '@/lib/api';
+import { MenuItem } from '@/lib/types';
 import ImageUpload from '@/components/ImageUpload';
 import { useRestaurantId } from '@/hooks/useRestaurantId';
 import { handleApiError } from '@/lib/errorHandler';
@@ -24,7 +25,10 @@ export default function RestaurantAdminMenuCategoriesPage() {
     image_url: '',
     display_order: 0,
     is_active: true,
+    selectedMenuItems: [] as string[], // IDs выбранных блюд
   });
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [loadingMenuItems, setLoadingMenuItems] = useState(false);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -45,15 +49,41 @@ export default function RestaurantAdminMenuCategoriesPage() {
     fetchCategories();
   }, [currentRestaurantId, showError]);
 
-  const handleEdit = (category: MenuCategory) => {
+  const handleEdit = async (category: MenuCategory) => {
     setEditingCategory(category);
-    setFormData({
-      name: category.name,
-      description: category.description || '',
-      image_url: category.image_url || '',
-      display_order: category.display_order,
-      is_active: category.is_active,
-    });
+    
+    // Загружаем блюда и находим те, что уже привязаны к этой категории
+    setLoadingMenuItems(true);
+    try {
+      const items = await getMenuItems(currentRestaurantId!, true);
+      setMenuItems(items);
+      
+      // Находим блюда, которые уже привязаны к этой категории
+      const itemsInCategory = items
+        .filter(item => item.category === category.name)
+        .map(item => item.id);
+      
+      setFormData({
+        name: category.name,
+        description: category.description || '',
+        image_url: category.image_url || '',
+        display_order: category.display_order,
+        is_active: category.is_active,
+        selectedMenuItems: itemsInCategory,
+      });
+    } catch (error) {
+      console.error('Error loading menu items:', error);
+      setFormData({
+        name: category.name,
+        description: category.description || '',
+        image_url: category.image_url || '',
+        display_order: category.display_order,
+        is_active: category.is_active,
+        selectedMenuItems: [],
+      });
+    } finally {
+      setLoadingMenuItems(false);
+    }
     setShowForm(true);
   };
 
@@ -78,26 +108,61 @@ export default function RestaurantAdminMenuCategoriesPage() {
     }
 
     try {
+      let categoryId: string;
+      const categoryName = formData.name.trim();
+      
       if (editingCategory) {
-        await updateMenuCategory(editingCategory.id, {
-          name: formData.name.trim(),
+        // Обновляем категорию
+        const updated = await updateMenuCategory(editingCategory.id, {
+          name: categoryName,
           description: formData.description.trim() || undefined,
           image_url: formData.image_url || undefined,
           display_order: formData.display_order,
           is_active: formData.is_active,
         });
+        categoryId = updated.id;
         showSuccess('Категория успешно обновлена');
       } else {
-        await createMenuCategory({
+        // Создаем категорию
+        const created = await createMenuCategory({
           restaurant_id: currentRestaurantId,
-          name: formData.name.trim(),
+          name: categoryName,
           description: formData.description.trim() || undefined,
           image_url: formData.image_url || undefined,
           display_order: formData.display_order,
           is_active: formData.is_active,
         });
+        categoryId = created.id;
         showSuccess('Категория успешно создана');
       }
+
+      // Обновляем категорию у выбранных блюд
+      if (formData.selectedMenuItems.length > 0) {
+        try {
+          // Сначала убираем категорию у всех блюд, которые были в старой категории (если редактируем)
+          if (editingCategory) {
+            const itemsToUnlink = menuItems.filter(
+              item => item.category === editingCategory.name && !formData.selectedMenuItems.includes(item.id)
+            );
+            for (const item of itemsToUnlink) {
+              await updateMenuItem(item.id, { category: null });
+            }
+          }
+
+          // Привязываем выбранные блюда к категории
+          for (const itemId of formData.selectedMenuItems) {
+            await updateMenuItem(itemId, { category: categoryName });
+          }
+          
+          if (formData.selectedMenuItems.length > 0) {
+            showSuccess(`Категория обновлена. Привязано блюд: ${formData.selectedMenuItems.length}`);
+          }
+        } catch (error) {
+          console.error('Error updating menu items:', error);
+          showError('Категория создана, но не удалось привязать блюда');
+        }
+      }
+
       setShowForm(false);
       setEditingCategory(null);
       setFormData({
@@ -106,6 +171,7 @@ export default function RestaurantAdminMenuCategoriesPage() {
         image_url: '',
         display_order: 0,
         is_active: true,
+        selectedMenuItems: [],
       });
       // Обновляем список
       const items = await getMenuCategories(currentRestaurantId!, true);
@@ -124,7 +190,9 @@ export default function RestaurantAdminMenuCategoriesPage() {
       image_url: '',
       display_order: 0,
       is_active: true,
+      selectedMenuItems: [],
     });
+    setMenuItems([]);
   };
 
   const handleImageUpload = (url: string) => {
@@ -144,14 +212,27 @@ export default function RestaurantAdminMenuCategoriesPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Категории меню</h1>
         <button
-          onClick={() => {
+          onClick={async () => {
             setEditingCategory(null);
+            
+            // Загружаем блюда при открытии формы создания
+            setLoadingMenuItems(true);
+            try {
+              const items = await getMenuItems(currentRestaurantId!, true);
+              setMenuItems(items);
+            } catch (error) {
+              console.error('Error loading menu items:', error);
+            } finally {
+              setLoadingMenuItems(false);
+            }
+            
             setFormData({
               name: '',
               description: '',
               image_url: '',
               display_order: categories.length > 0 ? Math.max(...categories.map(c => c.display_order)) + 1 : 0,
               is_active: true,
+              selectedMenuItems: [],
             });
             setShowForm(true);
           }}
@@ -226,6 +307,66 @@ export default function RestaurantAdminMenuCategoriesPage() {
               <label htmlFor="is_active" className="ml-2 block text-sm text-gray-700">
                 Активна
               </label>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                🍽️ Привязать блюда к категории
+              </label>
+              {loadingMenuItems ? (
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
+                  Загрузка блюд...
+                </div>
+              ) : menuItems.length === 0 ? (
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
+                  Нет доступных блюд. Создайте блюда в разделе "Меню"
+                </div>
+              ) : (
+                <div className="border border-gray-300 rounded-lg p-3 max-h-60 overflow-y-auto bg-white">
+                  {menuItems.map((item) => (
+                    <label
+                      key={item.id}
+                      className="flex items-center py-2 px-2 hover:bg-gray-50 rounded cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={formData.selectedMenuItems.includes(item.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({
+                              ...formData,
+                              selectedMenuItems: [...formData.selectedMenuItems, item.id],
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              selectedMenuItems: formData.selectedMenuItems.filter(id => id !== item.id),
+                            });
+                          }
+                        }}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mr-3"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                        {item.category && item.category !== formData.name && (
+                          <span className="text-xs text-orange-600 ml-2">
+                            (текущая категория: {item.category})
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-sm text-gray-500">{item.price} so'm</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Выберите блюда, которые будут отображаться в этой категории. Выбранные блюда будут автоматически привязаны к категории при сохранении.
+              </p>
+              {formData.selectedMenuItems.length > 0 && (
+                <p className="text-xs text-green-600 mt-1">
+                  ✓ Выбрано блюд: {formData.selectedMenuItems.length}
+                </p>
+              )}
             </div>
 
             <div className="flex gap-2">
