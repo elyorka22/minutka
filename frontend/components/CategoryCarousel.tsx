@@ -39,9 +39,9 @@ export default function CategoryCarousel({ category, categoryIndex }: CategoryCa
   }
 
   return (
-    <div className="mb-8 last:mb-0">
+    <div className="mb-8 last:mb-0 w-full overflow-hidden">
       <h2 className="text-2xl font-bold text-gray-900 mb-4">{category.name}</h2>
-      <div className="relative">
+      <div className="relative w-full">
         {/* Scroll Left Button */}
         <button
           onClick={() => scrollCategory('left')}
