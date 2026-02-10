@@ -63,10 +63,8 @@ export default function MenuItem({ item }: MenuItemProps) {
           : 'hover:shadow-lg'
       }`}
       style={{ 
-        width: '100%', 
-        height: '100%',
-        minWidth: 0,
-        maxWidth: '100%'
+        width: '100%',
+        minWidth: 0
       }}
     >
       {/* Картинка с плюсиком в правом нижнем углу */}
