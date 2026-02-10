@@ -256,12 +256,11 @@ export default function MenuPageClient({
                             minWidth: '256px',
                             maxWidth: '256px',
                             flexShrink: 0,
-                            flexGrow: 0
+                            flexGrow: 0,
+                            display: 'inline-flex'
                           }}
                         >
-                          <div style={{ width: '100%', height: '100%' }}>
-                            <MenuItem item={item} />
-                          </div>
+                          <MenuItem item={item} />
                         </div>
                       ))}
                     </div>
