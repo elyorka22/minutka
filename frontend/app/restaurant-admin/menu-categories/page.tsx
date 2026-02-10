@@ -193,13 +193,11 @@ export default function RestaurantAdminMenuCategoriesPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Изображение
-              </label>
               <ImageUpload
-                currentImageUrl={formData.image_url}
-                onImageUploaded={handleImageUpload}
+                value={formData.image_url}
+                onChange={handleImageUpload}
                 folder="menu-categories"
+                label="Изображение"
               />
             </div>
 
