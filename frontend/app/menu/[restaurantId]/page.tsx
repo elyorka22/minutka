@@ -54,9 +54,10 @@ export default async function MenuPage({ params }: PageProps) {
     });
 
     // Создаем категории на основе данных из БД
+    // Показываем все активные категории, даже если в них нет блюд
     menuCategories.forEach((dbCategory) => {
-      const items = categoryMap.get(dbCategory.name) || [];
-      if (items.length > 0 || dbCategory.is_active) {
+      if (dbCategory.is_active) {
+        const items = categoryMap.get(dbCategory.name) || [];
         menuByCategory.push({ 
           name: dbCategory.name, 
           items,

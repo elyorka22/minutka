@@ -102,7 +102,7 @@ export default function MenuPageClient({
       )}
 
       {/* Categories Carousel */}
-      {menuCategories.length > 0 && (
+      {menuCategories.filter(cat => cat.is_active).length > 0 && (
         <section className="max-w-4xl mx-auto px-4 py-6">
           <div className="relative">
             <div className="flex items-center gap-4">
@@ -139,7 +139,7 @@ export default function MenuPageClient({
                 </button>
 
                 {/* Category Items */}
-                {menuCategories.map((category) => (
+                {menuCategories.filter(cat => cat.is_active).map((category) => (
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategoryId(category.id)}
