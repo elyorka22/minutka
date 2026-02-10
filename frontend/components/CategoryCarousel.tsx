@@ -39,9 +39,9 @@ export default function CategoryCarousel({ category, categoryIndex }: CategoryCa
   }
 
   return (
-    <div className="mb-8 last:mb-0 w-full overflow-hidden">
+    <div className="mb-8 last:mb-0 w-full">
       <h2 className="text-2xl font-bold text-gray-900 mb-4">{category.name}</h2>
-      <div className="relative w-full">
+      <div className="relative w-full" style={{ overflow: 'hidden' }}>
         {/* Scroll Left Button */}
         <button
           onClick={() => scrollCategory('left')}
@@ -64,7 +64,9 @@ export default function CategoryCarousel({ category, categoryIndex }: CategoryCa
             width: '100%',
             overflowX: 'auto',
             overflowY: 'hidden',
-            WebkitOverflowScrolling: 'touch'
+            WebkitOverflowScrolling: 'touch',
+            WebkitFlexWrap: 'nowrap',
+            msFlexWrap: 'nowrap'
           }}
         >
           {category.items.map((item) => (
