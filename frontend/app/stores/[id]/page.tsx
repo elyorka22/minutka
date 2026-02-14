@@ -3,7 +3,7 @@
 // ============================================
 
 import { notFound } from 'next/navigation';
-import { getRestaurantById, getBanners, getMenuItems } from '@/lib/api';
+import { getRestaurantById, getBanners, getMenuItems, getStoreCategories } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import MenuItem from '@/components/MenuItem';
@@ -24,10 +24,11 @@ interface PageProps {
 export default async function StorePage({ params }: PageProps) {
   // Загружаем данные из API
   // Получаем все товары, включая недоступные, чтобы показать их серыми
-  const [store, recommendedBanners, menuItems] = await Promise.all([
+  const [store, recommendedBanners, menuItems, storeCategories] = await Promise.all([
     getRestaurantById(params.id).catch(() => null),
     getBanners('recommended'),
-    getMenuItems(params.id, true) // includeUnavailable = true
+    getMenuItems(params.id, true), // includeUnavailable = true
+    getStoreCategories(params.id, false).catch(() => []) // Получаем активные категории магазина
   ]);
 
   if (!store || store.type !== 'store') {
@@ -38,34 +39,57 @@ export default async function StorePage({ params }: PageProps) {
   const bannerItems = menuItems.filter((item: MenuItemType) => item.is_banner === true);
   const regularItems = menuItems.filter((item: MenuItemType) => !item.is_banner);
 
-  // Группируем обычные товары по категориям (если категории есть) или показываем все товары
+  // Группируем обычные товары по категориям из БД
   const menuByCategory: MenuCategory[] = [];
-  if (regularItems.length > 0) {
-    // Если у всех товаров категория null, просто показываем все в одной группе
-    const hasCategories = regularItems.some(item => item.category !== null);
+  
+  // Если есть категории магазина из БД, используем их для группировки
+  if (storeCategories.length > 0) {
+    // Создаем карту категорий для быстрого поиска
+    const categoryMap = new Map<string, MenuItemType[]>();
     
-    if (!hasCategories) {
-      // Все товары без категорий - показываем в одной группе "Товары"
-      menuByCategory.push({ name: 'Товары', items: regularItems });
-    } else {
-      // Группируем по категориям, игнорируя товары с null категорией
-      regularItems.forEach((item: MenuItemType) => {
-        if (item.category === null) {
-          // Товары без категории добавляем в группу "Товары"
-          const defaultCategory = menuByCategory.find(c => c.name === 'Товары');
-          if (defaultCategory) {
-            defaultCategory.items.push(item);
-          } else {
-            menuByCategory.push({ name: 'Товары', items: [item] });
-          }
-        } else {
-          const category = menuByCategory.find(c => c.name === item.category);
-          if (category) {
-            category.items.push(item);
-          } else {
-            menuByCategory.push({ name: item.category, items: [item] });
-          }
+    // Группируем товары по названию категории (поле category в menu_items)
+    regularItems.forEach((item) => {
+      const categoryName = item.category || 'Без категории';
+      if (!categoryMap.has(categoryName)) {
+        categoryMap.set(categoryName, []);
+      }
+      categoryMap.get(categoryName)!.push(item);
+    });
+
+    // Создаем категории на основе данных из БД
+    // Показываем все активные категории, даже если в них нет товаров
+    storeCategories.forEach((dbCategory) => {
+      if (dbCategory.is_active) {
+        const items = categoryMap.get(dbCategory.name) || [];
+        menuByCategory.push({ 
+          name: dbCategory.name, 
+          items,
+          id: dbCategory.id,
+          image_url: dbCategory.image_url,
+          description: dbCategory.description
+        });
+      }
+    });
+
+    // Добавляем товары без категории, если они есть
+    const uncategorizedItems = categoryMap.get('Без категории') || [];
+    if (uncategorizedItems.length > 0) {
+      menuByCategory.push({ name: 'Без категории', items: uncategorizedItems });
+    }
+  } else {
+    // Старая логика: группируем по полю category в menu_items
+    if (regularItems.length > 0) {
+      const categoryMap = new Map<string, MenuItemType[]>();
+      regularItems.forEach((item) => {
+        const category = item.category || 'Товары';
+        if (!categoryMap.has(category)) {
+          categoryMap.set(category, []);
         }
+        categoryMap.get(category)!.push(item);
+      });
+
+      categoryMap.forEach((items, category) => {
+        menuByCategory.push({ name: category, items });
       });
     }
   }

@@ -161,6 +161,18 @@ export interface MenuCategory {
   items: MenuItem[];
 }
 
+export interface StoreCategory {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  description?: string | null;
+  image_url?: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 // API Response types
 export interface ApiResponse<T> {
   success: boolean;

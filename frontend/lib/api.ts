@@ -491,6 +491,70 @@ export async function deleteMenuCategory(id: string): Promise<void> {
   await api.delete(`/api/menu-categories/${id}`);
 }
 
+// Store Categories API
+export interface StoreCategory {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  description?: string | null;
+  image_url?: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function getStoreCategories(restaurantId: string, includeInactive: boolean = false): Promise<StoreCategory[]> {
+  try {
+    const params: any = { restaurant_id: restaurantId };
+    if (includeInactive) {
+      params.include_inactive = 'true';
+    }
+    const response = await api.get<{ success: boolean; data: StoreCategory[] }>('/api/store-categories', { params });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching store categories:', error);
+    return [];
+  }
+}
+
+export async function getStoreCategoryById(id: string): Promise<StoreCategory | null> {
+  try {
+    const response = await api.get<{ success: boolean; data: StoreCategory }>(`/api/store-categories/${id}`);
+    return response.data.data || null;
+  } catch (error) {
+    console.error('Error fetching store category:', error);
+    return null;
+  }
+}
+
+export async function createStoreCategory(data: {
+  restaurant_id: string;
+  name: string;
+  description?: string;
+  image_url?: string;
+  display_order?: number;
+  is_active?: boolean;
+}): Promise<StoreCategory> {
+  const response = await api.post<{ success: boolean; data: StoreCategory }>('/api/store-categories', data);
+  return response.data.data;
+}
+
+export async function updateStoreCategory(id: string, data: {
+  name?: string;
+  description?: string;
+  image_url?: string;
+  display_order?: number;
+  is_active?: boolean;
+}): Promise<StoreCategory> {
+  const response = await api.patch<{ success: boolean; data: StoreCategory }>(`/api/store-categories/${id}`, data);
+  return response.data.data;
+}
+
+export async function deleteStoreCategory(id: string): Promise<void> {
+  await api.delete(`/api/store-categories/${id}`);
+}
+
 
 export async function createMenuItem(menuItemData: {
   restaurant_id: string;
