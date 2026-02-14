@@ -47,7 +47,7 @@ export default function HomeClient({
 }: HomeClientProps) {
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
-  const [selectedTab, setSelectedTab] = useState<'restaurants' | 'stores'>('restaurants');
+  const [selectedTab, setSelectedTab] = useState<'restaurants' | 'stores'>('stores');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [banners, setBanners] = useState(initialBanners);
@@ -309,8 +309,8 @@ export default function HomeClient({
         </section>
       )}
 
-      {/* Tabs for Restaurants and Stores */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+      {/* Tabs for Restaurants and Stores - временно скрыты, показываем только магазины */}
+      {/* <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
         <div className="flex gap-4 border-b border-gray-200">
           <button
             onClick={() => {
@@ -339,7 +339,7 @@ export default function HomeClient({
             🛒 Do'konlar
           </button>
         </div>
-      </section>
+      </section> */}
 
       {/* Restaurant/Store Categories Carousel - только для ресторанов */}
       {selectedTab === 'restaurants' && (
