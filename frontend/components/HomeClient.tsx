@@ -357,8 +357,8 @@ export default function HomeClient({
         </section>
       )}
 
-      {/* All Restaurants or Filtered by Category */}
-      {selectedCategory !== 'pharmacies-stores' &&
+      {/* All Restaurants or Filtered by Category - рестораны временно скрыты */}
+      {/* {selectedCategory !== 'pharmacies-stores' &&
         !(pharmaciesCategory && selectedCategory === pharmaciesCategory.id) &&
         !(storesCategory && selectedCategory === storesCategory.id) && (
           <>
@@ -384,8 +384,11 @@ export default function HomeClient({
                 )}
               </section>
             )}
+          </>
+        )} */}
 
-            {selectedTab === 'stores' && (
+      {/* Stores Section - показываем только магазины */}
+      {selectedTab === 'stores' && (
               <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
                   {searchQuery
