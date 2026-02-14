@@ -417,23 +417,6 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                   />
                 </div>
 
-                <div>
-                  <label htmlFor="chatId" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                    Chat ID (ixtiyoriy)
-                  </label>
-                  <input
-                    type="text"
-                    id="chatId"
-                    value={chatId}
-                    onChange={(e) => setChatId(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Telegram Chat ID (xabarlar olish uchun)"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">
-                    Chat ID ni bot orqali bilib olishingiz mumkin: /start va "🆔 Chat ID" tugmasini bosing
-                  </p>
-                </div>
-
                 <button
                   type="submit"
                   disabled={isSubmitting}
