@@ -33,11 +33,23 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
   const [longitude, setLongitude] = useState<number | null>(null);
   const [isGettingLocation, setIsGettingLocation] = useState(false);
 
-  // Автоматически определяем telegram_id из Telegram Web App при монтировании
+  // Автоматически определяем telegram_id и имя из Telegram Web App при монтировании
   useEffect(() => {
     const telegramId = getTelegramUserId();
     if (telegramId && !chatId) {
       setChatId(telegramId);
+    }
+    
+    // Автоматически заполняем имя из Telegram Web App
+    if (typeof window !== 'undefined') {
+      const webApp = (window as any).Telegram?.WebApp;
+      if (webApp?.initDataUnsafe?.user) {
+        const user = webApp.initDataUnsafe.user;
+        const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
+        if (fullName && !name) {
+          setName(fullName);
+        }
+      }
     }
   }, []);
 
@@ -273,18 +285,24 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
 
               {/* Форма оформления заказа */}
               <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
-                <div>
-                  <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
-                    Ism *
-                  </label>
+                {/* Скрытое поле для имени - заполняется автоматически из Telegram */}
+                <div className="hidden">
                   <input
                     type="text"
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="Ismingiz"
+                  />
+                </div>
+                
+                {/* Скрытое поле для chatId - заполняется автоматически из Telegram */}
+                <div className="hidden">
+                  <input
+                    type="text"
+                    id="chatId"
+                    value={chatId}
+                    onChange={(e) => setChatId(e.target.value)}
                   />
                 </div>
 
