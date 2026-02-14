@@ -341,19 +341,21 @@ export default function HomeClient({
         </div>
       </section>
 
-      {/* Restaurant/Store Categories Carousel */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
-        <RestaurantCategories
-          categories={filteredCategories}
-          selectedCategory={selectedCategory}
-          onCategorySelect={setSelectedCategory}
-          allCategoryImage={
-            filteredCategories.find(
-              (c) => c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all'
-            )?.image_url
-          }
-        />
-      </section>
+      {/* Restaurant/Store Categories Carousel - только для ресторанов */}
+      {selectedTab === 'restaurants' && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
+          <RestaurantCategories
+            categories={filteredCategories}
+            selectedCategory={selectedCategory}
+            onCategorySelect={setSelectedCategory}
+            allCategoryImage={
+              filteredCategories.find(
+                (c) => c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all'
+              )?.image_url
+            }
+          />
+        </section>
+      )}
 
       {/* All Restaurants or Filtered by Category */}
       {selectedCategory !== 'pharmacies-stores' &&
