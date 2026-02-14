@@ -40,8 +40,22 @@ CREATE POLICY "Public can view active store categories"
 DROP POLICY IF EXISTS "Restaurant admins can manage their store categories" ON store_categories;
 CREATE POLICY "Restaurant admins can manage their store categories"
     ON store_categories FOR ALL
-    USING (restaurant_id IN (SELECT restaurant_id FROM restaurant_admins WHERE telegram_id = (current_setting('request.jwt.claims', true)::jsonb)->>'telegram_id')::uuid)
-    WITH CHECK (restaurant_id IN (SELECT restaurant_id FROM restaurant_admins WHERE telegram_id = (current_setting('request.jwt.claims', true)::jsonb)->>'telegram_id')::uuid);
+    USING (
+        EXISTS (
+            SELECT 1 FROM restaurant_admins
+            WHERE restaurant_admins.restaurant_id = store_categories.restaurant_id
+            AND restaurant_admins.telegram_id::text = (current_setting('request.jwt.claims', true)::jsonb)->>'telegram_id'
+            AND restaurant_admins.is_active = true
+        )
+    )
+    WITH CHECK (
+        EXISTS (
+            SELECT 1 FROM restaurant_admins
+            WHERE restaurant_admins.restaurant_id = store_categories.restaurant_id
+            AND restaurant_admins.telegram_id::text = (current_setting('request.jwt.claims', true)::jsonb)->>'telegram_id'
+            AND restaurant_admins.is_active = true
+        )
+    );
 
 -- Супер-админы могут управлять всеми категориями магазинов
 DROP POLICY IF EXISTS "Super admins can manage all store categories" ON store_categories;
