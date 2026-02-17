@@ -12,6 +12,7 @@ import {
   getBannersServer,
   getPharmaciesStoresServer,
   getBotSettingsServer,
+  getAllStoreCategoriesServer,
 } from '@/lib/api-server';
 
 // Экспортируем revalidate для ISR (Incremental Static Regeneration)
@@ -37,7 +38,7 @@ const SkeletonCategory = () => (
 async function HomeData() {
   try {
     // Загружаем критичные данные параллельно на сервере
-    const [categories, restaurantsResult, storesResult, relations, banners, pharmaciesStores, botSettings] =
+    const [categories, restaurantsResult, storesResult, relations, banners, pharmaciesStores, botSettings, storeCategories] =
       await Promise.all([
         getCategoriesServer(),
         getRestaurantsServer(undefined, undefined, undefined, 'restaurant'),
@@ -46,6 +47,7 @@ async function HomeData() {
         getBannersServer('homepage').catch(() => []),
         getPharmaciesStoresServer(true).catch(() => []),
         getBotSettingsServer().catch(() => []),
+        getAllStoreCategoriesServer().catch(() => []),
       ]);
 
     // Создаем карту связей категорий и ресторанов/магазинов
@@ -87,6 +89,7 @@ async function HomeData() {
         initialPharmaciesStores={pharmaciesStores || []}
         initialCategoryRestaurantMap={categoryRestaurantMap}
         initialCategoryStoreMap={categoryStoreMap}
+        initialStoreCategories={storeCategories || []}
         appSlogan={appSlogan}
       />
     );
@@ -102,6 +105,7 @@ async function HomeData() {
         initialPharmaciesStores={[]}
         initialCategoryRestaurantMap={{}}
         initialCategoryStoreMap={{}}
+        initialStoreCategories={[]}
         appSlogan="Tez va oson, uydan chiqmasdan"
       />
     );

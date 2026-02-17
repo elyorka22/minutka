@@ -104,3 +104,42 @@ export async function getBotSettingsServer(): Promise<any[]> {
   return Array.isArray(data) ? data : [];
 }
 
+// Store Categories API (server-side) - получить все категории магазинов
+export async function getAllStoreCategoriesServer(): Promise<any[]> {
+  // Загружаем все магазины
+  const storesResult = await getStoresServer();
+  const stores = storesResult.data || [];
+  
+  // Загружаем категории для каждого магазина
+  const allCategories: any[] = [];
+  const categoryMap = new Map<string, any>(); // Для группировки по названию
+  
+  for (const store of stores) {
+    try {
+      const url = `${API_BASE_URL}/api/store-categories?restaurant_id=${store.id}`;
+      const categories = await fetchWithCache<any[]>(url, {}, 60);
+      
+      if (Array.isArray(categories)) {
+        categories.forEach((cat) => {
+          if (cat.is_active) {
+            // Группируем по названию - если категория с таким названием уже есть, берем первую
+            if (!categoryMap.has(cat.name)) {
+              categoryMap.set(cat.name, {
+                id: cat.name, // Используем название как ID для фильтрации
+                name: cat.name,
+                image_url: cat.image_url,
+                description: cat.description,
+              });
+            }
+          }
+        });
+      }
+    } catch (error) {
+      // Игнорируем ошибки для отдельных магазинов
+      console.error(`Error fetching categories for store ${store.id}:`, error);
+    }
+  }
+  
+  return Array.from(categoryMap.values());
+}
+

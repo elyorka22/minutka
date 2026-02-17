@@ -32,6 +32,7 @@ interface HomeClientProps {
   initialPharmaciesStores: any[];
   initialCategoryRestaurantMap: { [categoryId: string]: string[] };
   initialCategoryStoreMap: { [categoryId: string]: string[] };
+  initialStoreCategories: any[]; // Категории магазинов (store_categories)
   appSlogan: string;
 }
 
@@ -43,6 +44,7 @@ export default function HomeClient({
   initialPharmaciesStores,
   initialCategoryRestaurantMap,
   initialCategoryStoreMap,
+  initialStoreCategories,
   appSlogan,
 }: HomeClientProps) {
   const router = useRouter();
@@ -306,6 +308,34 @@ export default function HomeClient({
       {banners.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
           <BannerCarousel banners={banners} />
+        </section>
+      )}
+
+      {/* Store Categories Carousel - Категории магазинов под баннером */}
+      {selectedTab === 'stores' && initialStoreCategories.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
+          <RestaurantCategories
+            categories={initialStoreCategories.map(cat => ({
+              id: cat.id || cat.name,
+              name: cat.name,
+              image_url: cat.image_url || '',
+              is_active: true,
+            }))}
+            selectedCategory={selectedCategory}
+            onCategorySelect={(categoryId) => {
+              // Если выбрана категория "Все", сбрасываем фильтр
+              if (categoryId === null || categoryId === 'all') {
+                setSelectedCategory(null);
+              } else {
+                // Ищем категорию по названию (так как мы используем название как ID)
+                const category = initialStoreCategories.find(c => c.name === categoryId || c.id === categoryId);
+                if (category) {
+                  setSelectedCategory(category.name);
+                }
+              }
+            }}
+            allCategoryImage={undefined}
+          />
         </section>
       )}
 
