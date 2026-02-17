@@ -509,18 +509,33 @@ export default function HomeClient({
                 <div className="text-center py-12 text-gray-500">Yuklanmoqda...</div>
               ) : (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {categoryItems.map((item) => (
-                    <div key={item.id} className="relative">
-                      <MenuItem item={item} />
-                      {/* Информация о магазине */}
-                      <Link 
-                        href={`/stores/${item.restaurant.id}`}
-                        className="block mt-2 text-xs text-gray-600 hover:text-primary-600 truncate"
-                      >
-                        📍 {item.restaurant.name}
-                      </Link>
-                    </div>
-                  ))}
+                  {categoryItems.map((item) => {
+                    // Преобразуем MenuItemWithStore в MenuItem для компонента
+                    const menuItem = {
+                      id: item.id,
+                      name: item.name,
+                      description: item.description,
+                      price: item.price,
+                      image_url: item.image_url,
+                      is_available: item.is_available,
+                      category: item.category,
+                      restaurant_id: item.restaurant_id || item.restaurant.id,
+                      is_banner: item.is_banner || false,
+                      created_at: item.created_at || new Date().toISOString(),
+                    };
+                    return (
+                      <div key={item.id} className="relative">
+                        <MenuItem item={menuItem} />
+                        {/* Информация о магазине */}
+                        <Link 
+                          href={`/stores/${item.restaurant.id}`}
+                          className="block mt-2 text-xs text-gray-600 hover:text-primary-600 truncate"
+                        >
+                          📍 {item.restaurant.name}
+                        </Link>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
               {!loadingCategoryItems && categoryItems.length === 0 && (
