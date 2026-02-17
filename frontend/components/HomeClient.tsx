@@ -133,10 +133,19 @@ export default function HomeClient({
       ) {
         return false;
       }
-      // Фильтр по категории
+      // Фильтр по категории магазинов (store_categories)
       if (selectedCategory) {
+        // Проверяем, является ли выбранная категория категорией магазинов
+        const isStoreCategory = initialStoreCategories.some(cat => cat.name === selectedCategory);
+        if (isStoreCategory) {
+          // Фильтруем магазины, у которых есть товары с этой категорией
+          // Это будет сделано на клиенте через проверку товаров магазина
+          // Пока просто пропускаем все магазины, фильтрация по товарам будет на странице магазина
+          return true; // Показываем все магазины, фильтрация по товарам будет на странице магазина
+        }
+        // Старая логика для категорий ресторанов
         const storeIds = initialCategoryStoreMap[selectedCategory] || [];
-        if (!storeIds.includes(s.id)) {
+        if (storeIds.length > 0 && !storeIds.includes(s.id)) {
           return false;
         }
       }
@@ -149,7 +158,7 @@ export default function HomeClient({
       }
       return true;
     });
-  }, [initialStores, selectedCategory, searchQuery, initialCategoryStoreMap, pharmaciesCategory, storesCategory, selectedTab]);
+  }, [initialStores, selectedCategory, searchQuery, initialCategoryStoreMap, pharmaciesCategory, storesCategory, selectedTab, initialStoreCategories]);
 
   // Фильтруем категории в зависимости от выбранной вкладки
   const filteredCategories = useMemo(() => {
