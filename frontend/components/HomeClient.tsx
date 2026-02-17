@@ -190,6 +190,8 @@ export default function HomeClient({
 
   // Загружаем товары выбранной категории
   useEffect(() => {
+    console.log('[HomeClient] useEffect triggered:', { selectedTab, selectedCategory, categoriesCount: initialStoreCategories.length });
+    
     if (selectedTab === 'stores') {
       // Проверяем, является ли выбранная категория категорией "Все"
       const isAllCategory = 
@@ -199,26 +201,32 @@ export default function HomeClient({
           (cat.name === 'Все' || cat.name === 'Hammasi') && (cat.name === selectedCategory || cat.id === selectedCategory)
         ));
       
+      console.log('[HomeClient] isAllCategory:', isAllCategory);
+      
       // Если выбрана категория "Все" или нет категории - показываем магазины
       if (isAllCategory) {
+        console.log('[HomeClient] Showing stores (All category)');
         setCategoryItems([]);
         return;
       }
       
       // Если выбрана другая категория - загружаем товары этой категории
       if (selectedCategory) {
+        console.log('[HomeClient] Loading items for category:', selectedCategory);
         setLoadingCategoryItems(true);
         getMenuItems(undefined, true, selectedCategory)
           .then(items => {
+            console.log('[HomeClient] Loaded items:', items.length, items);
             setCategoryItems(items);
             setLoadingCategoryItems(false);
           })
           .catch(error => {
-            console.error('Error loading category items:', error);
+            console.error('[HomeClient] Error loading category items:', error);
             setCategoryItems([]);
             setLoadingCategoryItems(false);
           });
       } else {
+        console.log('[HomeClient] No category selected, showing stores');
         setCategoryItems([]);
       }
     } else {
@@ -398,26 +406,32 @@ export default function HomeClient({
             }))}
             selectedCategory={selectedCategory}
             onCategorySelect={(categoryId) => {
+              console.log('[HomeClient] Category selected:', categoryId);
               // Если выбрана категория "Все", сбрасываем фильтр
               if (categoryId === null || categoryId === 'all') {
+                console.log('[HomeClient] Setting category to null (All)');
                 setSelectedCategory(null);
               } else {
                 // Ищем категорию по названию или ID
                 const category = initialStoreCategories.find(c => 
                   c.name === categoryId || 
-                  c.id === categoryId ||
-                  (categoryId && (c.name === 'Все' || c.name === 'Hammasi'))
+                  c.id === categoryId
                 );
+                console.log('[HomeClient] Found category:', category);
+                
                 if (category) {
                   // Если это категория "Все", сбрасываем
                   if (category.name === 'Все' || category.name === 'Hammasi') {
+                    console.log('[HomeClient] Category is "All", setting to null');
                     setSelectedCategory(null);
                   } else {
                     // Используем название категории для поиска товаров
+                    console.log('[HomeClient] Setting category to:', category.name);
                     setSelectedCategory(category.name);
                   }
                 } else {
                   // Если категория не найдена, используем переданный ID как название
+                  console.log('[HomeClient] Category not found, using categoryId as name:', categoryId);
                   setSelectedCategory(categoryId);
                 }
               }
@@ -517,6 +531,15 @@ export default function HomeClient({
               ? `${initialStoreCategories.find((c) => c.name === selectedCategory)?.name || selectedCategory}`
               : '📋 Barcha do\'konlar'}
           </h2>
+          
+          {/* Debug info */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mb-4 p-2 bg-gray-100 text-xs">
+              Debug: selectedCategory={selectedCategory?.toString() || 'null'}, 
+              categoryItems.length={categoryItems.length}, 
+              loading={loadingCategoryItems.toString()}
+            </div>
+          )}
           
           {/* Если выбрана категория (не "Все") и есть товары - показываем товары */}
           {selectedCategory && !loadingCategoryItems && categoryItems.length > 0 ? (
