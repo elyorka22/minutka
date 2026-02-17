@@ -532,17 +532,12 @@ export default function HomeClient({
               : '📋 Barcha do\'konlar'}
           </h2>
           
-          {/* Debug info */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mb-4 p-2 bg-gray-100 text-xs">
-              Debug: selectedCategory={selectedCategory?.toString() || 'null'}, 
-              categoryItems.length={categoryItems.length}, 
-              loading={loadingCategoryItems.toString()}
-            </div>
-          )}
-          
-          {/* Если выбрана категория (не "Все") и есть товары - показываем товары */}
-          {selectedCategory && !loadingCategoryItems && categoryItems.length > 0 ? (
+          {/* Если выбрана категория (не "Все") - показываем товары или загрузку */}
+          {selectedCategory ? (
+            <>
+              {loadingCategoryItems ? (
+                <div className="text-center py-12 text-gray-500">Yuklanmoqda...</div>
+              ) : categoryItems.length > 0 ? (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {categoryItems.map((item) => {
                 // Преобразуем MenuItemWithStore в MenuItem для компонента
