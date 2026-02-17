@@ -285,6 +285,81 @@ export default function AdminStoreCategoriesPage() {
         </div>
       ) : (
         <>
+          {/* Информация о категории "Все" */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-blue-800 mb-2">
+              <strong>💡 Важно:</strong> Чтобы категория "Все" (Hammasi) отображалась с картинкой на главной странице, создайте или отредактируйте категорию с названием <strong>"Hammasi"</strong> или <strong>"Все"</strong> и загрузите для неё изображение.
+            </p>
+            {categories.length > 0 && categories.some(c => 
+              c.name === 'Все' || 
+              c.name === 'Hammasi' || 
+              c.name?.toLowerCase() === 'все' ||
+              c.name?.toLowerCase() === 'hammasi' ||
+              c.id === 'all'
+            ) ? (
+              <div>
+                <p className="text-sm text-green-700 font-semibold mb-2">
+                  ✅ Категория "Все" найдена! Вы можете отредактировать её и загрузить изображение.
+                </p>
+                {(() => {
+                  const allCat = categories.find(c => 
+                    c.name === 'Все' || 
+                    c.name === 'Hammasi' || 
+                    c.name?.toLowerCase() === 'все' ||
+                    c.name?.toLowerCase() === 'hammasi' ||
+                    c.id === 'all'
+                  );
+                  if (allCat && (!allCat.image_url || allCat.image_url.trim() === '')) {
+                    return (
+                      <button
+                        onClick={() => handleEdit(allCat)}
+                        className="text-sm text-blue-700 underline hover:text-blue-900"
+                      >
+                        ✏️ Редактировать категорию "Все" и загрузить изображение
+                      </button>
+                    );
+                  }
+                  return null;
+                })()}
+              </div>
+            ) : (
+              <div>
+                <p className="text-sm text-orange-700 mb-2">
+                  ⚠️ Категория "Все" ещё не создана. Создайте её, чтобы пользователи могли видеть все товары магазина.
+                </p>
+                <button
+                  onClick={async () => {
+                    setEditingCategory(null);
+                    
+                    // Загружаем товары при открытии формы создания
+                    setLoadingMenuItems(true);
+                    try {
+                      const items = await getMenuItems(selectedStoreId, true);
+                      setMenuItems(items);
+                    } catch (error) {
+                      console.error('Error loading menu items:', error);
+                    } finally {
+                      setLoadingMenuItems(false);
+                    }
+                    
+                    setFormData({
+                      name: 'Hammasi', // Предзаполняем название
+                      description: 'Все товары магазина',
+                      image_url: '',
+                      display_order: 0, // Категория "Все" должна быть первой
+                      is_active: true,
+                      selectedMenuItems: [],
+                    });
+                    setShowForm(true);
+                  }}
+                  className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 inline-block"
+                >
+                  ➕ Создать категорию "Все"
+                </button>
+              </div>
+            )}
+          </div>
+
           {showForm && (
             <div className="bg-white rounded-lg shadow-md p-6 mb-6">
               <h2 className="text-xl font-bold mb-4">
@@ -467,8 +542,18 @@ export default function AdminStoreCategoriesPage() {
                     <tbody className="bg-white divide-y divide-gray-200">
                       {categories
                         .sort((a, b) => a.display_order - b.display_order)
-                        .map((category) => (
-                          <tr key={category.id}>
+                        .map((category) => {
+                          const isAllCategory = 
+                            category.name === 'Все' || 
+                            category.name === 'Hammasi' || 
+                            category.name?.toLowerCase() === 'все' ||
+                            category.name?.toLowerCase() === 'hammasi' ||
+                            category.id === 'all';
+                          return (
+                          <tr 
+                            key={category.id}
+                            className={isAllCategory ? 'bg-blue-50' : ''}
+                          >
                             <td className="px-6 py-4 whitespace-nowrap">
                               {category.image_url ? (
                                 <img
@@ -483,7 +568,14 @@ export default function AdminStoreCategoriesPage() {
                               )}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-sm font-medium text-gray-900">{category.name}</div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {category.name}
+                                {isAllCategory && (
+                                  <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                    Все товары
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-6 py-4">
                               <div className="text-sm text-gray-500 max-w-xs truncate">
@@ -519,7 +611,8 @@ export default function AdminStoreCategoriesPage() {
                               </button>
                             </td>
                           </tr>
-                        ))}
+                          );
+                        })}
                     </tbody>
                   </table>
                 </div>
