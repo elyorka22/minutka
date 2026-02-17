@@ -18,6 +18,7 @@ const navigation = [
   { name: 'Меню', href: '/restaurant-admin/menu', icon: '🍽️' },
   { name: 'Категории меню', href: '/restaurant-admin/menu-categories', icon: '📂' },
   { name: 'Категории магазина', href: '/restaurant-admin/store-categories', icon: '🛒' },
+  { name: 'Админы', href: '/restaurant-admin/admins', icon: '👥' },
   { name: 'Повара', href: '/restaurant-admin/chefs', icon: '👨‍🍳' },
   { name: 'Курьеры', href: '/restaurant-admin/couriers', icon: '🚚' },
   { name: 'Настройки', href: '/restaurant-admin/settings', icon: '⚙️' },
