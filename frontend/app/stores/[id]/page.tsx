@@ -40,24 +40,25 @@ export default async function StorePage({ params }: PageProps) {
   const regularItems = menuItems.filter((item: MenuItemType) => !item.is_banner);
 
   // Группируем обычные товары по категориям из БД
+  // ВАЖНО: Все товары должны отображаться, независимо от категорий
   const menuByCategory: MenuCategory[] = [];
   
+  // Создаем карту всех товаров по категориям
+  const categoryMap = new Map<string, MenuItemType[]>();
+  const usedCategories = new Set<string>(); // Отслеживаем, какие категории уже использованы
+  
+  // Группируем ВСЕ товары по названию категории (поле category в menu_items)
+  regularItems.forEach((item) => {
+    const categoryName = item.category || 'Без категории';
+    if (!categoryMap.has(categoryName)) {
+      categoryMap.set(categoryName, []);
+    }
+    categoryMap.get(categoryName)!.push(item);
+  });
+
   // Если есть категории магазина из БД, используем их для группировки
   if (storeCategories.length > 0) {
-    // Создаем карту категорий для быстрого поиска
-    const categoryMap = new Map<string, MenuItemType[]>();
-    
-    // Группируем товары по названию категории (поле category в menu_items)
-    regularItems.forEach((item) => {
-      const categoryName = item.category || 'Без категории';
-      if (!categoryMap.has(categoryName)) {
-        categoryMap.set(categoryName, []);
-      }
-      categoryMap.get(categoryName)!.push(item);
-    });
-
     // Создаем категории на основе данных из БД
-    // Показываем все активные категории, даже если в них нет товаров
     storeCategories.forEach((dbCategory) => {
       if (dbCategory.is_active) {
         const items = categoryMap.get(dbCategory.name) || [];
@@ -68,30 +69,35 @@ export default async function StorePage({ params }: PageProps) {
           image_url: dbCategory.image_url,
           description: dbCategory.description
         });
+        usedCategories.add(dbCategory.name);
       }
     });
 
-    // Добавляем товары без категории, если они есть
-    const uncategorizedItems = categoryMap.get('Без категории') || [];
-    if (uncategorizedItems.length > 0) {
-      menuByCategory.push({ name: 'Без категории', items: uncategorizedItems });
-    }
+    // Добавляем ВСЕ остальные категории товаров, которые не совпали с категориями из БД
+    categoryMap.forEach((items, categoryName) => {
+      if (!usedCategories.has(categoryName) && items.length > 0) {
+        menuByCategory.push({ 
+          name: categoryName, 
+          items,
+          id: categoryName, // Используем название как ID
+          image_url: undefined,
+          description: undefined
+        });
+      }
+    });
   } else {
-    // Старая логика: группируем по полю category в menu_items
-    if (regularItems.length > 0) {
-      const categoryMap = new Map<string, MenuItemType[]>();
-      regularItems.forEach((item) => {
-        const category = item.category || 'Товары';
-        if (!categoryMap.has(category)) {
-          categoryMap.set(category, []);
-        }
-        categoryMap.get(category)!.push(item);
-      });
-
-      categoryMap.forEach((items, category) => {
-        menuByCategory.push({ name: category, items });
-      });
-    }
+    // Если нет категорий из БД, группируем по полю category в menu_items
+    categoryMap.forEach((items, category) => {
+      if (items.length > 0) {
+        menuByCategory.push({ 
+          name: category, 
+          items,
+          id: category,
+          image_url: undefined,
+          description: undefined
+        });
+      }
+    });
   }
 
     // Форматируем время работы для отображения
