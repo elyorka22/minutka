@@ -66,8 +66,9 @@ export default async function StorePage({ params }: PageProps) {
         }
       }
       
-      // Фильтруем товары, которые есть в карусели
-      const itemsInCarousel = regularItems.filter(item => carouselItemIds.has(item.id));
+      // Фильтруем товары из всех товаров (включая баннеры, если они в карусели)
+      // Используем все menuItems, а не только regularItems, чтобы не пропустить товары
+      const itemsInCarousel = menuItems.filter(item => carouselItemIds.has(item.id));
       
       // Добавляем карусель, даже если товаров нет (чтобы показать пустую карусель)
       carouselGroups.push({
