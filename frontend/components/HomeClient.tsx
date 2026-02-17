@@ -470,6 +470,11 @@ export default function HomeClient({
         </section>
       )}
 
+      {/* Promotions Carousel - Карусель акций под категориями */}
+      {selectedTab === 'stores' && initialPromotions && initialPromotions.length > 0 && (
+        <PromotionsCarousel promotions={initialPromotions.filter((p: any) => p.items && p.items.length > 0)} />
+      )}
+
       {/* Tabs for Restaurants and Stores - временно скрыты, показываем только магазины */}
       {/* <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
         <div className="flex gap-4 border-b border-gray-200">
