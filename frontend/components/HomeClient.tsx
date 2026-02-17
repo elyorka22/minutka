@@ -73,6 +73,7 @@ export default function HomeClient({
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
   const [selectedTab, setSelectedTab] = useState<'restaurants' | 'stores'>('stores');
+  // По умолчанию категория "Все" (null означает "Все")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [banners, setBanners] = useState(initialBanners);
@@ -189,17 +190,23 @@ export default function HomeClient({
 
   // Загружаем товары выбранной категории
   useEffect(() => {
-    if (selectedTab === 'stores' && selectedCategory) {
-      // Проверяем, является ли выбранная категория категорией магазинов
-      const isStoreCategory = initialStoreCategories.some(cat => cat.name === selectedCategory);
+    if (selectedTab === 'stores') {
+      // Проверяем, является ли выбранная категория категорией "Все"
       const isAllCategory = 
         selectedCategory === null ||
         selectedCategory === 'all' ||
-        initialStoreCategories.some(cat => 
-          (cat.name === 'Все' || cat.name === 'Hammasi') && cat.name === selectedCategory
-        );
+        (selectedCategory && initialStoreCategories.some(cat => 
+          (cat.name === 'Все' || cat.name === 'Hammasi') && (cat.name === selectedCategory || cat.id === selectedCategory)
+        ));
       
-      if (isStoreCategory && !isAllCategory) {
+      // Если выбрана категория "Все" или нет категории - показываем магазины
+      if (isAllCategory) {
+        setCategoryItems([]);
+        return;
+      }
+      
+      // Если выбрана другая категория - загружаем товары этой категории
+      if (selectedCategory) {
         setLoadingCategoryItems(true);
         getMenuItems(undefined, true, selectedCategory)
           .then(items => {
@@ -395,10 +402,23 @@ export default function HomeClient({
               if (categoryId === null || categoryId === 'all') {
                 setSelectedCategory(null);
               } else {
-                // Ищем категорию по названию (так как мы используем название как ID)
-                const category = initialStoreCategories.find(c => c.name === categoryId || c.id === categoryId);
+                // Ищем категорию по названию или ID
+                const category = initialStoreCategories.find(c => 
+                  c.name === categoryId || 
+                  c.id === categoryId ||
+                  (categoryId && (c.name === 'Все' || c.name === 'Hammasi'))
+                );
                 if (category) {
-                  setSelectedCategory(category.name);
+                  // Если это категория "Все", сбрасываем
+                  if (category.name === 'Все' || category.name === 'Hammasi') {
+                    setSelectedCategory(null);
+                  } else {
+                    // Используем название категории для поиска товаров
+                    setSelectedCategory(category.name);
+                  }
+                } else {
+                  // Если категория не найдена, используем переданный ID как название
+                  setSelectedCategory(categoryId);
                 }
               }
             }}
@@ -490,62 +510,55 @@ export default function HomeClient({
         )} */}
 
       {/* Stores Section - показываем товары категории или все магазины */}
-      {selectedTab === 'stores' && (
+      {selectedTab === 'stores' && !searchQuery && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {searchQuery
-              ? `🔍 Qidiruv natijalari: "${searchQuery}"`
-              : selectedCategory && categoryItems.length > 0
-              ? `${initialStoreCategories.find((c) => c.name === selectedCategory)?.name || selectedCategory}`
-              : selectedCategory
+            {selectedCategory && categoryItems.length > 0
               ? `${initialStoreCategories.find((c) => c.name === selectedCategory)?.name || selectedCategory}`
               : '📋 Barcha do\'konlar'}
           </h2>
           
-          {/* Если выбрана категория и есть товары - показываем товары */}
-          {selectedCategory && categoryItems.length > 0 && !searchQuery ? (
-            <>
-              {loadingCategoryItems ? (
-                <div className="text-center py-12 text-gray-500">Yuklanmoqda...</div>
-              ) : (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {categoryItems.map((item) => {
-                    // Преобразуем MenuItemWithStore в MenuItem для компонента
-                    const menuItem = {
-                      id: item.id,
-                      name: item.name,
-                      description: item.description,
-                      price: item.price,
-                      image_url: item.image_url,
-                      is_available: item.is_available,
-                      category: item.category,
-                      restaurant_id: item.restaurant_id || item.restaurant.id,
-                      is_banner: item.is_banner || false,
-                      created_at: item.created_at || new Date().toISOString(),
-                    };
-                    return (
-                      <div key={item.id} className="relative">
-                        <MenuItem item={menuItem} />
-                        {/* Информация о магазине */}
-                        <Link 
-                          href={`/stores/${item.restaurant.id}`}
-                          className="block mt-2 text-xs text-gray-600 hover:text-primary-600 truncate"
-                        >
-                          📍 {item.restaurant.name}
-                        </Link>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-              {!loadingCategoryItems && categoryItems.length === 0 && (
-                <div className="text-center py-12 text-gray-500">
-                  Bu kategoriyada mahsulotlar topilmadi
-                </div>
-              )}
-            </>
+          {/* Если выбрана категория (не "Все") и есть товары - показываем товары */}
+          {selectedCategory && !loadingCategoryItems && categoryItems.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {categoryItems.map((item) => {
+                // Преобразуем MenuItemWithStore в MenuItem для компонента
+                const menuItem = {
+                  id: item.id,
+                  name: item.name,
+                  description: item.description,
+                  price: item.price,
+                  image_url: item.image_url,
+                  is_available: item.is_available,
+                  category: item.category,
+                  restaurant_id: item.restaurant_id || item.restaurant.id,
+                  is_banner: item.is_banner || false,
+                  created_at: item.created_at || new Date().toISOString(),
+                };
+                return (
+                  <div key={item.id} className="relative">
+                    <MenuItem item={menuItem} />
+                    {/* Информация о магазине */}
+                    <Link 
+                      href={`/stores/${item.restaurant.id}`}
+                      className="block mt-2 text-xs text-gray-600 hover:text-primary-600 truncate"
+                    >
+                      📍 {item.restaurant.name}
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          ) : selectedCategory && loadingCategoryItems ? (
+            /* Показываем загрузку при выборе категории */
+            <div className="text-center py-12 text-gray-500">Yuklanmoqda...</div>
+          ) : selectedCategory && !loadingCategoryItems && categoryItems.length === 0 ? (
+            /* Если выбрана категория, но товаров нет */
+            <div className="text-center py-12 text-gray-500">
+              Bu kategoriyada mahsulotlar topilmadi
+            </div>
           ) : (
-            /* Если выбрана "Все" или нет категории - показываем магазины */
+            /* Если выбрана "Все" или нет категории - показываем все магазины */
             <>
               {filteredStores.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
@@ -559,6 +572,26 @@ export default function HomeClient({
                 </div>
               )}
             </>
+          )}
+        </section>
+      )}
+
+      {/* Stores Section - показываем магазины при поиске */}
+      {selectedTab === 'stores' && searchQuery && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            🔍 Qidiruv natijalari: "{searchQuery}"
+          </h2>
+          {filteredStores.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              Do'konlar topilmadi
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:gap-6">
+              {filteredStores.map((store) => (
+                <RestaurantCard key={store.id} restaurant={store} />
+              ))}
+            </div>
           )}
         </section>
       )}
