@@ -44,17 +44,35 @@ export default async function StorePage({ params }: PageProps) {
   for (const carousel of storeCarousels) {
     try {
       const carouselItemsData = await getStoreCarouselItemsServer(carousel.id);
-      const carouselItemIds = new Set(carouselItemsData.map((item: any) => item.menu_item_id));
+      
+      // Извлекаем menu_item_id из данных карусели
+      // API возвращает объекты с полем menu_item_id или вложенным menu_items
+      const carouselItemIds = new Set(
+        carouselItemsData.map((item: any) => {
+          // Если есть вложенный menu_items, берем id оттуда
+          if (item.menu_items && item.menu_items.id) {
+            return item.menu_items.id;
+          }
+          // Иначе берем menu_item_id напрямую
+          return item.menu_item_id;
+        }).filter(Boolean) // Убираем undefined/null
+      );
+      
+      // Фильтруем товары, которые есть в карусели
       const itemsInCarousel = regularItems.filter(item => carouselItemIds.has(item.id));
       
-      if (itemsInCarousel.length > 0) {
-        carouselGroups.push({
-          carousel,
-          items: itemsInCarousel,
-        });
-      }
+      // Добавляем карусель, даже если товаров нет (чтобы показать пустую карусель)
+      carouselGroups.push({
+        carousel,
+        items: itemsInCarousel,
+      });
     } catch (error) {
       console.error(`Error loading items for carousel ${carousel.id}:`, error);
+      // Добавляем карусель даже при ошибке, но без товаров
+      carouselGroups.push({
+        carousel,
+        items: [],
+      });
     }
   }
 

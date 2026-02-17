@@ -196,7 +196,20 @@ export async function getStoreCarouselsServer(restaurantId: string): Promise<any
 // Store Carousel Items API (server-side) - получить товары карусели
 export async function getStoreCarouselItemsServer(carouselId: string): Promise<any[]> {
   const url = `${API_BASE_URL}/api/store-carousels/${carouselId}/items`;
-  const items = await fetchWithCache<any[]>(url, {}, 60);
-  return Array.isArray(items) ? items : [];
+  const response = await fetch(url, {
+    next: { revalidate: 60 },
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    console.error(`Failed to fetch carousel items: ${response.statusText}`);
+    return [];
+  }
+
+  const data = await response.json();
+  // API возвращает { success: true, data: [...] }
+  return Array.isArray(data.data) ? data.data : [];
 }
 
