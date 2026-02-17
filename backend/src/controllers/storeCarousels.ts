@@ -101,6 +101,14 @@ export async function createStoreCarousel(req: AuthenticatedRequest, res: Respon
       return res.status(400).json({ success: false, error: 'restaurant_id and name are required' });
     }
 
+    // Проверка прав доступа
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
     // Только супер-админы могут создавать карусели
     if (req.user.role !== 'super_admin') {
       return res.status(403).json({
@@ -159,6 +167,14 @@ export async function updateStoreCarousel(req: AuthenticatedRequest, res: Respon
     const { id } = req.params;
     const { name, display_order, is_active } = req.body;
 
+    // Проверка прав доступа
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
     // Только супер-админы могут обновлять карусели
     if (req.user.role !== 'super_admin') {
       return res.status(403).json({
@@ -209,6 +225,14 @@ export async function updateStoreCarousel(req: AuthenticatedRequest, res: Respon
 export async function deleteStoreCarousel(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
+
+    // Проверка прав доступа
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
 
     // Только супер-админы могут удалять карусели
     if (req.user.role !== 'super_admin') {
@@ -270,6 +294,14 @@ export async function addStoreCarouselItems(req: AuthenticatedRequest, res: Resp
   try {
     const { id } = req.params;
     const { menu_item_ids } = req.body;
+
+    // Проверка прав доступа
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
 
     // Только супер-админы могут добавлять товары в карусели
     if (req.user.role !== 'super_admin') {
@@ -336,6 +368,14 @@ export async function removeStoreCarouselItem(req: AuthenticatedRequest, res: Re
   try {
     const { id, item_id } = req.params;
 
+    // Проверка прав доступа
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
     // Только супер-админы могут удалять товары из каруселей
     if (req.user.role !== 'super_admin') {
       return res.status(403).json({
@@ -369,6 +409,14 @@ export async function updateStoreCarouselItemsOrder(req: AuthenticatedRequest, r
   try {
     const { id } = req.params;
     const { items } = req.body; // Array of { menu_item_id, display_order }
+
+    // Проверка прав доступа
+    if (!req.user) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
 
     // Только супер-админы могут обновлять порядок товаров
     if (req.user.role !== 'super_admin') {
