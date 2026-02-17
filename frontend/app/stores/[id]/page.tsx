@@ -191,12 +191,6 @@ export default async function StorePage({ params }: PageProps) {
                   <span className="text-2xl text-gray-600">›</span>
                 </button>
 
-                {/* Hide scrollbar */}
-                <style jsx>{`
-                  #store-items-carousel::-webkit-scrollbar {
-                    display: none;
-                  }
-                `}</style>
               </div>
             </div>
           )}
