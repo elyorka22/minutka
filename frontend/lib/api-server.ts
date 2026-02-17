@@ -186,3 +186,17 @@ export async function getStoreCategoryStoreMapServer(): Promise<{ [categoryName:
   return categoryStoreMap;
 }
 
+// Store Carousels API (server-side) - получить карусели магазина
+export async function getStoreCarouselsServer(restaurantId: string): Promise<any[]> {
+  const url = `${API_BASE_URL}/api/store-carousels?restaurant_id=${restaurantId}`;
+  const carousels = await fetchWithCache<any[]>(url, {}, 60);
+  return Array.isArray(carousels) ? carousels.filter(c => c.is_active) : [];
+}
+
+// Store Carousel Items API (server-side) - получить товары карусели
+export async function getStoreCarouselItemsServer(carouselId: string): Promise<any[]> {
+  const url = `${API_BASE_URL}/api/store-carousels/${carouselId}/items`;
+  const items = await fetchWithCache<any[]>(url, {}, 60);
+  return Array.isArray(items) ? items : [];
+}
+

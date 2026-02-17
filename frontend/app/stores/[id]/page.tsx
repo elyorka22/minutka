@@ -4,6 +4,7 @@
 
 import { notFound } from 'next/navigation';
 import { getRestaurantById, getBanners, getMenuItems } from '@/lib/api';
+import { getStoreCarouselsServer, getStoreCarouselItemsServer } from '@/lib/api-server';
 import Link from 'next/link';
 import Image from 'next/image';
 import MenuItemBanner from '@/components/MenuItemBanner';
@@ -22,10 +23,11 @@ interface PageProps {
 export default async function StorePage({ params }: PageProps) {
   // Загружаем данные из API
   // Получаем все товары, включая недоступные, чтобы показать их серыми
-  const [store, recommendedBanners, menuItems] = await Promise.all([
+  const [store, recommendedBanners, menuItems, storeCarousels] = await Promise.all([
     getRestaurantById(params.id).catch(() => null),
     getBanners('recommended'),
     getMenuItems(params.id, true), // includeUnavailable = true
+    getStoreCarouselsServer(params.id).catch(() => []), // Загружаем карусели из БД
   ]);
 
   if (!store || store.type !== 'store') {
@@ -36,13 +38,25 @@ export default async function StorePage({ params }: PageProps) {
   const bannerItems = menuItems.filter((item: MenuItemType) => item.is_banner === true);
   const regularItems = menuItems.filter((item: MenuItemType) => !item.is_banner);
 
-  // Разделяем товары на три группы для трех каруселей
-  const itemsPerCarousel = Math.ceil(regularItems.length / 3);
-  const carouselGroups = [
-    regularItems.slice(0, itemsPerCarousel),
-    regularItems.slice(itemsPerCarousel, itemsPerCarousel * 2),
-    regularItems.slice(itemsPerCarousel * 2),
-  ].filter(group => group.length > 0); // Убираем пустые группы
+  // Загружаем товары для каждой карусели
+  const carouselGroups: { carousel: any; items: MenuItemType[] }[] = [];
+  
+  for (const carousel of storeCarousels) {
+    try {
+      const carouselItemsData = await getStoreCarouselItemsServer(carousel.id);
+      const carouselItemIds = new Set(carouselItemsData.map((item: any) => item.menu_item_id));
+      const itemsInCarousel = regularItems.filter(item => carouselItemIds.has(item.id));
+      
+      if (itemsInCarousel.length > 0) {
+        carouselGroups.push({
+          carousel,
+          items: itemsInCarousel,
+        });
+      }
+    } catch (error) {
+      console.error(`Error loading items for carousel ${carousel.id}:`, error);
+    }
+  }
 
     // Форматируем время работы для отображения
     const formatWorkingHours = () => {
@@ -127,9 +141,9 @@ export default async function StorePage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Regular Menu Section - Товары в трех горизонтальных каруселях (три ряда) */}
+          {/* Regular Menu Section - Товары в каруселях из БД */}
           {carouselGroups.map((group, index) => (
-            <StoreItemsCarousel key={index} items={group} carouselIndex={index} />
+            <StoreItemsCarousel key={group.carousel.id} items={group.items} carouselIndex={index} />
           ))}
 
           {/* Recommended Banners */}

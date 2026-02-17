@@ -27,6 +27,7 @@ import couriersRouter from './routes/couriers';
 import menuViewsRouter from './routes/menuViews';
 import menuCategoriesRouter from './routes/menuCategories';
 import storeCategoriesRouter from './routes/storeCategories';
+import storeCarouselsRouter from './routes/storeCarousels';
 import { generalLimiter, strictLimiter, createUpdateLimiter } from './middleware/rateLimit';
 import { bigIntSerializerMiddleware } from './middleware/bigintSerializer';
 
@@ -108,6 +109,7 @@ app.use('/api/couriers', couriersRouter);
 app.use('/api/menu-views', menuViewsRouter);
 app.use('/api/menu-categories', menuCategoriesRouter);
 app.use('/api/store-categories', storeCategoriesRouter);
+app.use('/api/store-carousels', storeCarouselsRouter);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

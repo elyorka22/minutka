@@ -555,6 +555,98 @@ export async function deleteStoreCategory(id: string): Promise<void> {
   await api.delete(`/api/store-categories/${id}`);
 }
 
+// Store Carousels API
+export interface StoreCarousel {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StoreCarouselItem {
+  id: string;
+  carousel_id: string;
+  menu_item_id: string;
+  display_order: number;
+  created_at: string;
+  menu_items?: any;
+}
+
+export async function getStoreCarousels(restaurantId: string, includeInactive: boolean = false): Promise<StoreCarousel[]> {
+  try {
+    const params: any = { restaurant_id: restaurantId };
+    if (includeInactive) {
+      params.include_inactive = 'true';
+    }
+    const response = await api.get<{ success: boolean; data: StoreCarousel[] }>('/api/store-carousels', { params });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching store carousels:', error);
+    return [];
+  }
+}
+
+export async function getStoreCarouselById(id: string): Promise<StoreCarousel | null> {
+  try {
+    const response = await api.get<{ success: boolean; data: StoreCarousel }>(`/api/store-carousels/${id}`);
+    return response.data.data || null;
+  } catch (error) {
+    console.error('Error fetching store carousel:', error);
+    return null;
+  }
+}
+
+export async function createStoreCarousel(data: {
+  restaurant_id: string;
+  name: string;
+  display_order?: number;
+  is_active?: boolean;
+}): Promise<StoreCarousel> {
+  const response = await api.post<{ success: boolean; data: StoreCarousel }>('/api/store-carousels', data);
+  return response.data.data;
+}
+
+export async function updateStoreCarousel(id: string, data: {
+  name?: string;
+  display_order?: number;
+  is_active?: boolean;
+}): Promise<StoreCarousel> {
+  const response = await api.patch<{ success: boolean; data: StoreCarousel }>(`/api/store-carousels/${id}`, data);
+  return response.data.data;
+}
+
+export async function deleteStoreCarousel(id: string): Promise<void> {
+  await api.delete(`/api/store-carousels/${id}`);
+}
+
+export async function getStoreCarouselItems(carouselId: string): Promise<StoreCarouselItem[]> {
+  try {
+    const response = await api.get<{ success: boolean; data: StoreCarouselItem[] }>(`/api/store-carousels/${carouselId}/items`);
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching store carousel items:', error);
+    return [];
+  }
+}
+
+export async function addStoreCarouselItems(carouselId: string, menuItemIds: string[]): Promise<StoreCarouselItem[]> {
+  const response = await api.post<{ success: boolean; data: StoreCarouselItem[] }>(`/api/store-carousels/${carouselId}/items`, {
+    menu_item_ids: menuItemIds,
+  });
+  return response.data.data;
+}
+
+export async function removeStoreCarouselItem(carouselId: string, menuItemId: string): Promise<void> {
+  await api.delete(`/api/store-carousels/${carouselId}/items/${menuItemId}`);
+}
+
+export async function updateStoreCarouselItemsOrder(carouselId: string, items: { menu_item_id: string; display_order: number }[]): Promise<void> {
+  await api.put(`/api/store-carousels/${carouselId}/items`, { items });
+}
+
 
 export async function createMenuItem(menuItemData: {
   restaurant_id: string;
