@@ -173,7 +173,10 @@ export default async function StorePage({ params }: PageProps) {
 
           {/* Regular Menu Section - Товары в каруселях из БД */}
           {carouselGroups.map((group, index) => (
-            <StoreItemsCarousel key={group.carousel.id} items={group.items} carouselIndex={index} />
+            <div key={group.carousel.id} className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">{group.carousel.name}</h2>
+              <StoreItemsCarousel items={group.items} carouselIndex={index} />
+            </div>
           ))}
 
           {/* Recommended Banners */}
