@@ -36,6 +36,7 @@ interface HomeClientProps {
   initialCategoryStoreMap: { [categoryId: string]: string[] };
   initialStoreCategories: any[]; // Категории магазинов (store_categories)
   initialStoreCategoryStoreMap: { [categoryName: string]: string[] }; // Карта: название категории -> массив ID магазинов
+  initialPromotions: any[]; // Акции с товарами
   appSlogan: string;
 }
 
@@ -68,6 +69,7 @@ export default function HomeClient({
   initialCategoryStoreMap,
   initialStoreCategories,
   initialStoreCategoryStoreMap,
+  initialPromotions,
   appSlogan,
 }: HomeClientProps) {
   const router = useRouter();

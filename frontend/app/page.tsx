@@ -14,6 +14,8 @@ import {
   getBotSettingsServer,
   getAllStoreCategoriesServer,
   getStoreCategoryStoreMapServer,
+  getPromotionsServer,
+  getPromotionItemsServer,
 } from '@/lib/api-server';
 
 // Экспортируем revalidate для ISR (Incremental Static Regeneration)
@@ -39,7 +41,7 @@ const SkeletonCategory = () => (
 async function HomeData() {
   try {
     // Загружаем критичные данные параллельно на сервере
-    const [categories, restaurantsResult, storesResult, relations, banners, pharmaciesStores, botSettings, storeCategories, storeCategoryStoreMap] =
+    const [categories, restaurantsResult, storesResult, relations, banners, pharmaciesStores, botSettings, storeCategories, storeCategoryStoreMap, promotions] =
       await Promise.all([
         getCategoriesServer(),
         getRestaurantsServer(undefined, undefined, undefined, 'restaurant'),
@@ -50,7 +52,34 @@ async function HomeData() {
         getBotSettingsServer().catch(() => []),
         getAllStoreCategoriesServer().catch(() => []),
         getStoreCategoryStoreMapServer().catch(() => ({})),
+        getPromotionsServer().catch(() => []),
       ]);
+
+    // Загружаем товары для каждой акции
+    const promotionsWithItems = await Promise.all(
+      (promotions || []).map(async (promotion: any) => {
+        try {
+          const items = await getPromotionItemsServer(promotion.id);
+          // Извлекаем menu_items из результатов JOIN
+          const menuItems = items.map((item: any) => {
+            if (item.menu_items && typeof item.menu_items === 'object') {
+              return item.menu_items;
+            }
+            return null;
+          }).filter(Boolean);
+          return {
+            ...promotion,
+            items: menuItems,
+          };
+        } catch (error) {
+          console.error(`Error loading items for promotion ${promotion.id}:`, error);
+          return {
+            ...promotion,
+            items: [],
+          };
+        }
+      })
+    );
 
     // Создаем карту связей категорий и ресторанов/магазинов
     const categoryRestaurantMap: { [categoryId: string]: string[] } = {};
@@ -93,6 +122,7 @@ async function HomeData() {
         initialCategoryStoreMap={categoryStoreMap}
         initialStoreCategories={storeCategories || []}
         initialStoreCategoryStoreMap={storeCategoryStoreMap || {}}
+        initialPromotions={promotionsWithItems || []}
         appSlogan={appSlogan}
       />
     );
@@ -110,6 +140,7 @@ async function HomeData() {
         initialCategoryStoreMap={{}}
         initialStoreCategories={[]}
         initialStoreCategoryStoreMap={{}}
+        initialPromotions={[]}
         appSlogan="Tez va oson, uydan chiqmasdan"
       />
     );

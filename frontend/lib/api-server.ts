@@ -144,6 +144,18 @@ export async function getAllStoreCategoriesServer(): Promise<any[]> {
 }
 
 // Store Category Store Map - создать карту: какая категория товаров есть в каком магазине
+export async function getPromotionsServer(): Promise<any[]> {
+  const url = `${API_BASE_URL}/api/promotions?is_active=true`;
+  const data = await fetchWithCache<any[]>(url, {}, 60);
+  return Array.isArray(data) ? data : [];
+}
+
+export async function getPromotionItemsServer(promotionId: string): Promise<any[]> {
+  const url = `${API_BASE_URL}/api/promotions/${promotionId}/items`;
+  const data = await fetchWithCache<any[]>(url, {}, 60);
+  return Array.isArray(data) ? data : [];
+}
+
 export async function getStoreCategoryStoreMapServer(): Promise<{ [categoryName: string]: string[] }> {
   // Загружаем все магазины
   const storesResult = await getStoresServer();
