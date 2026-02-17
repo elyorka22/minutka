@@ -552,43 +552,41 @@ export default function HomeClient({
               {loadingCategoryItems ? (
                 <div className="text-center py-12 text-gray-500">Yuklanmoqda...</div>
               ) : categoryItems.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {categoryItems.map((item) => {
-                // Преобразуем MenuItemWithStore в MenuItem для компонента
-                const menuItem = {
-                  id: item.id,
-                  name: item.name,
-                  description: item.description,
-                  price: item.price,
-                  image_url: item.image_url,
-                  is_available: item.is_available,
-                  category: item.category,
-                  restaurant_id: item.restaurant_id || item.restaurant.id,
-                  is_banner: item.is_banner || false,
-                  created_at: item.created_at || new Date().toISOString(),
-                };
-                return (
-                  <div key={item.id} className="relative">
-                    <MenuItem item={menuItem} />
-                    {/* Информация о магазине */}
-                    <Link 
-                      href={`/stores/${item.restaurant.id}`}
-                      className="block mt-2 text-xs text-gray-600 hover:text-primary-600 truncate"
-                    >
-                      📍 {item.restaurant.name}
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
-          ) : selectedCategory && loadingCategoryItems ? (
-            /* Показываем загрузку при выборе категории */
-            <div className="text-center py-12 text-gray-500">Yuklanmoqda...</div>
-          ) : selectedCategory && !loadingCategoryItems && categoryItems.length === 0 ? (
-            /* Если выбрана категория, но товаров нет */
-            <div className="text-center py-12 text-gray-500">
-              Bu kategoriyada mahsulotlar topilmadi
-            </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {categoryItems.map((item) => {
+                    // Преобразуем MenuItemWithStore в MenuItem для компонента
+                    const menuItem = {
+                      id: item.id,
+                      name: item.name,
+                      description: item.description,
+                      price: item.price,
+                      image_url: item.image_url,
+                      is_available: item.is_available,
+                      category: item.category,
+                      restaurant_id: item.restaurant_id || item.restaurant.id,
+                      is_banner: item.is_banner || false,
+                      created_at: item.created_at || new Date().toISOString(),
+                    };
+                    return (
+                      <div key={item.id} className="relative">
+                        <MenuItem item={menuItem} />
+                        {/* Информация о магазине */}
+                        <Link 
+                          href={`/stores/${item.restaurant.id}`}
+                          className="block mt-2 text-xs text-gray-600 hover:text-primary-600 truncate"
+                        >
+                          📍 {item.restaurant.name}
+                        </Link>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  Bu kategoriyada mahsulotlar topilmadi. Mahsulotlarni kategoriyaga bog'lash uchun admin panelga kiring.
+                </div>
+              )}
+            </>
           ) : (
             /* Если выбрана "Все" или нет категории - показываем все магазины */
             <>
