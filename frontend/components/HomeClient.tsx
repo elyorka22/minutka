@@ -409,9 +409,7 @@ export default function HomeClient({
                   </div>
                 )}
               </section>
-            )}
-          </>
-        )}
+      )}
 
       {/* Pharmacies Section */}
       {pharmacies.length > 0 &&
