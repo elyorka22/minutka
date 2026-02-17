@@ -380,9 +380,15 @@ export async function deleteBanner(id: string): Promise<void> {
 }
 
 // Menu Items API
-export async function getMenuItems(restaurantId: string, includeUnavailable: boolean = false): Promise<any[]> {
+export async function getMenuItems(restaurantId?: string, includeUnavailable: boolean = false, category?: string): Promise<any[]> {
   try {
-    const params: any = { restaurant_id: restaurantId };
+    const params: any = {};
+    if (restaurantId) {
+      params.restaurant_id = restaurantId;
+    }
+    if (category) {
+      params.category = category;
+    }
     if (includeUnavailable) {
       params.include_unavailable = 'true';
     }

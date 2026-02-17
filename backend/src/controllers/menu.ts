@@ -10,22 +10,64 @@ import { validatePrice, validateString, validateUrl, validateUuid } from '../uti
 
 /**
  * GET /api/menu
- * Получить меню ресторана
- * Query params: restaurant_id (required)
+ * Получить меню ресторана или товары по категории
+ * Query params: 
+ *   - restaurant_id (optional) - ID ресторана/магазина
+ *   - category (optional) - название категории для фильтрации товаров из всех магазинов
+ *   - include_unavailable (optional) - включать недоступные товары
  * Публичный доступ
  */
 export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, include_unavailable } = req.query;
+    const { restaurant_id, category, include_unavailable } = req.query;
 
+    // Если указана категория, возвращаем товары этой категории из всех магазинов
+    if (category && !restaurant_id) {
+      let query = supabase
+        .from('menu_items')
+        .select(`
+          *,
+          restaurant:restaurants!menu_items_restaurant_id_fkey (
+            id,
+            name,
+            type,
+            image_url
+          )
+        `)
+        .eq('category', category as string)
+        .eq('is_banner', false); // Исключаем баннеры
+
+      // Если не запрошены недоступные товары, фильтруем только доступные
+      if (include_unavailable !== 'true') {
+        query = query.eq('is_available', true);
+      }
+
+      // Фильтруем только магазины (type = 'store')
+      const { data, error } = await query
+        .order('name', { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      // Фильтруем товары только из магазинов
+      const storeItems = (data || []).filter((item: any) => 
+        item.restaurant && item.restaurant.type === 'store'
+      );
+
+      res.json({ success: true, data: storeItems });
+      return;
+    }
+
+    // Старая логика: если указан restaurant_id
     if (!restaurant_id) {
-      return res.status(400).json({ success: false, error: 'restaurant_id is required' });
+      return res.status(400).json({ success: false, error: 'restaurant_id or category is required' });
     }
 
     let query = supabase
       .from('menu_items')
       .select('*')
-      .eq('restaurant_id', restaurant_id);
+      .eq('restaurant_id', restaurant_id as string);
 
     // Если не запрошены недоступные блюда, фильтруем только доступные
     if (include_unavailable !== 'true') {

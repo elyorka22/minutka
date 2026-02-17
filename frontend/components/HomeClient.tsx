@@ -37,6 +37,22 @@ interface HomeClientProps {
   appSlogan: string;
 }
 
+interface MenuItemWithStore {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  image_url: string | null;
+  is_available: boolean;
+  category: string | null;
+  restaurant: {
+    id: string;
+    name: string;
+    type: string;
+    image_url: string | null;
+  };
+}
+
 export default function HomeClient({
   initialRestaurants,
   initialStores,
