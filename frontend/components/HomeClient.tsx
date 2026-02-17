@@ -407,31 +407,45 @@ export default function HomeClient({
             selectedCategory={selectedCategory}
             onCategorySelect={(categoryId) => {
               console.log('[HomeClient] Category selected:', categoryId);
+              console.log('[HomeClient] Available categories:', initialStoreCategories.map(c => ({ id: c.id, name: c.name })));
+              
               // Если выбрана категория "Все", сбрасываем фильтр
               if (categoryId === null || categoryId === 'all') {
                 console.log('[HomeClient] Setting category to null (All)');
                 setSelectedCategory(null);
-              } else {
-                // Ищем категорию по названию или ID
-                const category = initialStoreCategories.find(c => 
-                  c.name === categoryId || 
-                  c.id === categoryId
-                );
-                console.log('[HomeClient] Found category:', category);
-                
-                if (category) {
-                  // Если это категория "Все", сбрасываем
-                  if (category.name === 'Все' || category.name === 'Hammasi') {
-                    console.log('[HomeClient] Category is "All", setting to null');
-                    setSelectedCategory(null);
-                  } else {
-                    // Используем название категории для поиска товаров
-                    console.log('[HomeClient] Setting category to:', category.name);
-                    setSelectedCategory(category.name);
-                  }
+                return;
+              }
+              
+              // Ищем категорию по ID или названию
+              // Важно: categoryId может быть либо UUID (cat.id), либо название (cat.name)
+              const category = initialStoreCategories.find(c => 
+                c.id === categoryId || 
+                c.name === categoryId ||
+                (c.id || c.name) === categoryId
+              );
+              
+              console.log('[HomeClient] Found category:', category);
+              
+              if (category) {
+                // Если это категория "Все", сбрасываем
+                if (category.name === 'Все' || category.name === 'Hammasi') {
+                  console.log('[HomeClient] Category is "All", setting to null');
+                  setSelectedCategory(null);
                 } else {
-                  // Если категория не найдена, используем переданный ID как название
-                  console.log('[HomeClient] Category not found, using categoryId as name:', categoryId);
+                  // ВАЖНО: Используем название категории для поиска товаров в API
+                  // API ищет товары по полю category в таблице menu_items, которое содержит название категории
+                  console.log('[HomeClient] Setting category to name:', category.name);
+                  setSelectedCategory(category.name);
+                }
+              } else {
+                // Если категория не найдена, возможно categoryId это уже название
+                // Проверяем, есть ли категория с таким названием
+                const categoryByName = initialStoreCategories.find(c => c.name === categoryId);
+                if (categoryByName && categoryByName.name !== 'Все' && categoryByName.name !== 'Hammasi') {
+                  console.log('[HomeClient] Found category by name, setting to:', categoryByName.name);
+                  setSelectedCategory(categoryByName.name);
+                } else {
+                  console.warn('[HomeClient] Category not found, using categoryId as name:', categoryId);
                   setSelectedCategory(categoryId);
                 }
               }
