@@ -54,11 +54,11 @@ export default async function StorePage({ params }: PageProps) {
         
         // Проверяем вложенный объект menu_items (результат JOIN)
         if (item.menu_items && typeof item.menu_items === 'object' && item.menu_items.id) {
-          menuItemId = item.menu_items.id;
+          menuItemId = String(item.menu_items.id);
         }
         // Иначе берем menu_item_id напрямую
         else if (item.menu_item_id) {
-          menuItemId = item.menu_item_id;
+          menuItemId = String(item.menu_item_id);
         }
         
         if (menuItemId) {
@@ -68,7 +68,10 @@ export default async function StorePage({ params }: PageProps) {
       
       // Фильтруем товары из всех товаров (включая баннеры, если они в карусели)
       // Используем все menuItems, а не только regularItems, чтобы не пропустить товары
-      const itemsInCarousel = menuItems.filter(item => carouselItemIds.has(item.id));
+      const itemsInCarousel = menuItems.filter(item => {
+        const itemId = String(item.id);
+        return carouselItemIds.has(itemId);
+      });
       
       // Добавляем карусель, даже если товаров нет (чтобы показать пустую карусель)
       carouselGroups.push({
