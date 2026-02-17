@@ -278,14 +278,23 @@ export default function HomeClient({
           setSelectedCategory(null);
         }
       } else {
-        // Проверяем, есть ли эта категория в категориях магазинов
-        const storeIds = initialCategoryStoreMap[selectedCategory] || [];
-        if (storeIds.length === 0) {
-          setSelectedCategory(null);
+        // Для магазинов проверяем, является ли это категорией магазинов (store_categories)
+        const isStoreCategory = initialStoreCategories.some(cat => cat.name === selectedCategory);
+        
+        if (isStoreCategory) {
+          // Это категория магазинов - не сбрасываем, даже если нет товаров
+          // Товары могут быть загружены позже
+          return;
+        } else {
+          // Старая логика для категорий ресторанов
+          const storeIds = initialCategoryStoreMap[selectedCategory] || [];
+          if (storeIds.length === 0) {
+            setSelectedCategory(null);
+          }
         }
       }
     }
-  }, [selectedTab, selectedCategory, initialCategoryRestaurantMap, initialCategoryStoreMap]);
+  }, [selectedTab, selectedCategory, initialCategoryRestaurantMap, initialCategoryStoreMap, initialStoreCategories]);
 
   return (
     <div className="min-h-screen bg-gray-50">
