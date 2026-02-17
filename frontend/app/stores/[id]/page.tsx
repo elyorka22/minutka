@@ -46,17 +46,25 @@ export default async function StorePage({ params }: PageProps) {
       const carouselItemsData = await getStoreCarouselItemsServer(carousel.id);
       
       // Извлекаем menu_item_id из данных карусели
-      // API возвращает объекты с полем menu_item_id или вложенным menu_items
-      const carouselItemIds = new Set(
-        carouselItemsData.map((item: any) => {
-          // Если есть вложенный menu_items, берем id оттуда
-          if (item.menu_items && item.menu_items.id) {
-            return item.menu_items.id;
-          }
-          // Иначе берем menu_item_id напрямую
-          return item.menu_item_id;
-        }).filter(Boolean) // Убираем undefined/null
-      );
+      // Supabase JOIN возвращает menu_items как вложенный объект
+      const carouselItemIds = new Set<string>();
+      
+      for (const item of carouselItemsData) {
+        let menuItemId: string | null = null;
+        
+        // Проверяем вложенный объект menu_items (результат JOIN)
+        if (item.menu_items && typeof item.menu_items === 'object' && item.menu_items.id) {
+          menuItemId = item.menu_items.id;
+        }
+        // Иначе берем menu_item_id напрямую
+        else if (item.menu_item_id) {
+          menuItemId = item.menu_item_id;
+        }
+        
+        if (menuItemId) {
+          carouselItemIds.add(menuItemId);
+        }
+      }
       
       // Фильтруем товары, которые есть в карусели
       const itemsInCarousel = regularItems.filter(item => carouselItemIds.has(item.id));
