@@ -47,6 +47,9 @@ interface MenuItemWithStore {
   image_url: string | null;
   is_available: boolean;
   category: string | null;
+  restaurant_id: string;
+  is_banner: boolean;
+  created_at: string;
   restaurant: {
     id: string;
     name: string;
