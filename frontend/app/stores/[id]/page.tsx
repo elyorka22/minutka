@@ -6,11 +6,10 @@ import { notFound } from 'next/navigation';
 import { getRestaurantById, getBanners, getMenuItems } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
-import MenuItem from '@/components/MenuItem';
 import MenuItemBanner from '@/components/MenuItemBanner';
 import Cart from '@/components/Cart';
+import StoreItemsCarousel from '@/components/StoreItemsCarousel';
 import { MenuItem as MenuItemType } from '@/lib/types';
-import TableBookingButton from '@/components/TableBookingButton';
 
 const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'your_bot_username';
 
