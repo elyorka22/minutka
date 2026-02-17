@@ -9,8 +9,7 @@ import Image from 'next/image';
 import MenuItem from '@/components/MenuItem';
 import MenuItemBanner from '@/components/MenuItemBanner';
 import Cart from '@/components/Cart';
-import CategoryCarousel from '@/components/CategoryCarousel';
-import { MenuCategory, MenuItem as MenuItemType } from '@/lib/types';
+import { MenuItem as MenuItemType } from '@/lib/types';
 import TableBookingButton from '@/components/TableBookingButton';
 
 const TELEGRAM_BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || 'your_bot_username';
@@ -38,67 +37,6 @@ export default async function StorePage({ params }: PageProps) {
   // Разделяем товары на баннеры и обычные
   const bannerItems = menuItems.filter((item: MenuItemType) => item.is_banner === true);
   const regularItems = menuItems.filter((item: MenuItemType) => !item.is_banner);
-
-  // Группируем обычные товары по категориям из БД
-  // ВАЖНО: Все товары должны отображаться, независимо от категорий
-  const menuByCategory: MenuCategory[] = [];
-  
-  // Создаем карту всех товаров по категориям
-  const categoryMap = new Map<string, MenuItemType[]>();
-  const usedCategories = new Set<string>(); // Отслеживаем, какие категории уже использованы
-  
-  // Группируем ВСЕ товары по названию категории (поле category в menu_items)
-  regularItems.forEach((item) => {
-    const categoryName = item.category || 'Без категории';
-    if (!categoryMap.has(categoryName)) {
-      categoryMap.set(categoryName, []);
-    }
-    categoryMap.get(categoryName)!.push(item);
-  });
-
-  // Если есть категории магазина из БД, используем их для группировки
-  if (storeCategories.length > 0) {
-    // Создаем категории на основе данных из БД
-    storeCategories.forEach((dbCategory) => {
-      if (dbCategory.is_active) {
-        const items = categoryMap.get(dbCategory.name) || [];
-        menuByCategory.push({ 
-          name: dbCategory.name, 
-          items,
-          id: dbCategory.id,
-          image_url: dbCategory.image_url,
-          description: dbCategory.description
-        });
-        usedCategories.add(dbCategory.name);
-      }
-    });
-
-    // Добавляем ВСЕ остальные категории товаров, которые не совпали с категориями из БД
-    categoryMap.forEach((items, categoryName) => {
-      if (!usedCategories.has(categoryName) && items.length > 0) {
-        menuByCategory.push({ 
-          name: categoryName, 
-          items,
-          id: categoryName, // Используем название как ID
-          image_url: undefined,
-          description: undefined
-        });
-      }
-    });
-  } else {
-    // Если нет категорий из БД, группируем по полю category в menu_items
-    categoryMap.forEach((items, category) => {
-      if (items.length > 0) {
-        menuByCategory.push({ 
-          name: category, 
-          items,
-          id: category,
-          image_url: undefined,
-          description: undefined
-        });
-      }
-    });
-  }
 
     // Форматируем время работы для отображения
     const formatWorkingHours = () => {
