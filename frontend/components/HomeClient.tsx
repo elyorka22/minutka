@@ -12,7 +12,9 @@ import { Restaurant, RestaurantCategory } from '../../shared/types';
 import RestaurantCard from './RestaurantCard';
 import RestaurantCategories from './RestaurantCategories';
 import PharmacyStoreCard from './PharmacyStoreCard';
+import MenuItem from './MenuItem';
 import { useAuth } from '@/contexts/AuthContext';
+import { getMenuItems } from '@/lib/api';
 
 // Lazy loading для больших компонентов
 const BannerCarousel = dynamic(() => import('./BannerCarousel'), {
