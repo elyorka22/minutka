@@ -650,6 +650,139 @@ export async function removeStoreCarouselItem(carouselId: string, menuItemId: st
 }
 
 export async function updateStoreCarouselItemsOrder(carouselId: string, items: { menu_item_id: string; display_order: number }[]): Promise<void> {
+  try {
+    await api.put(`/api/store-carousels/${carouselId}/items/order`, { items });
+  } catch (error) {
+    console.error('Error updating store carousel items order:', error);
+    throw error;
+  }
+}
+
+// Promotions API
+export interface Promotion {
+  id: string;
+  name: string;
+  description?: string | null;
+  image_url?: string | null;
+  discount_percent: number;
+  display_order: number;
+  is_active: boolean;
+  start_date?: string | null;
+  end_date?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PromotionItem {
+  id: string;
+  promotion_id: string;
+  menu_item_id: string;
+  display_order: number;
+  created_at: string;
+  menu_items?: any;
+}
+
+export async function getPromotions(includeInactive: boolean = false): Promise<Promotion[]> {
+  try {
+    const params: any = {};
+    if (!includeInactive) {
+      params.is_active = 'true';
+    }
+    const response = await api.get<{ success: boolean; data: Promotion[] }>('/api/promotions', { params });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching promotions:', error);
+    return [];
+  }
+}
+
+export async function getPromotionById(id: string): Promise<Promotion | null> {
+  try {
+    const response = await api.get<{ success: boolean; data: Promotion }>(`/api/promotions/${id}`);
+    return response.data.data || null;
+  } catch (error) {
+    console.error('Error fetching promotion:', error);
+    return null;
+  }
+}
+
+export async function createPromotion(data: {
+  name: string;
+  description?: string;
+  image_url?: string;
+  discount_percent: number;
+  display_order?: number;
+  is_active?: boolean;
+  start_date?: string;
+  end_date?: string;
+}): Promise<Promotion> {
+  try {
+    const response = await api.post<{ success: boolean; data: Promotion }>('/api/promotions', data);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error creating promotion:', error);
+    throw error;
+  }
+}
+
+export async function updatePromotion(id: string, data: {
+  name?: string;
+  description?: string;
+  image_url?: string;
+  discount_percent?: number;
+  display_order?: number;
+  is_active?: boolean;
+  start_date?: string;
+  end_date?: string;
+}): Promise<Promotion> {
+  try {
+    const response = await api.put<{ success: boolean; data: Promotion }>(`/api/promotions/${id}`, data);
+    return response.data.data;
+  } catch (error) {
+    console.error('Error updating promotion:', error);
+    throw error;
+  }
+}
+
+export async function deletePromotion(id: string): Promise<void> {
+  try {
+    await api.delete(`/api/promotions/${id}`);
+  } catch (error) {
+    console.error('Error deleting promotion:', error);
+    throw error;
+  }
+}
+
+export async function getPromotionItems(promotionId: string): Promise<PromotionItem[]> {
+  try {
+    const response = await api.get<{ success: boolean; data: PromotionItem[] }>(`/api/promotions/${promotionId}/items`);
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching promotion items:', error);
+    return [];
+  }
+}
+
+export async function addPromotionItems(promotionId: string, menuItemIds: string[]): Promise<PromotionItem[]> {
+  try {
+    const response = await api.post<{ success: boolean; data: PromotionItem[] }>(`/api/promotions/${promotionId}/items`, {
+      menu_item_ids: menuItemIds,
+    });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error adding promotion items:', error);
+    throw error;
+  }
+}
+
+export async function removePromotionItem(promotionId: string, menuItemId: string): Promise<void> {
+  try {
+    await api.delete(`/api/promotions/${promotionId}/items/${menuItemId}`);
+  } catch (error) {
+    console.error('Error removing promotion item:', error);
+    throw error;
+  }
+}
   await api.put(`/api/store-carousels/${carouselId}/items`, { items });
 }
 
