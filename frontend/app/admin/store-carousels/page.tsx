@@ -230,29 +230,38 @@ export default function AdminStoreCarouselsPage() {
 
       // Обновляем товары в карусели
       try {
-        // Получаем текущие товары карусели
-        const currentItems = await getStoreCarouselItems(carouselId);
-        const currentItemIds = new Set(currentItems.map(item => item.menu_item_id));
-        const newItemIds = new Set(formData.selectedMenuItems);
+        if (editingCarousel) {
+          // При редактировании: получаем текущие товары и обновляем
+          const currentItems = await getStoreCarouselItems(carouselId);
+          const currentItemIds = new Set(currentItems.map(item => item.menu_item_id));
+          const newItemIds = new Set(formData.selectedMenuItems);
 
-        // Удаляем товары, которые были удалены
-        const itemsToRemove = currentItems.filter(item => !newItemIds.has(item.menu_item_id));
-        for (const item of itemsToRemove) {
-          await removeStoreCarouselItem(carouselId, item.menu_item_id);
-        }
+          // Удаляем товары, которые были удалены
+          const itemsToRemove = currentItems.filter(item => !newItemIds.has(item.menu_item_id));
+          for (const item of itemsToRemove) {
+            await removeStoreCarouselItem(carouselId, item.menu_item_id);
+          }
 
-        // Добавляем новые товары
-        const itemsToAdd = formData.selectedMenuItems.filter(id => !currentItemIds.has(id));
-        if (itemsToAdd.length > 0) {
-          await addStoreCarouselItems(carouselId, itemsToAdd);
+          // Добавляем новые товары
+          const itemsToAdd = formData.selectedMenuItems.filter(id => !currentItemIds.has(id));
+          if (itemsToAdd.length > 0) {
+            await addStoreCarouselItems(carouselId, itemsToAdd);
+          }
+        } else {
+          // При создании: просто добавляем выбранные товары
+          if (formData.selectedMenuItems.length > 0) {
+            await addStoreCarouselItems(carouselId, formData.selectedMenuItems);
+          }
         }
 
         if (formData.selectedMenuItems.length > 0) {
-          showSuccess(`Карусель обновлена. Товаров в карусели: ${formData.selectedMenuItems.length}`);
+          showSuccess(`Карусель ${editingCarousel ? 'обновлена' : 'создана'}. Товаров в карусели: ${formData.selectedMenuItems.length}`);
+        } else {
+          showSuccess(`Карусель ${editingCarousel ? 'обновлена' : 'создана'}. Товары можно добавить позже.`);
         }
       } catch (error) {
         console.error('Error updating carousel items:', error);
-        showError('Карусель создана, но не удалось обновить товары');
+        showError(`Карусель ${editingCarousel ? 'обновлена' : 'создана'}, но не удалось обновить товары: ${handleApiError(error)}`);
       }
 
       setShowForm(false);

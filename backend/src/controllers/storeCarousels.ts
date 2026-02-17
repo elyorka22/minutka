@@ -279,8 +279,13 @@ export async function addStoreCarouselItems(req: AuthenticatedRequest, res: Resp
       });
     }
 
-    if (!Array.isArray(menu_item_ids) || menu_item_ids.length === 0) {
-      return res.status(400).json({ success: false, error: 'menu_item_ids must be a non-empty array' });
+    if (!Array.isArray(menu_item_ids)) {
+      return res.status(400).json({ success: false, error: 'menu_item_ids must be an array' });
+    }
+
+    // Если массив пустой, просто возвращаем успех (карусель может быть пустой)
+    if (menu_item_ids.length === 0) {
+      return res.json({ success: true, data: [] });
     }
 
     // Получаем текущий максимальный display_order
