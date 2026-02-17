@@ -399,7 +399,7 @@ export default function HomeClient({
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
           <RestaurantCategories
             categories={initialStoreCategories.map(cat => ({
-              id: cat.id || cat.name,
+              id: cat.name, // Используем название как ID для единообразия
               name: cat.name,
               image_url: cat.image_url || '',
               is_active: true,
