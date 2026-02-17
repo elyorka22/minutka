@@ -9,11 +9,14 @@ import MenuItem from './MenuItem';
 
 interface StoreItemsCarouselProps {
   items: MenuItemType[];
+  carouselIndex?: number;
 }
 
-export default function StoreItemsCarousel({ items }: StoreItemsCarouselProps) {
+export default function StoreItemsCarousel({ items, carouselIndex = 0 }: StoreItemsCarouselProps) {
+  const carouselId = `store-items-carousel-${carouselIndex}`;
+  
   const scrollCategory = (direction: 'left' | 'right') => {
-    const container = document.getElementById('store-items-carousel');
+    const container = document.getElementById(carouselId);
     if (container) {
       const scrollAmount = 300;
       const currentScroll = container.scrollLeft;
@@ -42,7 +45,7 @@ export default function StoreItemsCarousel({ items }: StoreItemsCarouselProps) {
 
         {/* Horizontal Carousel */}
         <div
-          id="store-items-carousel"
+          id={carouselId}
           className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
           style={{ 
             scrollbarWidth: 'none', 

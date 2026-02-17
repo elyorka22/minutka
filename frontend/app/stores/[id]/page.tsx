@@ -36,6 +36,14 @@ export default async function StorePage({ params }: PageProps) {
   const bannerItems = menuItems.filter((item: MenuItemType) => item.is_banner === true);
   const regularItems = menuItems.filter((item: MenuItemType) => !item.is_banner);
 
+  // Разделяем товары на три группы для трех каруселей
+  const itemsPerCarousel = Math.ceil(regularItems.length / 3);
+  const carouselGroups = [
+    regularItems.slice(0, itemsPerCarousel),
+    regularItems.slice(itemsPerCarousel, itemsPerCarousel * 2),
+    regularItems.slice(itemsPerCarousel * 2),
+  ].filter(group => group.length > 0); // Убираем пустые группы
+
     // Форматируем время работы для отображения
     const formatWorkingHours = () => {
       if (!store.working_hours) return null;
@@ -119,8 +127,10 @@ export default async function StorePage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Regular Menu Section - Все товары в одной горизонтальной карусели без категорий */}
-          <StoreItemsCarousel items={regularItems} />
+          {/* Regular Menu Section - Товары в трех горизонтальных каруселях (три ряда) */}
+          {carouselGroups.map((group, index) => (
+            <StoreItemsCarousel key={index} items={group} carouselIndex={index} />
+          ))}
 
           {/* Recommended Banners */}
           {recommendedBanners.length > 0 && (
