@@ -33,6 +33,7 @@ interface HomeClientProps {
   initialCategoryRestaurantMap: { [categoryId: string]: string[] };
   initialCategoryStoreMap: { [categoryId: string]: string[] };
   initialStoreCategories: any[]; // Категории магазинов (store_categories)
+  initialStoreCategoryStoreMap: { [categoryName: string]: string[] }; // Карта: название категории -> массив ID магазинов
   appSlogan: string;
 }
 
@@ -45,6 +46,7 @@ export default function HomeClient({
   initialCategoryRestaurantMap,
   initialCategoryStoreMap,
   initialStoreCategories,
+  initialStoreCategoryStoreMap,
   appSlogan,
 }: HomeClientProps) {
   const router = useRouter();
@@ -139,14 +141,16 @@ export default function HomeClient({
         const isStoreCategory = initialStoreCategories.some(cat => cat.name === selectedCategory);
         if (isStoreCategory) {
           // Фильтруем магазины, у которых есть товары с этой категорией
-          // Это будет сделано на клиенте через проверку товаров магазина
-          // Пока просто пропускаем все магазины, фильтрация по товарам будет на странице магазина
-          return true; // Показываем все магазины, фильтрация по товарам будет на странице магазина
-        }
-        // Старая логика для категорий ресторанов
-        const storeIds = initialCategoryStoreMap[selectedCategory] || [];
-        if (storeIds.length > 0 && !storeIds.includes(s.id)) {
-          return false;
+          const storeIds = initialStoreCategoryStoreMap[selectedCategory] || [];
+          if (storeIds.length > 0 && !storeIds.includes(s.id)) {
+            return false;
+          }
+        } else {
+          // Старая логика для категорий ресторанов
+          const storeIds = initialCategoryStoreMap[selectedCategory] || [];
+          if (storeIds.length > 0 && !storeIds.includes(s.id)) {
+            return false;
+          }
         }
       }
       // Фильтр по поисковому запросу
@@ -158,7 +162,7 @@ export default function HomeClient({
       }
       return true;
     });
-  }, [initialStores, selectedCategory, searchQuery, initialCategoryStoreMap, pharmaciesCategory, storesCategory, selectedTab, initialStoreCategories]);
+  }, [initialStores, selectedCategory, searchQuery, initialCategoryStoreMap, pharmaciesCategory, storesCategory, selectedTab, initialStoreCategories, initialStoreCategoryStoreMap]);
 
   // Фильтруем категории в зависимости от выбранной вкладки
   const filteredCategories = useMemo(() => {

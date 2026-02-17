@@ -143,3 +143,46 @@ export async function getAllStoreCategoriesServer(): Promise<any[]> {
   return Array.from(categoryMap.values());
 }
 
+// Store Category Store Map - создать карту: какая категория товаров есть в каком магазине
+export async function getStoreCategoryStoreMapServer(): Promise<{ [categoryName: string]: string[] }> {
+  // Загружаем все магазины
+  const storesResult = await getStoresServer();
+  const stores = storesResult.data || [];
+  
+  // Карта: название категории -> массив ID магазинов, у которых есть товары этой категории
+  const categoryStoreMap: { [categoryName: string]: string[] } = {};
+  
+  for (const store of stores) {
+    try {
+      // Загружаем товары магазина
+      const url = `${API_BASE_URL}/api/menu?restaurant_id=${store.id}`;
+      const menuItems = await fetchWithCache<any[]>(url, {}, 60);
+      
+      if (Array.isArray(menuItems)) {
+        // Собираем уникальные категории товаров этого магазина
+        const storeCategories = new Set<string>();
+        menuItems.forEach((item) => {
+          if (item.category && item.category.trim()) {
+            storeCategories.add(item.category.trim());
+          }
+        });
+        
+        // Добавляем магазин в карту для каждой категории
+        storeCategories.forEach((categoryName) => {
+          if (!categoryStoreMap[categoryName]) {
+            categoryStoreMap[categoryName] = [];
+          }
+          if (!categoryStoreMap[categoryName].includes(store.id)) {
+            categoryStoreMap[categoryName].push(store.id);
+          }
+        });
+      }
+    } catch (error) {
+      // Игнорируем ошибки для отдельных магазинов
+      console.error(`Error fetching menu items for store ${store.id}:`, error);
+    }
+  }
+  
+  return categoryStoreMap;
+}
+
