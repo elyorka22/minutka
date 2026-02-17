@@ -3,7 +3,7 @@
 // ============================================
 
 import { notFound } from 'next/navigation';
-import { getRestaurantById, getBanners, getMenuItems, getStoreCategories } from '@/lib/api';
+import { getRestaurantById, getBanners, getMenuItems } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
 import MenuItem from '@/components/MenuItem';
@@ -23,11 +23,10 @@ interface PageProps {
 export default async function StorePage({ params }: PageProps) {
   // Загружаем данные из API
   // Получаем все товары, включая недоступные, чтобы показать их серыми
-  const [store, recommendedBanners, menuItems, storeCategories] = await Promise.all([
+  const [store, recommendedBanners, menuItems] = await Promise.all([
     getRestaurantById(params.id).catch(() => null),
     getBanners('recommended'),
     getMenuItems(params.id, true), // includeUnavailable = true
-    getStoreCategories(params.id, false).catch(() => []) // Получаем активные категории магазина
   ]);
 
   if (!store || store.type !== 'store') {
@@ -121,16 +120,84 @@ export default async function StorePage({ params }: PageProps) {
             </div>
           )}
 
-          {/* Regular Menu Section - Обычные карточки товаров в виде горизонтальных каруселей */}
-          {menuByCategory.length > 0 && (
+          {/* Regular Menu Section - Все товары в одной горизонтальной карусели без категорий */}
+          {regularItems.length > 0 && (
             <div className="mb-8">
-              {menuByCategory.map((category, categoryIndex) => (
-                <CategoryCarousel 
-                  key={category.name} 
-                  category={category} 
-                  categoryIndex={categoryIndex}
-                />
-              ))}
+              <div className="relative w-full" style={{ overflow: 'hidden' }}>
+                {/* Scroll Left Button */}
+                <button
+                  onClick={() => {
+                    const container = document.getElementById('store-items-carousel');
+                    if (container) {
+                      container.scrollBy({ left: -300, behavior: 'smooth' });
+                    }
+                  }}
+                  className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-10 h-10 rounded-full bg-white shadow-lg hover:shadow-xl transition-shadow"
+                  aria-label="Прокрутить влево"
+                >
+                  <span className="text-2xl text-gray-600">‹</span>
+                </button>
+
+                {/* Horizontal Carousel */}
+                <div
+                  id="store-items-carousel"
+                  className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+                  style={{ 
+                    scrollbarWidth: 'none', 
+                    msOverflowStyle: 'none',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'nowrap',
+                    width: '100%',
+                    overflowX: 'auto',
+                    overflowY: 'hidden',
+                    WebkitOverflowScrolling: 'touch',
+                    alignItems: 'stretch',
+                    boxSizing: 'border-box',
+                    alignContent: 'stretch'
+                  } as React.CSSProperties}
+                >
+                  {regularItems.map((item) => (
+                    <div 
+                      key={item.id} 
+                      className="flex-shrink-0"
+                      style={{ 
+                        width: '150px',
+                        minWidth: '150px',
+                        maxWidth: '150px',
+                        flexShrink: 0,
+                        flexGrow: 0,
+                        flexBasis: '150px',
+                        display: 'flex',
+                        height: '100%'
+                      }}
+                    >
+                      <MenuItem item={item} />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Scroll Right Button */}
+                <button
+                  onClick={() => {
+                    const container = document.getElementById('store-items-carousel');
+                    if (container) {
+                      container.scrollBy({ left: 300, behavior: 'smooth' });
+                    }
+                  }}
+                  className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-10 h-10 rounded-full bg-white shadow-lg hover:shadow-xl transition-shadow"
+                  aria-label="Прокрутить вправо"
+                >
+                  <span className="text-2xl text-gray-600">›</span>
+                </button>
+
+                {/* Hide scrollbar */}
+                <style jsx>{`
+                  #store-items-carousel::-webkit-scrollbar {
+                    display: none;
+                  }
+                `}</style>
+              </div>
             </div>
           )}
 
