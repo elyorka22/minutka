@@ -200,7 +200,7 @@ export default function HomeClient({
         }
       }
     }
-  }, [selectedTab, selectedCategory, initialCategoryRestaurantMap, initialCategoryStoreMap, setSelectedCategory]);
+  }, [selectedTab, selectedCategory, initialCategoryRestaurantMap, initialCategoryStoreMap]);
 
   return (
     <div className="min-h-screen bg-gray-50">
