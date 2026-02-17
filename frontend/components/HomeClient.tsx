@@ -347,7 +347,11 @@ export default function HomeClient({
                 }
               }
             }}
-            allCategoryImage={undefined}
+            allCategoryImage={
+              initialStoreCategories.find(
+                (c) => c.name === 'Все' || c.name === 'Hammasi' || c.name?.toLowerCase() === 'все' || c.name?.toLowerCase() === 'hammasi' || c.id === 'all'
+              )?.image_url
+            }
           />
         </section>
       )}
