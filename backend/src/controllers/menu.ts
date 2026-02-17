@@ -23,6 +23,8 @@ export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
 
     // Если указана категория, возвращаем товары этой категории из всех магазинов
     if (category && !restaurant_id) {
+      console.log('[MenuController] Fetching items for category:', category);
+      
       let query = supabase
         .from('menu_items')
         .select(`
@@ -47,6 +49,7 @@ export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
         .order('name', { ascending: true });
 
       if (error) {
+        console.error('[MenuController] Error fetching items:', error);
         throw error;
       }
 
@@ -55,6 +58,7 @@ export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
         item.restaurant && item.restaurant.type === 'store'
       );
 
+      console.log('[MenuController] Found items:', storeItems.length, 'for category:', category);
       res.json({ success: true, data: storeItems });
       return;
     }
