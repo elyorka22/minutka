@@ -576,18 +576,11 @@ export default function HomeClient({
                       is_banner: item.is_banner || false,
                       created_at: item.created_at || new Date().toISOString(),
                     };
-                    return (
-                      <div key={item.id} className="relative">
-                        <MenuItem item={menuItem} />
-                        {/* Информация о магазине */}
-                        <Link 
-                          href={`/stores/${item.restaurant.id}`}
-                          className="block mt-2 text-xs text-gray-600 hover:text-primary-600 truncate"
-                        >
-                          📍 {item.restaurant.name}
-                        </Link>
-                      </div>
-                    );
+                return (
+                  <div key={item.id} className="relative">
+                    <MenuItem item={menuItem} />
+                  </div>
+                );
                   })}
                 </div>
               ) : (
