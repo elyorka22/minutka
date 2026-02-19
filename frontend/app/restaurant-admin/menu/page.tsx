@@ -231,12 +231,17 @@ export default function RestaurantAdminMenuPage() {
 }
 
 // Menu Item Form Modal Component
-const MenuItemFormModal: React.FC<{
+function MenuItemFormModal({
+  item,
+  restaurantId,
+  onClose,
+  onSave,
+}: {
   item: MenuItem | null;
   restaurantId: string | undefined;
   onClose: () => void;
   onSave: (item: MenuItem) => void;
-}> = ({ item, restaurantId, onClose, onSave }) => {
+}) {
   const [formData, setFormData] = useState({
     name: item?.name || '',
     description: item?.description || '',
