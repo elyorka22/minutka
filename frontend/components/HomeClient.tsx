@@ -556,11 +556,11 @@ export default function HomeClient({
       {/* Stores Section - показываем товары категории или все магазины */}
       {selectedTab === 'stores' && !searchQuery && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">
-            {selectedCategory && categoryItems.length > 0
-              ? `${initialStoreCategories.find((c) => c.name === selectedCategory)?.name || selectedCategory}`
-              : '📋 Barcha do\'konlar'}
-          </h2>
+          {selectedCategory && categoryItems.length > 0 && (
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              {initialStoreCategories.find((c) => c.name === selectedCategory)?.name || selectedCategory}
+            </h2>
+          )}
           
           {/* Если выбрана категория (не "Все") - показываем товары или загрузку */}
           {selectedCategory ? (
