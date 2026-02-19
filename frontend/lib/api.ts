@@ -783,8 +783,6 @@ export async function removePromotionItem(promotionId: string, menuItemId: strin
     throw error;
   }
 }
-  await api.put(`/api/store-carousels/${carouselId}/items`, { items });
-}
 
 
 export async function createMenuItem(menuItemData: {
