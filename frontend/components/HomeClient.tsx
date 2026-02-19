@@ -253,7 +253,7 @@ export default function HomeClient({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">🛒 Online Bozor</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Online Bozor</h1>
               <p className="text-sm text-gray-600">{appSlogan}</p>
             </div>
             <div className="flex items-center gap-3">
@@ -291,7 +291,7 @@ export default function HomeClient({
                 }}
                 className="px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm"
               >
-                🔐 Kirish
+                Kirish
               </button>
             </div>
           </div>
