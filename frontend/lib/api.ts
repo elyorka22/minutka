@@ -667,7 +667,6 @@ export async function createMenuItem(menuItemData: {
   image_url?: string | null;
   is_available?: boolean;
   is_banner?: boolean;
-  discount_percent?: number | null;
 }): Promise<any> {
   try {
     const response = await api.post<{ success: boolean; data: any }>('/api/menu', menuItemData);
@@ -686,7 +685,6 @@ export async function updateMenuItem(id: string, menuItemData: {
   image_url?: string | null;
   is_available?: boolean;
   is_banner?: boolean;
-  discount_percent?: number | null;
 }): Promise<any> {
   try {
     const response = await api.patch<{ success: boolean; data: any }>(`/api/menu/${id}`, menuItemData);
