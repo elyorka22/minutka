@@ -276,7 +276,7 @@ function MenuItemFormModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const newItem: MenuItem = {
+    const newItem = {
       id: item?.id || Date.now().toString(),
       restaurant_id: item?.restaurant_id || restaurantId || '',
       name: formData.name,
@@ -288,7 +288,7 @@ function MenuItemFormModal({
       is_banner: formData.is_banner,
       discount_percent: formData.discount_percent ? parseInt(formData.discount_percent) : null,
       created_at: item?.created_at || new Date().toISOString(),
-    };
+    } as MenuItem;
     onSave(newItem);
   };
 
