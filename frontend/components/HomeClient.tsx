@@ -74,6 +74,7 @@ export default function HomeClient({
 }: HomeClientProps) {
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
+  const { items: cartItems } = useCart();
   // По умолчанию категория "Все" (null означает "Все")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -81,6 +82,37 @@ export default function HomeClient({
   const [pharmaciesStores, setPharmaciesStores] = useState(initialPharmaciesStores);
   const [categoryItems, setCategoryItems] = useState<MenuItemWithStore[]>([]);
   const [loadingCategoryItems, setLoadingCategoryItems] = useState(false);
+  
+  // Определяем, выбрана ли категория "Все" (Hammasi)
+  const isAllCategory = useMemo(() => {
+    if (!selectedCategory) return true;
+    return initialStoreCategories.some(cat => 
+      (cat.name === 'Все' || cat.name === 'Hammasi') && cat.name === selectedCategory
+    );
+  }, [selectedCategory, initialStoreCategories]);
+  
+  // Получаем restaurantId для корзины из первого товара в корзине или первого товара категории
+  const cartRestaurantId = useMemo(() => {
+    if (cartItems.length > 0 && cartItems[0].item.restaurant_id) {
+      return cartItems[0].item.restaurant_id;
+    }
+    if (categoryItems.length > 0 && categoryItems[0].restaurant_id) {
+      return categoryItems[0].restaurant_id;
+    }
+    // Если нет товаров, используем первый магазин
+    return initialStores.length > 0 ? initialStores[0].id : '';
+  }, [cartItems, categoryItems, initialStores]);
+  
+  // Получаем название магазина для корзины
+  const cartRestaurantName = useMemo(() => {
+    if (cartItems.length > 0 && cartItems[0].item.restaurant) {
+      return cartItems[0].item.restaurant.name;
+    }
+    if (categoryItems.length > 0 && categoryItems[0].restaurant) {
+      return categoryItems[0].restaurant.name;
+    }
+    return initialStores.length > 0 ? initialStores[0].name : 'Online Bozor';
+  }, [cartItems, categoryItems, initialStores]);
 
   // Находим категории аптек и магазинов
   const pharmaciesCategory = initialCategories.find(
@@ -192,16 +224,6 @@ export default function HomeClient({
   // Загружаем товары выбранной категории
   useEffect(() => {
     console.log('[HomeClient] useEffect triggered:', { selectedCategory, categoriesCount: initialStoreCategories.length });
-    
-    // Проверяем, является ли выбранная категория категорией "Все"
-    const isAllCategory = 
-      selectedCategory === null ||
-      selectedCategory === 'all' ||
-      (selectedCategory && initialStoreCategories.some(cat => 
-        (cat.name === 'Все' || cat.name === 'Hammasi') && (cat.name === selectedCategory || cat.id === selectedCategory)
-      ));
-    
-    console.log('[HomeClient] isAllCategory:', isAllCategory);
     
     // Если выбрана категория "Все" или нет категории - показываем магазины
     if (isAllCategory) {
