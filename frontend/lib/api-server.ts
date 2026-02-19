@@ -57,28 +57,7 @@ export async function getStoresServer(
 }
 
 // Categories API (server-side)
-// Для публичного доступа возвращаем только активные категории
-export async function getCategoriesServer(): Promise<RestaurantCategory[]> {
-  const url = `${API_BASE_URL}/api/categories?active=true`;
-  // Уменьшаем кэш до 30 секунд для более быстрого обновления при деактивации категорий
-  const data = await fetchWithCache<RestaurantCategory[]>(url, {}, 30);
-  // Дополнительная фильтрация на случай, если API вернет неактивные категории
-  return Array.isArray(data) ? data.filter(cat => cat.is_active !== false) : [];
-}
-
-// Restaurant Category Relations API (server-side)
-export async function getRestaurantCategoryRelationsServer(
-  categoryId?: string,
-  restaurantId?: string
-): Promise<any[]> {
-  const params = new URLSearchParams();
-  if (categoryId) params.append('category_id', categoryId);
-  if (restaurantId) params.append('restaurant_id', restaurantId);
-
-  const url = `${API_BASE_URL}/api/restaurant-category-relations${params.toString() ? `?${params.toString()}` : ''}`;
-  const data = await fetchWithCache<any[]>(url, {}, 60); // Кэш 60 секунд
-  return Array.isArray(data) ? data : [];
-}
+// Categories and restaurant category relations removed - only stores remain
 
 // Banners API (server-side)
 export async function getBannersServer(position: string): Promise<Banner[]> {
