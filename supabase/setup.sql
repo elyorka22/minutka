@@ -390,8 +390,8 @@ CREATE POLICY "Public can view available menu items"
 
 -- Initial bot settings
 INSERT INTO bot_settings (key, value) VALUES
-    ('bot_info', 'Minutka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.'),
-    ('partnership', 'Hamkorlik uchun biz bilan bog''laning: @minutka_admin yoki email: info@minutka.uz'),
+    ('bot_info', 'Online Bozor - Online do''kon platformasi. Biz bilan siz kerakli mahsulotlarni uyingizga buyurtma berishingiz mumkin.'),
+    ('partnership', 'Hamkorlik uchun biz bilan bog''laning: @onlinebozor_admin yoki email: info@onlinebozor.uz'),
     ('button_bot_info_text', 'ℹ️ Bot haqida'),
     ('button_partnership_text', '🤝 Hamkorlik')
 ON CONFLICT (key) DO NOTHING;

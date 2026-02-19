@@ -1,5 +1,5 @@
 // ============================================
-// Shared Types for Minutka Platform
+// Shared Types for Online Bozor Platform
 // ============================================
 
 // Restaurant types

@@ -49,18 +49,18 @@ export default function BotSettingsPage() {
       const bannerTitleSetting = settings.find((s: BotSetting) => s.key === 'banner_title');
       const bannerSubtitleSetting = settings.find((s: BotSetting) => s.key === 'banner_subtitle');
       
-      setWelcomeMessage(welcomeSetting?.value || '🍽️ *Minutka\'ga xush kelibsiz!*\n\nBuyurtma berish uchun restoran tanlang:');
-      setBotInfoMessage(botInfoSetting?.value || 'Minutka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
-      setPartnershipMessage(partnershipSetting?.value || 'Hamkorlik uchun biz bilan bog\'laning: @minutka_admin yoki email: info@minutka.uz');
+      setWelcomeMessage(welcomeSetting?.value || '🛒 *Online Bozor\'ga xush kelibsiz!*\n\nBuyurtma berish uchun do\'kon tanlang:');
+      setBotInfoMessage(botInfoSetting?.value || 'Online Bozor - Online do\'kon platformasi. Biz bilan siz kerakli mahsulotlarni uyingizga buyurtma berishingiz mumkin.');
+      setPartnershipMessage(partnershipSetting?.value || 'Hamkorlik uchun biz bilan bog\'laning: @onlinebozor_admin yoki email: info@onlinebozor.uz');
       setAppSlogan(appSloganSetting?.value || 'Telegram orqali ovqat yetkazib berish');
       setBannerTitle(bannerTitleSetting?.value || 'Ovqat buyurtma qiling!');
       setBannerSubtitle(bannerSubtitleSetting?.value || 'Restoran tanlang va Telegram-bot orqali buyurtma bering');
     } catch (error) {
       console.error('Error fetching bot settings:', error);
       // Используем значения по умолчанию
-      setWelcomeMessage('🍽️ *Minutka\'ga xush kelibsiz!*\n\nBuyurtma berish uchun restoran tanlang:');
-      setBotInfoMessage('Minutka - Telegram orqali ovqat yetkazib berish platformasi. Biz bilan siz sevimli taomlaringizni uyingizga buyurtma berishingiz mumkin.');
-      setPartnershipMessage('Hamkorlik uchun biz bilan bog\'laning: @minutka_admin yoki email: info@minutka.uz');
+      setWelcomeMessage('🛒 *Online Bozor\'ga xush kelibsiz!*\n\nBuyurtma berish uchun do\'kon tanlang:');
+      setBotInfoMessage('Online Bozor - Online do\'kon platformasi. Biz bilan siz kerakli mahsulotlarni uyingizga buyurtma berishingiz mumkin.');
+      setPartnershipMessage('Hamkorlik uchun biz bilan bog\'laning: @onlinebozor_admin yoki email: info@onlinebozor.uz');
       setAppSlogan('Telegram orqali ovqat yetkazib berish');
       setBannerTitle('Ovqat buyurtma qiling!');
       setBannerSubtitle('Restoran tanlang va Telegram-bot orqali buyurtma bering');

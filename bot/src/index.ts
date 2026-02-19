@@ -1,5 +1,5 @@
 // ============================================
-// Telegram Bot for Minutka
+// Telegram Bot for Online Bozor
 // ============================================
 
 import { Telegraf, Context } from 'telegraf';

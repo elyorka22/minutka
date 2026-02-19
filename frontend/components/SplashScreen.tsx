@@ -66,7 +66,7 @@ export default function SplashScreen({ onFinish, isLoading = true }: SplashScree
             letterSpacing: '0.1em',
           }}
         >
-          MINUTKA
+          ONLINE BOZOR
         </h1>
 
         {/* Индикатор загрузки - анимационные точки */}

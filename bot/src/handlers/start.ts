@@ -20,7 +20,7 @@ export async function startHandler(ctx: Context) {
       .single();
 
     const welcomeMessage = welcomeSetting?.value || 
-      '🍽️ *Minutka\'ga xush kelibsiz!*\n\n' +
+      '🛒 *Online Bozor\'ga xush kelibsiz!*\n\n' +
       'Buyurtma berish uchun veb-saytimizga kiring: https://minutka.vercel.app';
 
     const mainMenuKeyboard = await createMainMenuKeyboard();

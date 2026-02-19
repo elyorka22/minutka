@@ -80,7 +80,7 @@ export async function reverseGeocode(
     
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Minutka Delivery App', // Требуется Nominatim
+        'User-Agent': 'Online Bozor Delivery App', // Требуется Nominatim
         'Accept-Language': 'uz,ru,en', // Приоритет языков для Узбекистана
       },
     });

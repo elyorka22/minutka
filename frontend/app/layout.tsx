@@ -6,7 +6,7 @@ import { ToastProvider } from '@/contexts/ToastContext'
 import TelegramWebAppInit from '@/components/TelegramWebAppInit'
 
 export const metadata: Metadata = {
-  title: 'Minutka - Ovqat yetkazib berish',
+  title: 'Online Bozor - Online do\'kon',
   description: 'Telegram orqali ovqat yetkazib berish platformasi',
 }
 
