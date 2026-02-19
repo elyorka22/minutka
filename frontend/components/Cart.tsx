@@ -167,7 +167,6 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
         onClick={() => setIsOpen(true)}
         className={buttonClasses}
       >
-        <span className="text-xl">🛒</span>
         <span className="font-semibold">Savatcha</span>
         {totalItems > 0 && (
           <span className="bg-white text-primary-500 rounded-full px-2 py-1 text-sm font-bold">
