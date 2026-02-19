@@ -15,6 +15,8 @@ import PharmacyStoreCard from './PharmacyStoreCard';
 import MenuItem from './MenuItem';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMenuItems } from '@/lib/api';
+import Cart from './Cart';
+import { useCart } from '@/contexts/CartContext';
 
 // Lazy loading для больших компонентов
 const BannerCarousel = dynamic(() => import('./BannerCarousel'), {
@@ -257,42 +259,53 @@ export default function HomeClient({
               <p className="text-sm text-gray-600">{appSlogan}</p>
             </div>
             <div className="flex items-center gap-3">
-              <button
-                onClick={async () => {
-                  try {
-                    // Получаем telegram_id из Telegram Web App или localStorage
-                    const { getTelegramWebAppUser, getTelegramUserId } = await import('@/lib/telegram-webapp');
-                    const webAppUser = getTelegramWebAppUser();
-                    let telegramId: string | null = null;
+              {isAllCategory ? (
+                <button
+                  onClick={async () => {
+                    try {
+                      // Получаем telegram_id из Telegram Web App или localStorage
+                      const { getTelegramWebAppUser, getTelegramUserId } = await import('@/lib/telegram-webapp');
+                      const webAppUser = getTelegramWebAppUser();
+                      let telegramId: string | null = null;
 
-                    if (webAppUser) {
-                      telegramId = webAppUser.id.toString();
-                      localStorage.setItem('telegram_id', telegramId);
-                    } else {
-                      telegramId = getTelegramUserId();
-                    }
+                      if (webAppUser) {
+                        telegramId = webAppUser.id.toString();
+                        localStorage.setItem('telegram_id', telegramId);
+                      } else {
+                        telegramId = getTelegramUserId();
+                      }
 
-                    if (!telegramId) {
-                      // Если telegram_id не найден, идем на страницу входа
+                      if (!telegramId) {
+                        // Если telegram_id не найден, идем на страницу входа
+                        router.push('/login');
+                        return;
+                      }
+
+                      console.log('[HomeClient] Attempting automatic login with telegram_id:', telegramId);
+
+                      // Используем функцию login из AuthContext для автоматического входа
+                      // Это обеспечит правильное сохранение пользователя и автоматический редирект
+                      await login(telegramId);
+                    } catch (error: any) {
+                      console.error('[HomeClient] Error during automatic login:', error);
+                      // Если автоматический вход не удался (пользователь не найден или требуется пароль), идем на страницу входа
                       router.push('/login');
-                      return;
                     }
-
-                    console.log('[HomeClient] Attempting automatic login with telegram_id:', telegramId);
-
-                    // Используем функцию login из AuthContext для автоматического входа
-                    // Это обеспечит правильное сохранение пользователя и автоматический редирект
-                    await login(telegramId);
-                  } catch (error: any) {
-                    console.error('[HomeClient] Error during automatic login:', error);
-                    // Если автоматический вход не удался (пользователь не найден или требуется пароль), идем на страницу входа
-                    router.push('/login');
-                  }
-                }}
-                className="px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm"
-              >
-                Kirish
-              </button>
+                  }}
+                  className="px-4 py-2 bg-primary-500 text-white rounded-lg font-semibold hover:bg-primary-600 transition-colors text-sm"
+                >
+                  Kirish
+                </button>
+              ) : (
+                cartRestaurantId && (
+                  <Cart
+                    restaurantId={cartRestaurantId}
+                    restaurantName={cartRestaurantName}
+                    telegramBotUsername={process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || ''}
+                    buttonPosition="header"
+                  />
+                )
+              )}
             </div>
           </div>
         </div>
