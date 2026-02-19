@@ -212,6 +212,7 @@ export default function RestaurantAdminMenuPage() {
                   image_url: item.image_url,
                   is_available: item.is_available,
                   is_banner: item.is_banner,
+                  discount_percent: item.discount_percent,
                 });
                 setMenuItems((prevItems) => [...prevItems, created]);
                 showSuccess('Блюдо успешно создано!');
