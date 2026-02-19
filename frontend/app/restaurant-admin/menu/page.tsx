@@ -193,6 +193,7 @@ export default function RestaurantAdminMenuPage() {
                   category: item.category,
                   image_url: item.image_url,
                   is_available: item.is_available,
+                  discount_percent: item.discount_percent,
                 });
                 setMenuItems((prevItems) => prevItems.map((i) => (i.id === item.id ? updated : i)));
                 showSuccess('Блюдо успешно обновлено!');
@@ -284,6 +285,7 @@ function MenuItemFormModal({
       image_url: formData.image_url || null,
       is_available: formData.is_available,
       is_banner: formData.is_banner,
+      discount_percent: formData.discount_percent ? parseInt(formData.discount_percent) : null,
       created_at: item?.created_at || new Date().toISOString(),
     };
     onSave(newItem);
@@ -344,8 +346,28 @@ function MenuItemFormModal({
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  📂 Категория меню
+                  Скидка (%)
                 </label>
+                <input
+                  type="number"
+                  value={formData.discount_percent}
+                  onChange={(e) => setFormData({ ...formData, discount_percent: e.target.value })}
+                  min="0"
+                  max="100"
+                  step="1"
+                  placeholder="0-100"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Оставьте пустым или укажите 0, чтобы убрать скидку
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                📂 Категория меню
+              </label>
                 {loadingCategories ? (
                   <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
                     Загрузка категорий...
