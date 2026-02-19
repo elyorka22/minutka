@@ -72,7 +72,6 @@ export default function HomeClient({
 }: HomeClientProps) {
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
-  const [selectedTab, setSelectedTab] = useState<'restaurants' | 'stores'>('stores');
   // По умолчанию категория "Все" (null означает "Все")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -117,9 +116,9 @@ export default function HomeClient({
     [pharmaciesStores, pharmacies]
   );
 
-  // Фильтрация ресторанов
+  // Фильтрация ресторанов - удалено, оставляем только магазины
   const filteredRestaurants = useMemo(() => {
-    const restaurants = selectedTab === 'restaurants' ? initialRestaurants : [];
+    const restaurants: Restaurant[] = [];
     return restaurants.filter((r) => {
       // Если выбрана категория аптек или магазинов, не показываем рестораны
       if (
@@ -190,111 +189,62 @@ export default function HomeClient({
 
   // Загружаем товары выбранной категории
   useEffect(() => {
-    console.log('[HomeClient] useEffect triggered:', { selectedTab, selectedCategory, categoriesCount: initialStoreCategories.length });
+    console.log('[HomeClient] useEffect triggered:', { selectedCategory, categoriesCount: initialStoreCategories.length });
     
-    if (selectedTab === 'stores') {
-      // Проверяем, является ли выбранная категория категорией "Все"
-      const isAllCategory = 
-        selectedCategory === null ||
-        selectedCategory === 'all' ||
-        (selectedCategory && initialStoreCategories.some(cat => 
-          (cat.name === 'Все' || cat.name === 'Hammasi') && (cat.name === selectedCategory || cat.id === selectedCategory)
-        ));
-      
-      console.log('[HomeClient] isAllCategory:', isAllCategory);
-      
-      // Если выбрана категория "Все" или нет категории - показываем магазины
-      if (isAllCategory) {
-        console.log('[HomeClient] Showing stores (All category)');
-        setCategoryItems([]);
-        return;
-      }
-      
-      // Если выбрана другая категория - загружаем товары этой категории
-      if (selectedCategory) {
-        console.log('[HomeClient] Loading items for category:', selectedCategory);
-        setLoadingCategoryItems(true);
-        getMenuItems(undefined, true, selectedCategory)
-          .then(items => {
-            console.log('[HomeClient] Loaded items:', items.length, items);
-            setCategoryItems(items);
-            setLoadingCategoryItems(false);
-          })
-          .catch(error => {
-            console.error('[HomeClient] Error loading category items:', error);
-            setCategoryItems([]);
-            setLoadingCategoryItems(false);
-          });
-      } else {
-        console.log('[HomeClient] No category selected, showing stores');
-        setCategoryItems([]);
-      }
+    // Проверяем, является ли выбранная категория категорией "Все"
+    const isAllCategory = 
+      selectedCategory === null ||
+      selectedCategory === 'all' ||
+      (selectedCategory && initialStoreCategories.some(cat => 
+        (cat.name === 'Все' || cat.name === 'Hammasi') && (cat.name === selectedCategory || cat.id === selectedCategory)
+      ));
+    
+    console.log('[HomeClient] isAllCategory:', isAllCategory);
+    
+    // Если выбрана категория "Все" или нет категории - показываем магазины
+    if (isAllCategory) {
+      console.log('[HomeClient] Showing stores (All category)');
+      setCategoryItems([]);
+      return;
+    }
+    
+    // Если выбрана другая категория - загружаем товары этой категории
+    if (selectedCategory) {
+      console.log('[HomeClient] Loading items for category:', selectedCategory);
+      setLoadingCategoryItems(true);
+      getMenuItems(undefined, true, selectedCategory)
+        .then(items => {
+          console.log('[HomeClient] Loaded items:', items.length, items);
+          setCategoryItems(items);
+          setLoadingCategoryItems(false);
+        })
+        .catch(error => {
+          console.error('[HomeClient] Error loading category items:', error);
+          setCategoryItems([]);
+          setLoadingCategoryItems(false);
+        });
     } else {
+      console.log('[HomeClient] No category selected, showing stores');
       setCategoryItems([]);
     }
-  }, [selectedCategory, selectedTab, initialStoreCategories]);
+  }, [selectedCategory, initialStoreCategories]);
 
-  // Фильтруем категории в зависимости от выбранной вкладки
-  const filteredCategories = useMemo(() => {
-    if (selectedTab === 'restaurants') {
-      // Показываем только категории, которые связаны с ресторанами
-      return initialCategories.filter((category) => {
-        // Исключаем категории аптек и магазинов
-        if (
-          category.id === 'pharmacies-stores' ||
-          (pharmaciesCategory && category.id === pharmaciesCategory.id) ||
-          (storesCategory && category.id === storesCategory.id)
-        ) {
-          return false;
-        }
-        // Показываем категорию ТОЛЬКО если она связана хотя бы с одним рестораном
-        const restaurantIds = initialCategoryRestaurantMap[category.id] || [];
-        return restaurantIds.length > 0;
-      });
-    } else {
-      // Показываем только категории, которые связаны с магазинами
-      return initialCategories.filter((category) => {
-        // Исключаем категории аптек
-        if (
-          category.id === 'pharmacies-stores' ||
-          (pharmaciesCategory && category.id === pharmaciesCategory.id)
-        ) {
-          return false;
-        }
-        // Показываем категорию ТОЛЬКО если она связана хотя бы с одним магазином
-        const storeIds = initialCategoryStoreMap[category.id] || [];
-        return storeIds.length > 0;
-      });
-    }
-  }, [initialCategories, selectedTab, initialCategoryRestaurantMap, initialCategoryStoreMap, pharmaciesCategory, storesCategory]);
-
-  // Сбрасываем выбранную категорию, если она не подходит для текущей вкладки
+  // Сбрасываем выбранную категорию, если она не подходит
   useEffect(() => {
     if (selectedCategory) {
-      if (selectedTab === 'restaurants') {
-        // Проверяем, есть ли эта категория в категориях ресторанов
-        const restaurantIds = initialCategoryRestaurantMap[selectedCategory] || [];
-        if (restaurantIds.length === 0) {
-          setSelectedCategory(null);
-        }
+      // Для магазинов проверяем, является ли это категорией магазинов (store_categories)
+      const isStoreCategory = initialStoreCategories.some(cat => cat.name === selectedCategory);
+      
+      if (isStoreCategory) {
+        // Это категория магазинов - не сбрасываем, даже если нет товаров
+        // Товары могут быть загружены позже
+        return;
       } else {
-        // Для магазинов проверяем, является ли это категорией магазинов (store_categories)
-        const isStoreCategory = initialStoreCategories.some(cat => cat.name === selectedCategory);
-        
-        if (isStoreCategory) {
-          // Это категория магазинов - не сбрасываем, даже если нет товаров
-          // Товары могут быть загружены позже
-          return;
-        } else {
-          // Старая логика для категорий ресторанов
-          const storeIds = initialCategoryStoreMap[selectedCategory] || [];
-          if (storeIds.length === 0) {
-            setSelectedCategory(null);
-          }
-        }
+        // Если это не категория магазинов, сбрасываем
+        setSelectedCategory(null);
       }
     }
-  }, [selectedTab, selectedCategory, initialCategoryRestaurantMap, initialCategoryStoreMap, initialStoreCategories]);
+  }, [selectedCategory, initialStoreCategories]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -404,7 +354,7 @@ export default function HomeClient({
       )}
 
       {/* Store Categories Carousel - Категории магазинов под баннером */}
-      {selectedTab === 'stores' && initialStoreCategories.length > 0 && (
+      {initialStoreCategories.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
           <RestaurantCategories
             categories={initialStoreCategories.map(cat => ({
@@ -500,21 +450,6 @@ export default function HomeClient({
         </div>
       </section> */}
 
-      {/* Restaurant/Store Categories Carousel - только для ресторанов */}
-      {selectedTab === 'restaurants' && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
-          <RestaurantCategories
-            categories={filteredCategories}
-            selectedCategory={selectedCategory}
-            onCategorySelect={setSelectedCategory}
-            allCategoryImage={
-              filteredCategories.find(
-                (c) => c.name === 'Все' || c.name === 'Hammasi' || c.id === 'all'
-              )?.image_url
-            }
-          />
-        </section>
-      )}
 
       {/* All Restaurants or Filtered by Category - рестораны временно скрыты */}
       {/* {selectedCategory !== 'pharmacies-stores' &&
@@ -547,7 +482,7 @@ export default function HomeClient({
         )} */}
 
       {/* Stores Section - показываем товары категории или все магазины */}
-      {selectedTab === 'stores' && !searchQuery && (
+      {!searchQuery && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           {selectedCategory && categoryItems.length > 0 && (
             <h2 className="text-2xl font-bold text-gray-900 mb-4">

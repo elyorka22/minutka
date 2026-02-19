@@ -5,10 +5,7 @@
 import { Suspense } from 'react';
 import HomeClient from '@/components/HomeClient';
 import {
-  getRestaurantsServer,
   getStoresServer,
-  getCategoriesServer,
-  getRestaurantCategoryRelationsServer,
   getBannersServer,
   getPharmaciesStoresServer,
   getBotSettingsServer,
@@ -39,12 +36,9 @@ const SkeletonCategory = () => (
 async function HomeData() {
   try {
     // Загружаем критичные данные параллельно на сервере
-    const [categories, restaurantsResult, storesResult, relations, banners, pharmaciesStores, botSettings, storeCategories, storeCategoryStoreMap] =
+    const [storesResult, banners, pharmaciesStores, botSettings, storeCategories, storeCategoryStoreMap] =
       await Promise.all([
-        getCategoriesServer(),
-        getRestaurantsServer(undefined, undefined, undefined, 'restaurant'),
         getStoresServer(),
-        getRestaurantCategoryRelationsServer(),
         getBannersServer('homepage').catch(() => []),
         getPharmaciesStoresServer(true).catch(() => []),
         getBotSettingsServer().catch(() => []),
@@ -52,45 +46,19 @@ async function HomeData() {
         getStoreCategoryStoreMapServer().catch(() => ({})),
       ]);
 
-    // Создаем карту связей категорий и ресторанов/магазинов
-    const categoryRestaurantMap: { [categoryId: string]: string[] } = {};
-    const categoryStoreMap: { [categoryId: string]: string[] } = {};
-    
-    if (relations && Array.isArray(relations)) {
-      relations.forEach((rel: any) => {
-        // Проверяем, является ли связанный ресторан рестораном или магазином
-        const restaurant = restaurantsResult.data?.find((r: any) => r.id === rel.restaurant_id);
-        const store = storesResult.data?.find((s: any) => s.id === rel.restaurant_id);
-        
-        if (restaurant && restaurant.type === 'restaurant') {
-          // Это ресторан
-          if (!categoryRestaurantMap[rel.category_id]) {
-            categoryRestaurantMap[rel.category_id] = [];
-          }
-          categoryRestaurantMap[rel.category_id].push(rel.restaurant_id);
-        } else if (store && store.type === 'store') {
-          // Это магазин
-          if (!categoryStoreMap[rel.category_id]) {
-            categoryStoreMap[rel.category_id] = [];
-          }
-          categoryStoreMap[rel.category_id].push(rel.restaurant_id);
-        }
-      });
-    }
-
     // Получаем слоган из настроек бота
     const appSloganSetting = botSettings?.find((s: any) => s.key === 'app_slogan');
     const appSlogan = appSloganSetting?.value || 'Tez va oson, uydan chiqmasdan';
 
     return (
       <HomeClient
-        initialRestaurants={restaurantsResult.data || []}
+        initialRestaurants={[]}
         initialStores={storesResult.data || []}
-        initialCategories={categories || []}
+        initialCategories={[]}
         initialBanners={banners || []}
         initialPharmaciesStores={pharmaciesStores || []}
-        initialCategoryRestaurantMap={categoryRestaurantMap}
-        initialCategoryStoreMap={categoryStoreMap}
+        initialCategoryRestaurantMap={{}}
+        initialCategoryStoreMap={{}}
         initialStoreCategories={storeCategories || []}
         initialStoreCategoryStoreMap={storeCategoryStoreMap || {}}
         appSlogan={appSlogan}

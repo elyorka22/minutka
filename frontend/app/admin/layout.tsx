@@ -11,16 +11,13 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const navigation = [
   { name: 'Статистика', href: '/admin', icon: '📊' },
-  { name: 'Рестораны', href: '/admin/restaurants', icon: '🍽️' },
   { name: 'Магазины', href: '/admin/stores', icon: '🛒' },
   { name: 'Категории магазинов', href: '/admin/store-categories', icon: '📂' },
   { name: 'Карусели магазинов', href: '/admin/store-carousels', icon: '🎠' },
-  { name: 'Статистика по ресторанам', href: '/admin/restaurants-stats', icon: '📈' },
   { name: 'Заказы', href: '/admin/orders', icon: '📦' },
   { name: 'Архив заказов', href: '/admin/orders/archive', icon: '📚' },
   { name: 'Пользователи', href: '/admin/users', icon: '👥' },
   { name: 'Баннеры', href: '/admin/banners', icon: '🖼️' },
-  { name: 'Категории', href: '/admin/categories', icon: '🏷️' },
   { name: 'Админы', href: '/admin/admins', icon: '👥' },
   { name: 'Повара', href: '/admin/chefs', icon: '👨‍🍳' },
   { name: 'Курьеры', href: '/admin/couriers', icon: '🚚' },
