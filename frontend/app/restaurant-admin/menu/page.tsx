@@ -229,7 +229,7 @@ export default function RestaurantAdminMenuPage() {
 }
 
 // Menu Item Form Modal Component
-function MenuItemFormModal({
+const MenuItemFormModal = ({
   item,
   restaurantId,
   onClose,
@@ -239,7 +239,7 @@ function MenuItemFormModal({
   restaurantId: string | undefined;
   onClose: () => void;
   onSave: (item: MenuItem) => void;
-}) {
+}) => {
   const [formData, setFormData] = useState({
     name: item?.name || '',
     description: item?.description || '',
