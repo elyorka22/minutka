@@ -105,11 +105,19 @@ export default function HomeClient({
   
   // Получаем название магазина для корзины
   const cartRestaurantName = useMemo(() => {
-    if (cartItems.length > 0 && cartItems[0].item.restaurant) {
-      return cartItems[0].item.restaurant.name;
+    // Если есть товары в корзине, находим магазин по restaurant_id
+    if (cartItems.length > 0 && cartItems[0].item.restaurant_id) {
+      const store = initialStores.find(s => s.id === cartItems[0].item.restaurant_id);
+      if (store) return store.name;
     }
+    // Если есть товары категории, используем restaurant объект из MenuItemWithStore
     if (categoryItems.length > 0 && categoryItems[0].restaurant) {
       return categoryItems[0].restaurant.name;
+    }
+    // Если есть товары категории с restaurant_id, находим магазин
+    if (categoryItems.length > 0 && categoryItems[0].restaurant_id) {
+      const store = initialStores.find(s => s.id === categoryItems[0].restaurant_id);
+      if (store) return store.name;
     }
     return initialStores.length > 0 ? initialStores[0].name : 'Online Bozor';
   }, [cartItems, categoryItems, initialStores]);
