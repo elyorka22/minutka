@@ -24,6 +24,15 @@ export default function PromotionsCarousel({ promotions }: PromotionsCarouselPro
   const [scrollPosition, setScrollPosition] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Логирование для отладки
+  useEffect(() => {
+    console.log('[PromotionsCarousel] Received promotions:', promotions);
+    console.log('[PromotionsCarousel] Promotions count:', promotions.length);
+    promotions.forEach((promo, index) => {
+      console.log(`[PromotionsCarousel] Promotion ${index}:`, promo.name, 'items:', promo.items?.length || 0);
+    });
+  }, [promotions]);
+
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollContainerRef.current) return;
 
@@ -62,7 +71,7 @@ export default function PromotionsCarousel({ promotions }: PromotionsCarouselPro
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-4">
       <h2 className="text-2xl font-bold text-gray-900 mb-4">🎁 Акции</h2>
       
-      {promotions.map((promotion) => (
+      {promotionsWithItems.map((promotion) => (
         <div key={promotion.id} className="mb-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-3">
             {promotion.name} (-{promotion.discount_percent}%)
