@@ -218,7 +218,7 @@ export default function BotSettingsPage() {
                 📱 Слоган приложения
               </h3>
               <p className="text-sm text-gray-500">
-                Текст, который отображается под названием "Minutka" на главной странице сайта
+                Текст, который отображается под названием "Online Bozor" на главной странице сайта
               </p>
             </div>
             <div>
