@@ -28,7 +28,6 @@ import menuViewsRouter from './routes/menuViews';
 import menuCategoriesRouter from './routes/menuCategories';
 import storeCategoriesRouter from './routes/storeCategories';
 import storeCarouselsRouter from './routes/storeCarousels';
-import promotionsRouter from './routes/promotions';
 import { generalLimiter, strictLimiter, createUpdateLimiter } from './middleware/rateLimit';
 import { bigIntSerializerMiddleware } from './middleware/bigintSerializer';
 
@@ -111,7 +110,6 @@ app.use('/api/menu-views', menuViewsRouter);
 app.use('/api/menu-categories', menuCategoriesRouter);
 app.use('/api/store-categories', storeCategoriesRouter);
 app.use('/api/store-carousels', storeCarouselsRouter);
-app.use('/api/promotions', promotionsRouter);
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

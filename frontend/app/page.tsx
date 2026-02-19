@@ -14,8 +14,6 @@ import {
   getBotSettingsServer,
   getAllStoreCategoriesServer,
   getStoreCategoryStoreMapServer,
-  getPromotionsServer,
-  getPromotionItemsServer,
 } from '@/lib/api-server';
 
 // Экспортируем revalidate для ISR (Incremental Static Regeneration)
@@ -135,7 +133,6 @@ async function HomeData() {
         initialCategoryStoreMap={categoryStoreMap}
         initialStoreCategories={storeCategories || []}
         initialStoreCategoryStoreMap={storeCategoryStoreMap || {}}
-        initialPromotions={promotionsWithItems || []}
         appSlogan={appSlogan}
       />
     );
@@ -153,7 +150,6 @@ async function HomeData() {
         initialCategoryStoreMap={{}}
         initialStoreCategories={[]}
         initialStoreCategoryStoreMap={{}}
-        initialPromotions={[]}
         appSlogan="Tez va oson, uydan chiqmasdan"
       />
     );

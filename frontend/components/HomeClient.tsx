@@ -13,7 +13,6 @@ import RestaurantCard from './RestaurantCard';
 import RestaurantCategories from './RestaurantCategories';
 import PharmacyStoreCard from './PharmacyStoreCard';
 import MenuItem from './MenuItem';
-import PromotionsCarousel from './PromotionsCarousel';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMenuItems } from '@/lib/api';
 
@@ -37,7 +36,6 @@ interface HomeClientProps {
   initialCategoryStoreMap: { [categoryId: string]: string[] };
   initialStoreCategories: any[]; // Категории магазинов (store_categories)
   initialStoreCategoryStoreMap: { [categoryName: string]: string[] }; // Карта: название категории -> массив ID магазинов
-  initialPromotions: any[]; // Акции с товарами
   appSlogan: string;
 }
 
@@ -70,7 +68,6 @@ export default function HomeClient({
   initialCategoryStoreMap,
   initialStoreCategories,
   initialStoreCategoryStoreMap,
-  initialPromotions,
   appSlogan,
 }: HomeClientProps) {
   const router = useRouter();
@@ -470,20 +467,6 @@ export default function HomeClient({
           />
         </section>
       )}
-
-      {/* Promotions Carousel - Карусель акций под категориями */}
-      {selectedTab === 'stores' && initialPromotions && initialPromotions.length > 0 && (() => {
-        const promotionsWithItems = initialPromotions.filter((p: any) => p.items && p.items.length > 0);
-        console.log('[HomeClient] Promotions carousel check:', {
-          selectedTab,
-          promotionsCount: initialPromotions.length,
-          promotionsWithItemsCount: promotionsWithItems.length,
-        });
-        if (promotionsWithItems.length > 0) {
-          return <PromotionsCarousel promotions={promotionsWithItems} />;
-        }
-        return null;
-      })()}
 
       {/* Tabs for Restaurants and Stores - временно скрыты, показываем только магазины */}
       {/* <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">

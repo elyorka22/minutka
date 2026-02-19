@@ -11,10 +11,9 @@ import { useCart } from '@/contexts/CartContext';
 
 interface MenuItemProps {
   item: MenuItemType;
-  discountPercent?: number; // Процент скидки для акции
 }
 
-export default function MenuItem({ item, discountPercent }: MenuItemProps) {
+export default function MenuItem({ item }: MenuItemProps) {
   const { addItem, updateQuantity, items } = useCart();
   const cartItem = items.find((ci) => ci.item.id === item.id);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -72,12 +71,6 @@ export default function MenuItem({ item, discountPercent }: MenuItemProps) {
       {/* Картинка с плюсиком в правом нижнем углу */}
       {item.image_url && (
         <div className="relative w-full h-40 md:h-48">
-          {/* Бейдж скидки в левом верхнем углу */}
-          {discountPercent && discountPercent > 0 && (
-            <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold z-10 shadow-lg">
-              -{discountPercent}%
-            </div>
-          )}
           <Image
             src={item.image_url}
             alt={item.name}
@@ -123,26 +116,13 @@ export default function MenuItem({ item, discountPercent }: MenuItemProps) {
       {/* Контент под картинкой */}
       <div className="p-3 flex flex-col flex-1">
         {/* Цена (под картинкой) */}
-        <div className="mb-1">
-          {discountPercent && discountPercent > 0 ? (
-            <div className="flex items-center gap-2">
-              <span className="text-base font-semibold text-primary-600">
-                {Math.round(item.price * (1 - discountPercent / 100))} so'm
-              </span>
-              <span className="text-xs text-gray-400 line-through">
-                {item.price} so'm
-              </span>
-            </div>
-          ) : (
-            <span
-              className={`text-base font-semibold ${
-                !item.is_available ? 'text-gray-400' : 'text-primary-600'
-              }`}
-            >
-              {item.price} so'm
-            </span>
-          )}
-        </div>
+        <span
+          className={`text-base font-semibold mb-1 ${
+            !item.is_available ? 'text-gray-400' : 'text-primary-600'
+          }`}
+        >
+          {item.price} so'm
+        </span>
         
         {/* Название блюда (под ценой) */}
         <h3
