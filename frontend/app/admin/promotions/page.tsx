@@ -323,15 +323,30 @@ export default function AdminPromotionsPage() {
 
         {/* Форма создания/редактирования */}
         {showForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 overflow-y-auto p-4">
-            <div className="min-h-full flex items-start justify-center py-8">
-              <div className="bg-white rounded-lg max-w-4xl w-full shadow-xl">
-                <div className="p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  {editingPromotion ? 'Редактировать акцию' : 'Создать акцию'}
-                </h2>
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
+            <div className="h-full overflow-y-auto">
+              <div className="min-h-full flex items-start justify-center p-4 pb-20">
+                <div className="bg-white rounded-lg max-w-4xl w-full shadow-xl my-8">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-6">
+                      <h2 className="text-2xl font-bold text-gray-900">
+                        {editingPromotion ? 'Редактировать акцию' : 'Создать акцию'}
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowForm(false);
+                          setEditingPromotion(null);
+                          setSelectedPromotionId(null);
+                        }}
+                        className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                        aria-label="Закрыть"
+                      >
+                        ×
+                      </button>
+                    </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Название акции *
