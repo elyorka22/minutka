@@ -467,7 +467,6 @@ function MenuItemFormModal({
         </div>
       </div>
     </div>
-    </>
   );
 }
 
