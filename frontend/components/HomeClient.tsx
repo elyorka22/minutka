@@ -13,6 +13,7 @@ import RestaurantCard from './RestaurantCard';
 import RestaurantCategories from './RestaurantCategories';
 import PharmacyStoreCard from './PharmacyStoreCard';
 import MenuItem from './MenuItem';
+import PromotionsCarousel from './PromotionsCarousel';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMenuItems } from '@/lib/api';
 
