@@ -5,7 +5,6 @@
 import { Telegraf, Context } from 'telegraf';
 import dotenv from 'dotenv';
 import { startHandler } from './handlers/start';
-import { restaurantHandler } from './handlers/restaurant';
 import { orderHandler } from './handlers/order';
 import { locationHandler } from './handlers/location';
 import { orderStatusHandler } from './handlers/orderStatus';
@@ -83,11 +82,7 @@ bot.on('callback_query', async (ctx: Context) => {
   
   if (!data) return;
 
-  // Обработка выбора ресторана
-  if (data.startsWith('restaurant:')) {
-    await restaurantHandler(ctx, data.split(':')[1]);
-    return;
-  }
+  // Обработка выбора ресторана - удалено, оставляем только магазины
 
   // Обработка действий с заказом (для ресторанов)
   if (data.startsWith('order:')) {
