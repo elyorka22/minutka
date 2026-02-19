@@ -248,6 +248,7 @@ function MenuItemFormModal({
     category: item?.category || '',
     is_available: item?.is_available ?? true,
     is_banner: item?.is_banner ?? false,
+    discount_percent: item?.discount_percent?.toString() || '',
   });
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);

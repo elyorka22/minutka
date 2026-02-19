@@ -71,6 +71,12 @@ export default function MenuItem({ item }: MenuItemProps) {
       {/* Картинка с плюсиком в правом нижнем углу */}
       {item.image_url && (
         <div className="relative w-full h-40 md:h-48">
+          {/* Бейдж скидки в левом верхнем углу */}
+          {item.discount_percent && item.discount_percent > 0 && (
+            <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold z-10 shadow-lg">
+              -{item.discount_percent}%
+            </div>
+          )}
           <Image
             src={item.image_url}
             alt={item.name}
