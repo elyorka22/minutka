@@ -39,7 +39,7 @@ const SkeletonCategory = () => (
 async function HomeData() {
   try {
     // Загружаем критичные данные параллельно на сервере
-    const [categories, restaurantsResult, storesResult, relations, banners, pharmaciesStores, botSettings, storeCategories, storeCategoryStoreMap, promotions] =
+    const [categories, restaurantsResult, storesResult, relations, banners, pharmaciesStores, botSettings, storeCategories, storeCategoryStoreMap] =
       await Promise.all([
         getCategoriesServer(),
         getRestaurantsServer(undefined, undefined, undefined, 'restaurant'),
@@ -50,47 +50,7 @@ async function HomeData() {
         getBotSettingsServer().catch(() => []),
         getAllStoreCategoriesServer().catch(() => []),
         getStoreCategoryStoreMapServer().catch(() => ({})),
-        getPromotionsServer().catch(() => []),
       ]);
-
-    // Загружаем товары для каждой акции
-    const promotionsWithItems = await Promise.all(
-      (promotions || []).map(async (promotion: any) => {
-        try {
-          const items = await getPromotionItemsServer(promotion.id);
-          console.log(`[HomeData] Promotion ${promotion.id} (${promotion.name}):`, items.length, 'items');
-          
-          // Извлекаем menu_items из результатов JOIN
-          const menuItems = items.map((item: any) => {
-            // Проверяем вложенный объект menu_items (результат JOIN)
-            if (item.menu_items && typeof item.menu_items === 'object' && item.menu_items.id) {
-              return item.menu_items;
-            }
-            // Иначе берем menu_item_id и ищем товар отдельно (fallback)
-            if (item.menu_item_id) {
-              return null; // Будем загружать отдельно, если нужно
-            }
-            return null;
-          }).filter(Boolean);
-          
-          console.log(`[HomeData] Promotion ${promotion.id} extracted items:`, menuItems.length);
-          
-          return {
-            ...promotion,
-            items: menuItems,
-          };
-        } catch (error) {
-          console.error(`Error loading items for promotion ${promotion.id}:`, error);
-          return {
-            ...promotion,
-            items: [],
-          };
-        }
-      })
-    );
-    
-    console.log('[HomeData] Total promotions with items:', promotionsWithItems.length);
-    console.log('[HomeData] Promotions with items > 0:', promotionsWithItems.filter((p: any) => p.items && p.items.length > 0).length);
 
     // Создаем карту связей категорий и ресторанов/магазинов
     const categoryRestaurantMap: { [categoryId: string]: string[] } = {};
