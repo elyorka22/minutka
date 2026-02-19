@@ -29,6 +29,7 @@ export interface MenuItem {
   image_url: string | null;
   is_available: boolean;
   is_banner: boolean; // Помечает блюдо как баннер для большого отображения
+  discount_percent: number | null; // Процент скидки (от 1 до 100)
   created_at: string;
 }
 
