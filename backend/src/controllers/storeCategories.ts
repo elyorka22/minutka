@@ -27,16 +27,16 @@ export interface StoreCategory {
  */
 export async function getStoreCategories(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, include_inactive } = req.query;
-
-    if (!restaurant_id) {
-      return res.status(400).json({ success: false, error: 'restaurant_id is required' });
-    }
+    const { restaurant_id, include_inactive, all } = req.query;
 
     let query = supabase
       .from('store_categories')
-      .select('*')
-      .eq('restaurant_id', restaurant_id);
+      .select('*');
+
+    // Если указан restaurant_id, фильтруем по нему
+    if (restaurant_id && all !== 'true') {
+      query = query.eq('restaurant_id', restaurant_id as string);
+    }
 
     // Если не запрошены неактивные категории, фильтруем только активные
     if (include_inactive !== 'true') {
