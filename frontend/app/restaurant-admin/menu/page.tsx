@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MenuItem } from '@/lib/types';
 import { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem, getMenuCategories, MenuCategory } from '@/lib/api';
 import Image from 'next/image';
@@ -231,17 +231,12 @@ export default function RestaurantAdminMenuPage() {
 }
 
 // Menu Item Form Modal Component
-function MenuItemFormModal({
-  item,
-  restaurantId,
-  onClose,
-  onSave,
-}: {
+const MenuItemFormModal: React.FC<{
   item: MenuItem | null;
   restaurantId: string | undefined;
   onClose: () => void;
   onSave: (item: MenuItem) => void;
-}): JSX.Element {
+}> = ({ item, restaurantId, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     name: item?.name || '',
     description: item?.description || '',
