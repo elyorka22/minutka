@@ -385,7 +385,6 @@ const MenuItemFormModal = ({
                     )}
                   </>
                 )}
-              </div>
             </div>
 
             <ImageUpload
