@@ -241,7 +241,7 @@ function MenuItemFormModal({
   restaurantId: string | undefined;
   onClose: () => void;
   onSave: (item: MenuItem) => void;
-}) {
+}): JSX.Element {
   const [formData, setFormData] = useState({
     name: item?.name || '',
     description: item?.description || '',
