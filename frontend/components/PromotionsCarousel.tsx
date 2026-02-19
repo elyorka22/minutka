@@ -63,7 +63,11 @@ export default function PromotionsCarousel({ promotions }: PromotionsCarouselPro
     };
   }, []);
 
-  if (promotions.length === 0) {
+  // Фильтруем только акции с товарами
+  const promotionsWithItems = promotions.filter(p => p.items && p.items.length > 0);
+  
+  if (promotionsWithItems.length === 0) {
+    console.log('[PromotionsCarousel] No promotions with items to display');
     return null;
   }
 
