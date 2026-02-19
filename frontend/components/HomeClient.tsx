@@ -144,11 +144,11 @@ export default function HomeClient({
       }
       return true;
     });
-  }, [initialRestaurants, selectedCategory, searchQuery, initialCategoryRestaurantMap, pharmaciesCategory, storesCategory, selectedTab]);
+  }, [initialRestaurants, selectedCategory, searchQuery, initialCategoryRestaurantMap, pharmaciesCategory, storesCategory]);
 
   // Фильтрация магазинов
   const filteredStores = useMemo(() => {
-    const stores = selectedTab === 'stores' ? initialStores : [];
+    const stores = initialStores;
     return stores.filter((s) => {
       // Если выбрана категория аптек или магазинов, не показываем магазины
       if (
@@ -185,7 +185,7 @@ export default function HomeClient({
       }
       return true;
     });
-  }, [initialStores, selectedCategory, searchQuery, initialCategoryStoreMap, pharmaciesCategory, storesCategory, selectedTab, initialStoreCategories, initialStoreCategoryStoreMap]);
+  }, [initialStores, selectedCategory, searchQuery, initialCategoryStoreMap, pharmaciesCategory, storesCategory, initialStoreCategories, initialStoreCategoryStoreMap]);
 
   // Загружаем товары выбранной категории
   useEffect(() => {
@@ -544,7 +544,7 @@ export default function HomeClient({
       )}
 
       {/* Stores Section - показываем магазины при поиске */}
-      {selectedTab === 'stores' && searchQuery && (
+      {searchQuery && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             🔍 Qidiruv natijalari: "{searchQuery}"
