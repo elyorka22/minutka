@@ -465,6 +465,7 @@ export default function AdminPromotionsPage() {
                     </button>
                   </div>
                 </form>
+                </div>
               </div>
             </div>
           </div>
