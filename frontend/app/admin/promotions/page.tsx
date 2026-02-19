@@ -423,63 +423,75 @@ export default function AdminPromotionsPage() {
                     </label>
                   </div>
 
-                  {/* Выбор товаров */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Товары в акции
-                    </label>
-                    {loadingMenuItems ? (
-                      <div className="text-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500 mx-auto"></div>
-                        <p className="mt-2 text-sm text-gray-600">Загрузка товаров...</p>
-                      </div>
-                    ) : (
-                      <div className="border border-gray-300 rounded-lg p-4 max-h-96 overflow-y-auto">
-                        {menuItems.length === 0 ? (
-                          <p className="text-sm text-gray-500">Товары не найдены</p>
+                      {/* Выбор товаров */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Товары в акции
+                        </label>
+                        {loadingMenuItems ? (
+                          <div className="text-center py-4">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500 mx-auto"></div>
+                            <p className="mt-2 text-sm text-gray-600">Загрузка товаров...</p>
+                          </div>
                         ) : (
-                          <div className="space-y-2">
-                            {menuItems.map((item) => (
-                              <label
-                                key={item.id}
-                                className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={formData.selectedMenuItems.includes(item.id)}
-                                  onChange={() => toggleMenuItem(item.id)}
-                                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
-                                />
-                                <span className="text-sm text-gray-900">{item.name}</span>
-                                <span className="text-sm text-gray-500">({item.price} so'm)</span>
-                              </label>
-                            ))}
+                          <div className="border border-gray-300 rounded-lg p-4 max-h-[400px] overflow-y-auto bg-gray-50">
+                            {menuItems.length === 0 ? (
+                              <p className="text-sm text-gray-500 text-center py-4">Товары не найдены</p>
+                            ) : (
+                              <div className="space-y-1">
+                                {menuItems.map((item) => (
+                                  <label
+                                    key={item.id}
+                                    className="flex items-center space-x-3 cursor-pointer hover:bg-white p-3 rounded border border-transparent hover:border-gray-200 transition-all"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={formData.selectedMenuItems.includes(item.id)}
+                                      onChange={() => toggleMenuItem(item.id)}
+                                      className="h-5 w-5 text-primary-600 focus:ring-primary-500 border-gray-300 rounded flex-shrink-0"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <span className="text-sm font-medium text-gray-900 block truncate">{item.name}</span>
+                                      <span className="text-xs text-gray-500">{item.price} so'm</span>
+                                    </div>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         )}
+                        {formData.selectedMenuItems.length > 0 && (
+                          <p className="mt-2 text-sm text-green-600 font-medium">
+                            Выбрано товаров: {formData.selectedMenuItems.length}
+                          </p>
+                        )}
                       </div>
-                    )}
+                    </form>
                   </div>
-
-                  <div className="flex justify-end space-x-4">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowForm(false);
-                        setEditingPromotion(null);
-                        setSelectedPromotionId(null);
-                      }}
-                      className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                    >
-                      Отмена
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
-                    >
-                      {editingPromotion ? 'Сохранить' : 'Создать'}
-                    </button>
+                  
+                  {/* Sticky кнопки внизу */}
+                  <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4 rounded-b-lg -mx-6 -mb-6">
+                    <div className="flex justify-end space-x-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowForm(false);
+                          setEditingPromotion(null);
+                          setSelectedPromotionId(null);
+                        }}
+                        className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors font-medium"
+                      >
+                        Отмена
+                      </button>
+                      <button
+                        type="submit"
+                        form="promotion-form"
+                        className="px-6 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+                      >
+                        {editingPromotion ? 'Сохранить' : 'Создать'}
+                      </button>
+                    </div>
                   </div>
-                </form>
                 </div>
               </div>
             </div>
