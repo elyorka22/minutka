@@ -198,7 +198,6 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
         image_url: image_url || null,
         is_available: is_available ?? true,
         is_banner: is_banner ?? false,
-        discount_percent: discount_percent !== undefined && discount_percent !== null ? discount_percent : null,
       })
       .select()
       .single();
@@ -222,7 +221,7 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
 export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, price, category, image_url, is_available, is_banner, discount_percent } = req.body;
+    const { name, description, price, category, image_url, is_available, is_banner } = req.body;
     
     // Логируем входящий запрос
     console.log('updateMenuItem called:', {
