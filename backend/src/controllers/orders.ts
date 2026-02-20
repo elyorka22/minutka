@@ -32,15 +32,17 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
     const { restaurant_id, user_id, user_telegram_id, order_text, address, latitude, longitude } = req.body;
 
     // Валидация обязательных полей
-    if (!restaurant_id || !order_text) {
+    // restaurant_id может быть null для заказов товаров главной страницы
+    if (!order_text) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: restaurant_id, order_text'
+        error: 'Missing required fields: order_text'
       });
     }
 
     // Валидация форматов
-    if (!validateUuid(restaurant_id)) {
+    // Если restaurant_id указан, он должен быть валидным UUID
+    if (restaurant_id !== null && restaurant_id !== undefined && !validateUuid(restaurant_id)) {
       return res.status(400).json({
         success: false,
         error: 'Invalid restaurant_id format'
@@ -83,18 +85,21 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
       });
     }
 
-    // Проверка существования ресторана
-    const { data: restaurantCheck, error: restaurantError } = await supabase
-      .from('restaurants')
-      .select('id, is_active')
-      .eq('id', restaurant_id)
-      .single();
+    // Проверка существования ресторана (если указан)
+    // Если restaurant_id = null, это заказ товаров главной страницы
+    if (restaurant_id) {
+      const { data: restaurantCheck, error: restaurantError } = await supabase
+        .from('restaurants')
+        .select('id, is_active')
+        .eq('id', restaurant_id)
+        .single();
 
-    if (restaurantError || !restaurantCheck || !restaurantCheck.is_active) {
-      return res.status(404).json({
-        success: false,
-        error: 'Restaurant not found or inactive'
-      });
+      if (restaurantError || !restaurantCheck || !restaurantCheck.is_active) {
+        return res.status(404).json({
+          success: false,
+          error: 'Restaurant not found or inactive'
+        });
+      }
     }
 
     // Создание заказа
@@ -127,27 +132,30 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
         changed_by: 'user'
       });
 
-    // Получаем информацию о ресторане для уведомлений
-    const restaurantResult = await supabase
-      .from('restaurants')
-      .select('name')
-      .eq('id', restaurant_id)
-      .single();
-
-    const restaurantInfo = restaurantResult.data;
-    
     // Формируем имя пользователя для уведомлений
     // Используем "Foydalanuvchi" по умолчанию, так как пользователь не создается
     const userName = 'Foydalanuvchi';
 
-    // Отправляем уведомления админам ресторана асинхронно (не блокируем ответ)
+    // Отправляем уведомления асинхронно (не блокируем ответ)
     Promise.all([
-      // Отправляем заказ админам ресторана (поваров больше нет)
-      sendOrderToChef(data.id, restaurant_id, {
-        orderText: order_text,
-        address,
-        userName
-      })
+      // Если restaurant_id = null, это заказ товаров главной страницы - уведомляем супер-админов
+      // Если restaurant_id указан, уведомляем админов ресторана
+      restaurant_id 
+        ? sendOrderToChef(data.id, restaurant_id, {
+            orderText: order_text,
+            address,
+            userName
+          })
+        : (async () => {
+            // Импортируем функцию уведомления супер-админов
+            const { notifySuperAdminsAboutNewOrder } = await import('../services/telegramNotification');
+            await notifySuperAdminsAboutNewOrder(data.id, {
+              restaurantName: 'Главная страница',
+              orderText: order_text,
+              address,
+              userName
+            });
+          })()
     ]).catch((error) => {
       console.error('Error sending notifications:', error);
       // Не прерываем создание заказа, если уведомления не отправились

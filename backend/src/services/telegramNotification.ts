@@ -250,6 +250,8 @@ export async function notifySuperAdminsAboutNewOrder(
     orderText: string;
     address: string | null;
     userName?: string;
+    latitude?: number | null;
+    longitude?: number | null;
   }
 ): Promise<void> {
   try {
