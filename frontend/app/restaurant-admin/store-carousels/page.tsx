@@ -390,14 +390,12 @@ export default function RestaurantAdminStoreCarouselsPage() {
                         <div className="space-y-2">
                           {menuItems.map((item) => {
                             const isSelected = formData.selectedMenuItems.includes(item.id);
-                            const isInCarousel = carouselItems.some(ci => ci.menu_item_id === item.id);
-                            const shouldBeChecked = editingCarousel ? isInCarousel : isSelected;
                             
                             return (
                               <label key={item.id} className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
                                 <input
                                   type="checkbox"
-                                  checked={shouldBeChecked}
+                                  checked={isSelected}
                                   onChange={(e) => {
                                     if (e.target.checked) {
                                       setFormData({
