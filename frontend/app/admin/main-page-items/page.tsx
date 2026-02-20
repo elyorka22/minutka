@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MenuItem } from '@/lib/types';
-import { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem, getAllStoreCategories } from '@/lib/api';
+import { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem, getAllStoreCategories, getMenuItemCategories } from '@/lib/api';
 import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';

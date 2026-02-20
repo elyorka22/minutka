@@ -730,6 +730,26 @@ export async function deleteMenuItem(id: string): Promise<void> {
   }
 }
 
+// Menu Item Category Relations API
+export async function getMenuItemCategories(menuItemId: string): Promise<string[]> {
+  try {
+    const response = await api.get<{ success: boolean; data: string[] }>(`/api/menu-items/${menuItemId}/categories`);
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching menu item categories:', error);
+    return [];
+  }
+}
+
+export async function setMenuItemCategories(menuItemId: string, categories: string[]): Promise<void> {
+  try {
+    await api.post(`/api/menu-items/${menuItemId}/categories`, { categories });
+  } catch (error) {
+    console.error('Error setting menu item categories:', error);
+    throw error;
+  }
+}
+
 // Restaurant Admins API
 export async function getRestaurantAdmins(restaurantId?: string, withRestaurants: boolean = false): Promise<any[]> {
   try {
