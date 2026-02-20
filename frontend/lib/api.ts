@@ -516,6 +516,20 @@ export interface StoreCategory {
   updated_at: string;
 }
 
+export async function getAllStoreCategories(includeInactive: boolean = false): Promise<StoreCategory[]> {
+  try {
+    const params: any = { all: 'true' };
+    if (includeInactive) {
+      params.include_inactive = 'true';
+    }
+    const response = await api.get<{ success: boolean; data: StoreCategory[] }>('/api/store-categories', { params });
+    return response.data.data || [];
+  } catch (error) {
+    console.error('Error fetching all store categories:', error);
+    return [];
+  }
+}
+
 export async function getStoreCategories(restaurantId: string, includeInactive: boolean = false): Promise<StoreCategory[]> {
   try {
     const params: any = { restaurant_id: restaurantId };

@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MenuItem } from '@/lib/types';
-import { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem } from '@/lib/api';
+import { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem, getAllStoreCategories } from '@/lib/api';
 import Image from 'next/image';
 import ImageUpload from '@/components/ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
@@ -243,6 +243,22 @@ function MenuItemFormModal({ item, onClose, onSave }: MenuItemFormModalProps) {
     discount_percent: item?.discount_percent?.toString() || '',
   });
   const [saving, setSaving] = useState(false);
+  const [storeCategories, setStoreCategories] = useState<any[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const categories = await getAllStoreCategories();
+        setStoreCategories(categories);
+      } catch (error) {
+        console.error('Error fetching store categories:', error);
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
+    fetchCategories();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -340,13 +356,29 @@ function MenuItemFormModal({ item, onClose, onSave }: MenuItemFormModalProps) {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Категория
               </label>
-              <input
-                type="text"
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder="Например: Электроника, Одежда"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
+              {loadingCategories ? (
+                <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
+                  Загрузка категорий...
+                </div>
+              ) : (
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="">Не выбрано</option>
+                  {storeCategories
+                    .filter(cat => cat.is_active)
+                    .map((category) => (
+                      <option key={category.id} value={category.name}>
+                        {category.name}
+                      </option>
+                    ))}
+                </select>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Выберите категорию из существующих категорий магазинов
+              </p>
             </div>
 
             <div>
