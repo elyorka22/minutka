@@ -147,13 +147,28 @@ export default function RestaurantAdminStoreCarouselsPage() {
 
   const handleEdit = async (carousel: StoreCarousel) => {
     setEditingCarousel(carousel);
-    setFormData({
-      name: carousel.name,
-      display_order: carousel.display_order,
-      is_active: carousel.is_active,
-      selectedMenuItems: [],
-    });
     setSelectedCarouselId(carousel.id);
+    
+    // Загружаем товары карусели
+    try {
+      const items = await getStoreCarouselItems(carousel.id);
+      const itemIds = items.map(item => item.menu_item_id);
+      setFormData({
+        name: carousel.name,
+        display_order: carousel.display_order,
+        is_active: carousel.is_active,
+        selectedMenuItems: itemIds,
+      });
+    } catch (error) {
+      console.error('Error loading carousel items:', error);
+      setFormData({
+        name: carousel.name,
+        display_order: carousel.display_order,
+        is_active: carousel.is_active,
+        selectedMenuItems: [],
+      });
+    }
+    
     setShowForm(true);
   };
 
@@ -187,19 +202,20 @@ export default function RestaurantAdminStoreCarouselsPage() {
         });
 
         // Обновляем товары в карусели
-        const currentItemIds = carouselItems.map(item => item.menu_item_id);
-        const itemsToAdd = formData.selectedMenuItems.filter(id => !currentItemIds.includes(id));
-        const itemsToRemove = currentItemIds.filter(id => !formData.selectedMenuItems.includes(id));
+        const currentItems = await getStoreCarouselItems(editingCarousel.id);
+        const currentItemIds = new Set(currentItems.map(item => item.menu_item_id));
+        const newItemIds = new Set(formData.selectedMenuItems);
 
-        if (itemsToAdd.length > 0) {
-          await addStoreCarouselItems(editingCarousel.id, itemsToAdd);
+        // Удаляем товары, которые были удалены
+        const itemsToRemove = currentItems.filter(item => !newItemIds.has(item.menu_item_id));
+        for (const item of itemsToRemove) {
+          await removeStoreCarouselItem(editingCarousel.id, item.menu_item_id);
         }
 
-        for (const itemId of itemsToRemove) {
-          const itemToRemove = carouselItems.find(item => item.menu_item_id === itemId);
-          if (itemToRemove) {
-            await removeStoreCarouselItem(itemToRemove.id);
-          }
+        // Добавляем новые товары
+        const itemsToAdd = formData.selectedMenuItems.filter(id => !currentItemIds.has(id));
+        if (itemsToAdd.length > 0) {
+          await addStoreCarouselItems(editingCarousel.id, itemsToAdd);
         }
 
         showSuccess('Карусель успешно обновлена');
