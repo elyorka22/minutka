@@ -16,5 +16,5 @@ SET tab = 'asosiy'
 WHERE tab IS NULL OR tab = '';
 
 -- Комментарий к полю
-COMMENT ON COLUMN banners.tab IS 'Вкладка главной страницы: asosiy, do\'konlar, xizmatlar';
+COMMENT ON COLUMN banners.tab IS 'Вкладка главной страницы: asosiy, do''konlar, xizmatlar';
 
