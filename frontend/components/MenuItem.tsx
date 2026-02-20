@@ -70,7 +70,7 @@ export default function MenuItem({ item }: MenuItemProps) {
     >
       {/* Картинка с плюсиком в правом нижнем углу */}
       {item.image_url && (
-        <div className="relative w-full h-40 md:h-48">
+        <div className="relative w-full h-56 md:h-64 bg-gray-100">
           {/* Ярлык скидки в левом верхнем углу */}
           {item.discount_percent && item.discount_percent > 0 && (
             <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
@@ -81,7 +81,7 @@ export default function MenuItem({ item }: MenuItemProps) {
             src={item.image_url}
             alt={item.name}
             fill
-            className={`object-cover ${!item.is_available ? 'opacity-50' : ''}`}
+            className={`object-contain ${!item.is_available ? 'opacity-50' : ''}`}
             sizes="(max-width: 768px) 50vw, 33vw"
           />
           {/* Плюсик в правом нижнем углу картинки */}
@@ -120,21 +120,21 @@ export default function MenuItem({ item }: MenuItemProps) {
       )}
       
       {/* Контент под картинкой */}
-      <div className="p-3 flex flex-col flex-1">
+      <div className="p-2 flex flex-col flex-1">
         {/* Цена (под картинкой) */}
-        <div className="mb-1">
+        <div className="mb-0.5">
           {item.discount_percent && item.discount_percent > 0 ? (
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-400 line-through">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-400 line-through">
                 {item.price} so'm
               </span>
-              <span className="text-base font-semibold text-primary-600">
+              <span className="text-sm font-semibold text-primary-600">
                 {Math.round(item.price * (1 - item.discount_percent / 100))} so'm
               </span>
             </div>
           ) : (
             <span
-              className={`text-base font-semibold ${
+              className={`text-sm font-semibold ${
                 !item.is_available ? 'text-gray-400' : 'text-primary-600'
               }`}
             >
@@ -145,7 +145,7 @@ export default function MenuItem({ item }: MenuItemProps) {
         
         {/* Название блюда (под ценой) */}
         <h3
-          className={`text-sm font-bold mb-1 line-clamp-2 ${
+          className={`text-xs font-bold mb-0.5 line-clamp-2 leading-tight ${
             !item.is_available ? 'text-gray-400' : 'text-gray-900'
           }`}
         >
@@ -154,7 +154,7 @@ export default function MenuItem({ item }: MenuItemProps) {
         
         {/* Статус доступности - надпись "Hozir mavjud emas" */}
         {item.is_available === false && (
-          <p className="text-xs text-red-600 font-semibold mb-2">
+          <p className="text-xs text-red-600 font-semibold mb-1">
             Hozir mavjud emas
           </p>
         )}
@@ -162,7 +162,7 @@ export default function MenuItem({ item }: MenuItemProps) {
         {/* Описание (опционально, маленькими буквами) */}
         {item.description && (
           <p
-            className={`text-xs mb-2 leading-relaxed line-clamp-2 ${
+            className={`text-xs mb-1 leading-tight line-clamp-2 ${
               !item.is_available ? 'text-gray-400' : 'text-gray-600'
             }`}
           >
