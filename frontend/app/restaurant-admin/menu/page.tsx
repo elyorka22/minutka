@@ -193,6 +193,7 @@ export default function RestaurantAdminMenuPage() {
                   category: item.category,
                   image_url: item.image_url,
                   is_available: item.is_available,
+                  discount_percent: item.discount_percent,
                 });
                 setMenuItems((prevItems) => prevItems.map((i) => (i.id === item.id ? updated : i)));
                 showSuccess('Блюдо успешно обновлено!');
