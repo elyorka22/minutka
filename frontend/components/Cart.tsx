@@ -238,7 +238,14 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                         )}
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{cartItem.item.name}</h3>
-                          <p className="text-xs sm:text-sm text-gray-600">{cartItem.item.price} so'm × {cartItem.quantity}</p>
+                          <p className="text-xs sm:text-sm text-gray-600">
+                            {(() => {
+                              const itemPrice = cartItem.item.discount_percent && cartItem.item.discount_percent > 0
+                                ? Math.round(cartItem.item.price * (1 - cartItem.item.discount_percent / 100))
+                                : cartItem.item.price;
+                              return `${itemPrice} so'm × ${cartItem.quantity}`;
+                            })()}
+                          </p>
                         </div>
                       </div>
                       
