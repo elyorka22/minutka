@@ -99,24 +99,7 @@ export async function notifyRestaurantAdminsAboutNewOrder(
   }
 
   try {
-    // Получаем настройки ресторана
-    const { data: restaurant, error: restaurantError } = await supabase
-      .from('restaurants')
-      .select('admin_notifications_enabled')
-      .eq('id', restaurantId)
-      .single();
-
-    if (restaurantError) {
-      console.error('Error fetching restaurant settings:', restaurantError);
-    }
-
-    const adminNotificationsEnabled = restaurant?.admin_notifications_enabled ?? true;
-
-    if (!adminNotificationsEnabled) {
-      console.log(`Admin notifications are disabled for restaurant ${restaurantId}`);
-      return;
-    }
-
+    // Админы всегда получают уведомления (убрана проверка admin_notifications_enabled)
     // Получаем всех активных админов ресторана
     let { data: allAdmins, error: allAdminsError } = await supabase
       .from('restaurant_admins')
@@ -242,24 +225,7 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
   console.log('Bot instance is initialized, proceeding...');
 
   try {
-    // Получаем настройки ресторана
-    const { data: restaurant, error: restaurantError } = await supabase
-      .from('restaurants')
-      .select('admin_notifications_enabled')
-      .eq('id', restaurantId)
-      .single();
-
-    if (restaurantError) {
-      console.error('Error fetching restaurant settings:', restaurantError);
-    }
-
-    const adminNotificationsEnabled = restaurant?.admin_notifications_enabled ?? true;
-
-    if (!adminNotificationsEnabled) {
-      console.log(`Admin notifications are disabled for restaurant ${restaurantId}`);
-      return;
-    }
-
+    // Админы всегда получают уведомления (убрана проверка admin_notifications_enabled)
     // Получаем всех активных админов ресторана
     let { data: allAdmins, error: allAdminsError } = await supabase
       .from('restaurant_admins')
