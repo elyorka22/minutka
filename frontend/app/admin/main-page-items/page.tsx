@@ -350,12 +350,10 @@ function MenuItemFormModal({ item, onClose, onSave }: MenuItemFormModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Изображение
-              </label>
               <ImageUpload
-                currentImageUrl={formData.image_url}
-                onImageUploaded={(url) => setFormData({ ...formData, image_url: url })}
+                value={formData.image_url || ''}
+                onChange={(url) => setFormData({ ...formData, image_url: url })}
+                folder="menu"
               />
             </div>
 
