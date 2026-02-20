@@ -43,7 +43,7 @@ CREATE POLICY "Restaurant admins can manage their menu item category relations"
             SELECT id FROM menu_items 
             WHERE restaurant_id IN (
                 SELECT restaurant_id FROM restaurant_admins 
-                WHERE telegram_id = (current_setting('request.jwt.claims', true)::jsonb)->>'telegram_id'
+                WHERE telegram_id = ((current_setting('request.jwt.claims', true)::jsonb)->>'telegram_id')::bigint
             )
         )
     )
@@ -53,7 +53,7 @@ CREATE POLICY "Restaurant admins can manage their menu item category relations"
             SELECT id FROM menu_items 
             WHERE restaurant_id IN (
                 SELECT restaurant_id FROM restaurant_admins 
-                WHERE telegram_id = (current_setting('request.jwt.claims', true)::jsonb)->>'telegram_id'
+                WHERE telegram_id = ((current_setting('request.jwt.claims', true)::jsonb)->>'telegram_id')::bigint
             )
         )
     );
