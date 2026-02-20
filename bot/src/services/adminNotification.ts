@@ -132,16 +132,8 @@ export async function notifyRestaurantAdminsAboutNewOrder(
       allAdmins = allAdmins.filter(admin => !courierTelegramIds.has(admin.telegram_id));
     }
 
-    // Фильтруем админов с включенными уведомлениями
-    const admins = allAdmins.filter(admin => {
-      const enabled = admin.notifications_enabled === true;
-      return enabled;
-    });
-
-    if (admins.length === 0) {
-      console.log(`No restaurant admins with notifications enabled found for restaurant ${restaurantId}`);
-      return;
-    }
+    // Админы всегда получают уведомления (убрана проверка notifications_enabled)
+    const admins = allAdmins;
 
     const userInfo = orderData.userName || 'Foydalanuvchi';
 
@@ -178,13 +170,13 @@ export async function notifyRestaurantAdminsAboutNewOrder(
     // ВАЖНО: Это уведомление только для админов, НЕ для курьеров
     const notificationPromises = admins.map(async (admin) => {
       try {
-        console.log(`[Admin Notification] Sending to restaurant admin ${admin.telegram_id} with button "Передать курьеру"`);
+        console.log(`[Admin Notification] Sending to restaurant admin ${admin.telegram_id}`);
         await botInstance!.telegram.sendMessage(
           admin.telegram_id,
           message,
           {
             parse_mode: 'Markdown',
-            reply_markup: keyboard.reply_markup
+            ...(keyboard ? { reply_markup: keyboard.reply_markup } : {})
           }
         );
         console.log(`[Admin Notification] Successfully sent to restaurant admin ${admin.telegram_id}`);
@@ -258,21 +250,8 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
       allAdmins = allAdmins.filter(admin => !courierTelegramIds.has(admin.telegram_id));
     }
 
-    // Фильтруем админов с включенными уведомлениями
-    // Проверяем, что notifications_enabled === true (не null, не false)
-    const admins = allAdmins.filter(admin => {
-      const enabled = admin.notifications_enabled === true;
-      console.log(`Admin ${admin.telegram_id}: notifications_enabled = ${admin.notifications_enabled}, enabled = ${enabled}`);
-      return enabled;
-    });
-
-    console.log(`Found ${allAdmins.length} active restaurant admins, ${admins.length} with notifications enabled`);
-    console.log('Admins with notifications enabled:', admins.map(a => ({ telegram_id: a.telegram_id, notifications_enabled: a.notifications_enabled })));
-
-    if (admins.length === 0) {
-      console.log(`No restaurant admins with notifications enabled found for restaurant ${restaurantId}`);
-      return;
-    }
+    // Админы всегда получают уведомления (убрана проверка notifications_enabled)
+    const admins = allAdmins;
 
     const userInfo = orderData.userName || 'Foydalanuvchi';
 
@@ -283,11 +262,9 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
       `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
       `Holat: 🚀 Tayyor`;
 
-    // Создаем клавиатуру с кнопками
+    // Создаем клавиатуру только с кнопкой адреса (без кнопки "Передать курьеру")
     const hasLocation = orderData.latitude && orderData.longitude;
-    const keyboardButtons: any[] = [
-      [Markup.button.callback('🚚 Передать курьеру', `order:assign_courier:${orderId}`)]
-    ];
+    const keyboardButtons: any[] = [];
     
     // Добавляем кнопку с адресом/координатами, если они указаны
     if (hasLocation) {
@@ -303,9 +280,10 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
       ]);
     }
     
-    const keyboard = Markup.inlineKeyboard(keyboardButtons);
+    // Если есть кнопки, создаем клавиатуру, иначе отправляем без клавиатуры
+    const keyboard = keyboardButtons.length > 0 ? Markup.inlineKeyboard(keyboardButtons) : undefined;
 
-    console.log(`Sending notification to ${admins.length} restaurant admins with keyboard:`, JSON.stringify(keyboard.reply_markup));
+    console.log(`Sending notification to ${admins.length} restaurant admins`);
 
     // Отправляем уведомление всем админам ресторана
     const notificationPromises = admins.map(async (admin) => {
@@ -316,7 +294,7 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
           message,
           {
             parse_mode: 'Markdown',
-            reply_markup: keyboard.reply_markup
+            ...(keyboard ? { reply_markup: keyboard.reply_markup } : {})
           }
         );
         console.log(`Successfully sent notification to restaurant admin ${admin.telegram_id}, message_id: ${result.message_id}`);

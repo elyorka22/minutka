@@ -6,7 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { Order, OrderStatus } from '@/lib/types';
-import { getOrders, updateOrderStatus, getOrderById, assignOrderToGeneralCourier, assignOrderToRestaurantCourier } from '@/lib/api';
+import { getOrders, updateOrderStatus, getOrderById } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRestaurantId } from '@/hooks/useRestaurantId';
 import { handleApiError } from '@/lib/errorHandler';
@@ -31,19 +31,6 @@ const statusColors: Record<OrderStatus, string> = {
   cancelled: 'bg-red-100 text-red-800',
 };
 
-// Функции для передачи заказа курьеру
-async function assignOrderToCourier(orderId: string, type: 'general' | 'restaurant'): Promise<void> {
-  try {
-    if (type === 'general') {
-      await assignOrderToGeneralCourier(orderId);
-    } else {
-      await assignOrderToRestaurantCourier(orderId);
-    }
-  } catch (error) {
-    console.error('Error assigning order to courier:', error);
-    throw error;
-  }
-}
 
 export default function RestaurantAdminOrdersPage() {
   const { user } = useAuth();
@@ -85,27 +72,6 @@ export default function RestaurantAdminOrdersPage() {
     return () => clearInterval(interval);
   }, [currentRestaurantId, currentPage]);
 
-  const handleAssignToCourier = async (orderId: string, type: 'general' | 'restaurant') => {
-    try {
-      // Передаем заказ курьеру (статус меняется на assigned_to_courier)
-      await assignOrderToCourier(orderId, type);
-      
-      // Обновляем заказ в списке
-      const updatedOrder = await getOrderById(orderId);
-      setOrders(
-        orders.map((order) =>
-          order.id === orderId ? updatedOrder : order
-        )
-      );
-      const message = type === 'general' 
-        ? 'Заказ передан общему курьеру. Курьер получит уведомление и сможет взять заказ.'
-        : 'Заказ передан курьеру ресторана. Курьер получит уведомление и сможет взять заказ.';
-      showSuccess(message);
-    } catch (error) {
-      console.error('Error assigning order to courier:', error);
-      showError(handleApiError(error));
-    }
-  };
 
   const filteredOrders = statusFilter === 'all' 
     ? orders 
@@ -237,23 +203,6 @@ export default function RestaurantAdminOrdersPage() {
                   </p>
                 </div>
                 
-                {/* Кнопки "Передать курьеру" для активных заказов */}
-                {order.status !== 'delivered' && order.status !== 'cancelled' && (
-                  <div className="w-full sm:w-auto sm:ml-4 mt-4 sm:mt-0 space-y-2">
-                    <button
-                      onClick={() => handleAssignToCourier(order.id, 'general')}
-                      className="w-full px-4 py-2.5 bg-purple-500 text-white rounded-lg font-semibold hover:bg-purple-600 transition-colors text-sm shadow-md"
-                    >
-                      🚚 Передать общему курьеру
-                    </button>
-                    <button
-                      onClick={() => handleAssignToCourier(order.id, 'restaurant')}
-                      className="w-full px-4 py-2.5 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-colors text-sm shadow-md"
-                    >
-                      🏪 Передать курьеру ресторана
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           );
