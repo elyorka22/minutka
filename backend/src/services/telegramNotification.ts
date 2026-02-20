@@ -275,10 +275,37 @@ export async function notifySuperAdminsAboutNewOrder(
       `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
       `Holat: ⏳ Tasdiqlanishni kutmoqda`;
 
+    // Создаем клавиатуру с кнопкой локации, если есть координаты
+    const hasLocation = orderData.latitude && orderData.longitude;
+    let keyboard: any = undefined;
+    
+    if (hasLocation) {
+      const mapUrl = `https://www.google.com/maps?q=${orderData.latitude},${orderData.longitude}`;
+      keyboard = {
+        inline_keyboard: [
+          [
+            { text: '📍 Manzilni ko\'rish', url: mapUrl }
+          ]
+        ]
+      };
+    } else if (orderData.address) {
+      const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(orderData.address)}`;
+      keyboard = {
+        inline_keyboard: [
+          [
+            { text: '📍 Manzilni ko\'rish', url: mapUrl }
+          ]
+        ]
+      };
+    }
+
     // Отправляем уведомление всем супер-админам
     const notificationPromises = superAdmins.map(async (admin) => {
       try {
-        await sendTelegramMessage(admin.telegram_id, message, { parse_mode: 'Markdown' });
+        await sendTelegramMessage(admin.telegram_id, message, {
+          parse_mode: 'Markdown',
+          ...(keyboard ? { reply_markup: keyboard } : {})
+        });
       } catch (error: any) {
         console.error(`Error sending notification to super admin ${admin.telegram_id}:`, error);
       }

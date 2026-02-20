@@ -104,8 +104,15 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
 
       // Создаем заказ без создания пользователя
       // telegram_id используется только для уведомлений
+      // Проверяем, являются ли товары в корзине товарами главной страницы
+      // Если хотя бы один товар имеет is_main_page = true или restaurant_id = null, то это заказ товаров главной страницы
+      const isMainPageOrder = items.some(cartItem => 
+        (cartItem.item as any).is_main_page === true || 
+        !cartItem.item.restaurant_id
+      );
+      
       await createOrder({
-        restaurant_id: restaurantId,
+        restaurant_id: isMainPageOrder ? null : restaurantId, // null для товаров главной страницы
         user_id: null, // Не создаем пользователя
         user_telegram_id: chatId ? parseInt(chatId, 10) : undefined, // Telegram ID для уведомлений
         order_text: orderText,

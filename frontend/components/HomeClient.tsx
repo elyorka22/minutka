@@ -341,10 +341,10 @@ export default function HomeClient({
                 >
                   Kirish
                 </button>
-              ) : selectedTab === 'asosiy' && cartRestaurantId ? (
+              ) : selectedTab === 'asosiy' ? (
                 <Cart
-                  restaurantId={cartRestaurantId}
-                  restaurantName={cartRestaurantName}
+                  restaurantId={cartRestaurantId || 'main-page'} // Используем 'main-page' как идентификатор для товаров главной страницы
+                  restaurantName={cartRestaurantName || 'Главная страница'}
                   telegramBotUsername={process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || ''}
                   buttonPosition="header"
                 />
