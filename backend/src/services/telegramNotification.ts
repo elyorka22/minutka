@@ -42,7 +42,8 @@ async function sendTelegramMessage(chatId: number, message: string, options?: {
 }
 
 /**
- * Отправить заказ повару (chef)
+ * Отправить заказ админам ресторана
+ * (Ранее была функция sendOrderToChef, но поваров больше нет)
  */
 export async function sendOrderToChef(
   orderId: string,
@@ -54,93 +55,20 @@ export async function sendOrderToChef(
   }
 ): Promise<number | null> {
   try {
-    // Получаем настройки ресторана
-    const { data: restaurant, error: restaurantError } = await supabase
-      .from('restaurants')
-      .select('chef_notifications_enabled, admin_notifications_enabled')
-      .eq('id', restaurantId)
-      .single();
-
-    if (restaurantError) {
-      console.error('Error fetching restaurant settings:', restaurantError);
-    }
-
-    const chefNotificationsEnabled = restaurant?.chef_notifications_enabled ?? true;
-    const adminNotificationsEnabled = restaurant?.admin_notifications_enabled ?? true;
-
-    // Если уведомления для повара выключены, отправляем админу
-    if (!chefNotificationsEnabled && adminNotificationsEnabled) {
-      // Вызываем функцию уведомления админов напрямую (она определена в этом же файле)
-      await notifyRestaurantAdminsAboutNewOrder(
-        restaurantId,
-        orderId,
-        {
-          orderText: orderData.orderText,
-          address: orderData.address,
-          userName: orderData.userName
-        }
-      );
-
-      return null;
-    }
-
-    // Если уведомления для повара включены, отправляем повару
-    if (chefNotificationsEnabled) {
-      // Получаем активных поваров для ресторана
-      const { data: chefs, error: chefsError } = await supabase
-        .from('chefs')
-        .select('*')
-        .eq('restaurant_id', restaurantId)
-        .eq('is_active', true)
-        .not('telegram_chat_id', 'is', null);
-
-      if (!chefsError && chefs && chefs.length > 0) {
-        // Отправляем заказ первому активному повару
-        const chef = chefs[0];
-
-        // Формируем сообщение для повара
-        const userInfo = orderData.userName || 'Foydalanuvchi';
-
-        const message = `📋 *Yangi buyurtma*\n\n` +
-          `🆔 Buyurtma: #${orderId.slice(0, 8)}\n` +
-          `👤 Mijoz: ${userInfo}\n` +
-          `📝 Buyurtma: ${orderData.orderText}\n` +
-          `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
-          `Buyurtma tayyor bo'lganda "Tayyor" tugmasini bosing:`;
-
-        // Создаем клавиатуру с одной кнопкой "Готов"
-        const keyboard = {
-          inline_keyboard: [
-            [
-              { text: '🚀 Tayyor', callback_data: `order:delete:${orderId}` }
-            ]
-          ]
-        };
-
-        // Отправляем сообщение повару
-        // Преобразуем telegram_chat_id в число, если это BigInt
-        const chatId = typeof chef.telegram_chat_id === 'bigint' 
-          ? Number(chef.telegram_chat_id) 
-          : chef.telegram_chat_id!;
-        
-        const messageId = await sendTelegramMessage(
-          chatId,
-          message,
-          {
-            parse_mode: 'Markdown',
-            reply_markup: keyboard
-          }
-        );
-
-        return messageId;
+    // Сразу отправляем уведомление админам (поваров больше нет)
+    await notifyRestaurantAdminsAboutNewOrder(
+      restaurantId,
+      orderId,
+      {
+        orderText: orderData.orderText,
+        address: orderData.address,
+        userName: orderData.userName
       }
-    }
+    );
 
-    // Если поваров нет или уведомления выключены, возвращаем null
-    console.warn('No active chefs found or notifications disabled for restaurant', restaurantId);
     return null;
   } catch (error: any) {
-    console.error('Error sending order to chef:', error);
+    console.error('Error sending order to restaurant admins:', error);
     return null;
   }
 }
