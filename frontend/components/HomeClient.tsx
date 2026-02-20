@@ -539,6 +539,45 @@ export default function HomeClient({
         </section>
       )}
 
+      {/* Items Display - Товары на вкладке Asosiy */}
+      {selectedTab === 'asosiy' && !searchQuery && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+          {loadingCategoryItems || loadingAllItems ? (
+            <div className="text-center py-12 text-gray-500">Загрузка товаров...</div>
+          ) : selectedCategory && !isAllCategory ? (
+            // Показываем товары выбранной категории
+            categoryItems.length > 0 ? (
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {categoryItems.map((item) => (
+                  <div key={item.id} className="flex-shrink-0" style={{ width: '150px', minWidth: '150px' }}>
+                    <MenuItem item={item} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                Товары в этой категории не найдены
+              </div>
+            )
+          ) : (
+            // Показываем все товары главной страницы
+            allItems.length > 0 ? (
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                {allItems.map((item) => (
+                  <div key={item.id} className="flex-shrink-0" style={{ width: '150px', minWidth: '150px' }}>
+                    <MenuItem item={item} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                Товары не найдены
+              </div>
+            )
+          )}
+        </section>
+      )}
+
       {/* Tabs for Restaurants and Stores - временно скрыты, показываем только магазины */}
       {/* <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
         <div className="flex gap-4 border-b border-gray-200">

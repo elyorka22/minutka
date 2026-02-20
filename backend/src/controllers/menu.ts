@@ -67,11 +67,11 @@ export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
       const categoryMenuItemIds = categoryRelations?.map((rel: any) => rel.menu_item_id) || [];
 
       // Также получаем товары со старым полем category (для обратной совместимости)
+      // Включаем и товары главной страницы со старым полем category
       const { data: oldCategoryItems, error: oldCategoryError } = await supabase
         .from('menu_items')
         .select('id')
-        .eq('category', category as string)
-        .is('is_main_page', false);
+        .eq('category', category as string);
 
       if (oldCategoryError) {
         console.error('[MenuController] Error fetching old category items:', oldCategoryError);
