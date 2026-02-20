@@ -14,7 +14,6 @@ const navigation = [
   { name: 'Дашборд', href: '/restaurant-admin', icon: '📊' },
   { name: 'Заказы', href: '/restaurant-admin/orders', icon: '📦' },
   { name: 'Архив заказов', href: '/restaurant-admin/orders/archive', icon: '📚' },
-  { name: 'Управление заказами', href: '/restaurant-admin/order-settings', icon: '⚙️' },
   { name: 'Меню', href: '/restaurant-admin/menu', icon: '🍽️' },
   { name: 'Категории магазина', href: '/restaurant-admin/store-categories', icon: '🛒' },
   { name: 'Админы', href: '/restaurant-admin/admins', icon: '👥' },

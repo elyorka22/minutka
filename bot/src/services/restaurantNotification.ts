@@ -34,22 +34,24 @@ export async function sendOrderToRestaurant(
     throw new Error('Bot instance not initialized');
   }
 
-  // Получаем настройки ресторана
+  // Получаем настройки ресторана только для проверки повара
+  // Админы всегда получают уведомления
   const { data: restaurantData, error: restaurantError } = await supabase
     .from('restaurants')
-    .select('chef_notifications_enabled, admin_notifications_enabled')
+    .select('chef_notifications_enabled')
     .eq('id', restaurantId)
     .single();
 
   // Используем значения по умолчанию, если настройки не найдены
-  const restaurant = restaurantData || { chef_notifications_enabled: true, admin_notifications_enabled: true };
+  const restaurant = restaurantData || { chef_notifications_enabled: true };
 
   if (restaurantError) {
     console.error('Error fetching restaurant settings:', restaurantError);
   }
 
   const chefNotificationsEnabled = restaurant.chef_notifications_enabled ?? true;
-  const adminNotificationsEnabled = restaurant.admin_notifications_enabled ?? true;
+  // Админы всегда получают уведомления
+  const adminNotificationsEnabled = true;
 
   // Формируем информацию о пользователе
   const userInfo = orderData.user.username
