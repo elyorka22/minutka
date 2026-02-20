@@ -50,6 +50,8 @@ export default function BotSettingsPage() {
       const appSloganSetting = settings.find((s: BotSetting) => s.key === 'app_slogan');
       const bannerTitleSetting = settings.find((s: BotSetting) => s.key === 'banner_title');
       const bannerSubtitleSetting = settings.find((s: BotSetting) => s.key === 'banner_subtitle');
+      const buttonBotInfoTextSetting = settings.find((s: BotSetting) => s.key === 'button_bot_info_text');
+      const buttonPartnershipTextSetting = settings.find((s: BotSetting) => s.key === 'button_partnership_text');
       
       setWelcomeMessage(welcomeSetting?.value || '🛒 *Online Bozor\'ga xush kelibsiz!*\n\nBuyurtma berish uchun do\'kon tanlang:');
       setBotInfoMessage(botInfoSetting?.value || 'Online Bozor - Online do\'kon platformasi. Biz bilan siz kerakli mahsulotlarni uyingizga buyurtma berishingiz mumkin.');
