@@ -562,7 +562,8 @@ export default function HomeClient({
                   })}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-gray-500 text-lg">
+                  Tez kunlarda
                   Bu kategoriyada mahsulotlar topilmadi. Mahsulotlarni kategoriyaga bog'lash uchun admin panelga kiring.
                 </div>
               )}
