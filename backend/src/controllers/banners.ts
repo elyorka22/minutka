@@ -18,7 +18,7 @@ import { Logger } from '../services/logger';
  */
 export async function getBanners(req: Request, res: Response) {
   try {
-    const { position, all } = req.query;
+    const { position, all, tab } = req.query;
 
     let query = supabase
       .from('banners')
@@ -34,6 +34,11 @@ export async function getBanners(req: Request, res: Response) {
     // Фильтр по позиции
     if (position && typeof position === 'string') {
       query = query.eq('position', position);
+    }
+
+    // Фильтр по вкладке (для главной страницы)
+    if (tab && typeof tab === 'string') {
+      query = query.eq('tab', tab);
     }
 
     const { data, error } = await query;
@@ -65,7 +70,7 @@ export async function getBanners(req: Request, res: Response) {
  */
 export async function createBanner(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, title, image_url, link_url, position, is_active, display_order } = req.body;
+    const { restaurant_id, title, image_url, link_url, position, is_active, display_order, tab } = req.body;
 
     // Валидация
     if (!image_url) {
@@ -104,6 +109,14 @@ export async function createBanner(req: AuthenticatedRequest, res: Response) {
       });
     }
 
+    const validTabs = ['asosiy', 'do\'konlar', 'xizmatlar'];
+    if (tab && !validTabs.includes(tab)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid tab. Must be one of: ${validTabs.join(', ')}`
+      });
+    }
+
     const { data, error } = await supabase
       .from('banners')
       .insert({
@@ -112,6 +125,7 @@ export async function createBanner(req: AuthenticatedRequest, res: Response) {
         image_url,
         link_url: link_url || null,
         position: position || 'homepage',
+        tab: tab || 'asosiy',
         is_active: is_active !== undefined ? is_active : true,
         display_order: display_order || 0,
       })
@@ -145,7 +159,7 @@ export async function createBanner(req: AuthenticatedRequest, res: Response) {
 export async function updateBanner(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { restaurant_id, title, image_url, link_url, position, is_active, display_order } = req.body;
+    const { restaurant_id, title, image_url, link_url, position, is_active, display_order, tab } = req.body;
 
     // Валидация
     if (image_url && !validateUrl(image_url)) {
@@ -177,12 +191,21 @@ export async function updateBanner(req: AuthenticatedRequest, res: Response) {
       });
     }
 
+    const validTabs = ['asosiy', 'do\'konlar', 'xizmatlar'];
+    if (tab && !validTabs.includes(tab)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid tab. Must be one of: ${validTabs.join(', ')}`
+      });
+    }
+
     const updateData: any = {};
     if (restaurant_id !== undefined) updateData.restaurant_id = restaurant_id;
     if (title !== undefined) updateData.title = title || null;
     if (image_url !== undefined) updateData.image_url = image_url;
     if (link_url !== undefined) updateData.link_url = link_url || null;
     if (position !== undefined) updateData.position = position;
+    if (tab !== undefined) updateData.tab = tab;
     if (is_active !== undefined) updateData.is_active = is_active;
     if (display_order !== undefined) updateData.display_order = display_order;
     updateData.updated_at = new Date().toISOString();

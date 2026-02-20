@@ -60,8 +60,11 @@ export async function getStoresServer(
 // Categories and restaurant category relations removed - only stores remain
 
 // Banners API (server-side)
-export async function getBannersServer(position: string): Promise<Banner[]> {
-  const url = `${API_BASE_URL}/api/banners?position=${position}`;
+export async function getBannersServer(position: string, tab?: string): Promise<Banner[]> {
+  let url = `${API_BASE_URL}/api/banners?position=${position}`;
+  if (tab) {
+    url += `&tab=${tab}`;
+  }
   const data = await fetchWithCache<Banner[]>(url, {}, 30); // Кэш 30 секунд
   return Array.isArray(data) ? data : [];
 }

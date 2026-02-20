@@ -82,6 +82,16 @@ export default function HomeClient({
   const [searchQuery, setSearchQuery] = useState('');
   const [banners, setBanners] = useState(initialBanners);
   const [pharmaciesStores, setPharmaciesStores] = useState(initialPharmaciesStores);
+  
+  // Фильтруем баннеры по текущей вкладке
+  const currentTabBanners = useMemo(() => {
+    return banners.filter(banner => {
+      // Если position !== 'homepage', показываем на всех вкладках
+      if (banner.position !== 'homepage') return true;
+      // Для homepage баннеров фильтруем по вкладке
+      return banner.tab === selectedTab || !banner.tab; // Если tab не указан, показываем на всех вкладках
+    });
+  }, [banners, selectedTab]);
   const [categoryItems, setCategoryItems] = useState<MenuItemWithStore[]>([]);
   const [loadingCategoryItems, setLoadingCategoryItems] = useState(false);
   const [allItems, setAllItems] = useState<MenuItemWithStore[]>([]);
@@ -458,9 +468,9 @@ export default function HomeClient({
       </section>
 
       {/* Top Banners Carousel */}
-      {banners.length > 0 && (
+      {currentTabBanners.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
-          <BannerCarousel banners={banners} />
+          <BannerCarousel banners={currentTabBanners} />
         </section>
       )}
 

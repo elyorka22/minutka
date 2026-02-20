@@ -341,10 +341,11 @@ export async function deletePharmacyStore(id: string): Promise<void> {
 }
 
 // Banners API
-export async function getBanners(position?: string, all: boolean = false): Promise<Banner[]> {
+export async function getBanners(position?: string, all: boolean = false, tab?: string): Promise<Banner[]> {
   const params: any = {};
   if (position) params.position = position;
   if (all) params.all = 'true';
+  if (tab) params.tab = tab;
   const response = await api.get<{ success: boolean; data: Banner[] }>('/api/banners', { params });
   return response.data.data;
 }
@@ -355,6 +356,7 @@ export async function createBanner(bannerData: {
   image_url: string;
   link_url?: string | null;
   position?: 'homepage' | 'restaurant_page' | 'recommended';
+  tab?: 'asosiy' | 'do\'konlar' | 'xizmatlar';
   is_active?: boolean;
   display_order?: number;
 }): Promise<Banner> {
@@ -368,6 +370,7 @@ export async function updateBanner(id: string, bannerData: {
   image_url?: string;
   link_url?: string | null;
   position?: 'homepage' | 'restaurant_page' | 'recommended';
+  tab?: 'asosiy' | 'do\'konlar' | 'xizmatlar';
   is_active?: boolean;
   display_order?: number;
 }): Promise<Banner> {

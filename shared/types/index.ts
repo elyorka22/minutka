@@ -78,6 +78,7 @@ export interface Banner {
   image_url: string;
   link_url: string | null;
   position: BannerPosition;
+  tab?: 'asosiy' | 'do\'konlar' | 'xizmatlar'; // Вкладка главной страницы
   is_active: boolean;
   display_order: number;
   created_at: string;

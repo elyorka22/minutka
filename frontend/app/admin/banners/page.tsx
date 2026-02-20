@@ -165,6 +165,7 @@ export default function AdminBannersPage() {
                   image_url: banner.image_url,
                   link_url: banner.link_url,
                   position: banner.position,
+                  tab: banner.tab,
                   is_active: banner.is_active,
                   display_order: banner.display_order,
                 });
@@ -200,6 +201,7 @@ function BannerFormModal({
     image_url: banner?.image_url || '',
     link_url: banner?.link_url || '',
     position: banner?.position || 'homepage',
+    tab: (banner?.tab as 'asosiy' | 'do\'konlar' | 'xizmatlar') || 'asosiy',
     is_active: banner?.is_active ?? true,
     display_order: banner?.display_order || 0,
   });
@@ -213,6 +215,7 @@ function BannerFormModal({
       image_url: formData.image_url,
       link_url: formData.link_url || null,
       position: formData.position,
+      tab: formData.tab,
       is_active: formData.is_active,
       display_order: formData.display_order,
       created_at: banner?.created_at || new Date().toISOString(),
@@ -282,6 +285,24 @@ function BannerFormModal({
                 <option value="restaurant_page">Страница ресторана</option>
               </select>
             </div>
+
+            {formData.position === 'homepage' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Вкладка главной страницы *
+                </label>
+                <select
+                  value={formData.tab}
+                  onChange={(e) => setFormData({ ...formData, tab: e.target.value as 'asosiy' | 'do\'konlar' | 'xizmatlar' })}
+                  required
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="asosiy">Asosiy</option>
+                  <option value="do'konlar">Do'konlar</option>
+                  <option value="xizmatlar">Xizmatlar</option>
+                </select>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
