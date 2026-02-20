@@ -2,13 +2,14 @@
 // Bot Settings Controller
 // ============================================
 
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { supabase } from '../config/supabase';
+import { AuthenticatedRequest } from '../middleware/auth';
 
 /**
  * Получить все настройки бота
  */
-export async function getBotSettings(req: Request, res: Response) {
+export async function getBotSettings(req: AuthenticatedRequest, res: Response) {
   try {
     const { data, error } = await supabase
       .from('bot_settings')
@@ -30,7 +31,7 @@ export async function getBotSettings(req: Request, res: Response) {
 /**
  * Обновить настройку бота
  */
-export async function updateBotSetting(req: Request, res: Response) {
+export async function updateBotSetting(req: AuthenticatedRequest, res: Response) {
   try {
     const { key } = req.params;
     const { value } = req.body;

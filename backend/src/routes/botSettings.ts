@@ -4,7 +4,7 @@
 
 import { Router } from 'express';
 import { getBotSettings, updateBotSetting } from '../controllers/botSettings';
-import { requireSuperAdmin } from '../middleware/auth';
+import { requireStaffAuth, requireSuperAdmin } from '../middleware/auth';
 
 const router = Router();
 
@@ -12,7 +12,7 @@ const router = Router();
 router.get('/', getBotSettings);
 
 // PATCH /api/bot-settings/:key - Обновить настройку (только для супер-админа)
-router.patch('/:key', requireSuperAdmin, updateBotSetting);
+router.patch('/:key', requireStaffAuth, requireSuperAdmin, updateBotSetting);
 
 export default router;
 
