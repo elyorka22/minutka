@@ -25,6 +25,8 @@ export default function BotSettingsPage() {
   const [appSlogan, setAppSlogan] = useState('');
   const [bannerTitle, setBannerTitle] = useState('Ovqat buyurtma qiling!');
   const [bannerSubtitle, setBannerSubtitle] = useState('Restoran tanlang va Telegram-bot orqali buyurtma bering');
+  const [buttonBotInfoText, setButtonBotInfoText] = useState('ℹ️ Bot haqida');
+  const [buttonPartnershipText, setButtonPartnershipText] = useState('🤝 Hamkorlik');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -228,6 +230,50 @@ export default function BotSettingsPage() {
                 onChange={(e) => setAppSlogan(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 placeholder="Введите слоган приложения..."
+                disabled={loading || saving}
+              />
+            </div>
+          </div>
+
+          {/* Поле для текста кнопки "Bot haqida" */}
+          <div className="border-b border-gray-200 pb-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                🔘 Текст кнопки "Bot haqida"
+              </h3>
+              <p className="text-sm text-gray-500">
+                Текст, который будет отображаться на кнопке бота (по умолчанию: "ℹ️ Bot haqida")
+              </p>
+            </div>
+            <div>
+              <input
+                type="text"
+                value={buttonBotInfoText}
+                onChange={(e) => setButtonBotInfoText(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="ℹ️ Bot haqida"
+                disabled={loading || saving}
+              />
+            </div>
+          </div>
+
+          {/* Поле для текста кнопки "Hamkorlik" */}
+          <div className="border-b border-gray-200 pb-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                🔘 Текст кнопки "Hamkorlik"
+              </h3>
+              <p className="text-sm text-gray-500">
+                Текст, который будет отображаться на кнопке бота (по умолчанию: "🤝 Hamkorlik")
+              </p>
+            </div>
+            <div>
+              <input
+                type="text"
+                value={buttonPartnershipText}
+                onChange={(e) => setButtonPartnershipText(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                placeholder="🤝 Hamkorlik"
                 disabled={loading || saving}
               />
             </div>
