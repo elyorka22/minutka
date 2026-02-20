@@ -23,11 +23,11 @@ export async function orderStatusHandler(
     if (action === 'delete') {
       await ctx.answerCbQuery('✅ Buyurtma tayyor!');
       
-      // Получаем информацию о заказе для уведомления админов
+        // Получаем информацию о заказе для уведомления админов
       try {
         const { data: order, error: orderError } = await supabase
           .from('orders')
-          .select('restaurant_id, order_text, address, user_id')
+          .select('restaurant_id, order_text, address, user_id, latitude, longitude')
           .eq('id', orderId)
           .single();
 
@@ -62,7 +62,9 @@ export async function orderStatusHandler(
             {
               orderText: order.order_text,
               address: order.address,
-              userName
+              userName,
+              latitude: order.latitude || null,
+              longitude: order.longitude || null
             }
           );
           console.log('notifyRestaurantAdminsAboutReadyOrder completed');

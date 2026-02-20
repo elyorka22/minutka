@@ -86,6 +86,8 @@ export async function notifyRestaurantAdminsAboutNewOrder(
     orderText: string;
     address: string | null;
     userName?: string;
+    latitude?: number | null;
+    longitude?: number | null;
   }
 ) {
   console.log('=== notifyRestaurantAdminsAboutNewOrder called ===');
@@ -167,10 +169,27 @@ export async function notifyRestaurantAdminsAboutNewOrder(
       `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
       `Holat: ⏳ Tasdiqlanishni kutmoqda`;
 
-    // Создаем клавиатуру с кнопкой "Передать курьеру"
-    const keyboard = Markup.inlineKeyboard([
-      Markup.button.callback('🚚 Передать курьеру', `order:assign_courier:${orderId}`)
-    ]);
+    // Создаем клавиатуру с кнопками
+    const hasLocation = orderData.latitude && orderData.longitude;
+    const keyboardButtons: any[] = [
+      [Markup.button.callback('🚚 Передать курьеру', `order:assign_courier:${orderId}`)]
+    ];
+    
+    // Добавляем кнопку с адресом/координатами, если они указаны
+    if (hasLocation) {
+      const mapUrl = `https://www.google.com/maps?q=${orderData.latitude},${orderData.longitude}`;
+      keyboardButtons.push([
+        Markup.button.url('📍 Manzilni ko\'rish', mapUrl)
+      ]);
+    } else if (orderData.address) {
+      // Если нет координат, но есть адрес, создаем ссылку на поиск по адресу
+      const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(orderData.address)}`;
+      keyboardButtons.push([
+        Markup.button.url('📍 Manzilni ko\'rish', mapUrl)
+      ]);
+    }
+    
+    const keyboard = Markup.inlineKeyboard(keyboardButtons);
 
     // Отправляем уведомление всем админам ресторана
     // ВАЖНО: Это уведомление только для админов, НЕ для курьеров
@@ -208,6 +227,8 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
     orderText: string;
     address: string | null;
     userName?: string;
+    latitude?: number | null;
+    longitude?: number | null;
   }
 ) {
   console.log('=== notifyRestaurantAdminsAboutReadyOrder called ===');
@@ -296,10 +317,27 @@ export async function notifyRestaurantAdminsAboutReadyOrder(
       `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
       `Holat: 🚀 Tayyor`;
 
-    // Создаем клавиатуру с кнопкой "Передать курьеру" используя Markup
-    const keyboard = Markup.inlineKeyboard([
-      Markup.button.callback('🚚 Передать курьеру', `order:assign_courier:${orderId}`)
-    ]);
+    // Создаем клавиатуру с кнопками
+    const hasLocation = orderData.latitude && orderData.longitude;
+    const keyboardButtons: any[] = [
+      [Markup.button.callback('🚚 Передать курьеру', `order:assign_courier:${orderId}`)]
+    ];
+    
+    // Добавляем кнопку с адресом/координатами, если они указаны
+    if (hasLocation) {
+      const mapUrl = `https://www.google.com/maps?q=${orderData.latitude},${orderData.longitude}`;
+      keyboardButtons.push([
+        Markup.button.url('📍 Manzilni ko\'rish', mapUrl)
+      ]);
+    } else if (orderData.address) {
+      // Если нет координат, но есть адрес, создаем ссылку на поиск по адресу
+      const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(orderData.address)}`;
+      keyboardButtons.push([
+        Markup.button.url('📍 Manzilni ko\'rish', mapUrl)
+      ]);
+    }
+    
+    const keyboard = Markup.inlineKeyboard(keyboardButtons);
 
     console.log(`Sending notification to ${admins.length} restaurant admins with keyboard:`, JSON.stringify(keyboard.reply_markup));
 

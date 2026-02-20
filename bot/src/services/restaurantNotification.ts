@@ -100,6 +100,13 @@ export async function sendOrderToRestaurant(
 
   // Если уведомления для повара выключены или поваров нет, отправляем админу
   if (!chefNotificationsEnabled && adminNotificationsEnabled) {
+    // Получаем координаты заказа из БД
+    const { data: order } = await supabase
+      .from('orders')
+      .select('latitude, longitude')
+      .eq('id', orderId)
+      .single();
+    
     // Импортируем функцию уведомления админов о новом заказе
     const { notifyRestaurantAdminsAboutNewOrder } = await import('./adminNotification');
     
@@ -109,7 +116,9 @@ export async function sendOrderToRestaurant(
       {
         orderText: orderData.orderText,
         address: orderData.address,
-        userName: userInfo
+        userName: userInfo,
+        latitude: order?.latitude || null,
+        longitude: order?.longitude || null
       }
     );
 
