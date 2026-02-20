@@ -324,7 +324,14 @@ export default function HomeClient({
               <p className="text-sm text-gray-600">{appSlogan}</p>
             </div>
             <div className="flex items-center gap-3">
-              {selectedTab === 'asosiy' && isAllCategory ? (
+              {selectedTab === 'asosiy' ? (
+                <Cart
+                  restaurantId={cartRestaurantId || 'main-page'} // Используем 'main-page' как идентификатор для товаров главной страницы
+                  restaurantName={cartRestaurantName || 'Главная страница'}
+                  telegramBotUsername={process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || ''}
+                  buttonPosition="header"
+                />
+              ) : (
                 <button
                   onClick={async () => {
                     try {
@@ -361,14 +368,7 @@ export default function HomeClient({
                 >
                   Kirish
                 </button>
-              ) : selectedTab === 'asosiy' ? (
-                <Cart
-                  restaurantId={cartRestaurantId || 'main-page'} // Используем 'main-page' как идентификатор для товаров главной страницы
-                  restaurantName={cartRestaurantName || 'Главная страница'}
-                  telegramBotUsername={process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME || ''}
-                  buttonPosition="header"
-                />
-              ) : null}
+              )}
             </div>
           </div>
         </div>
