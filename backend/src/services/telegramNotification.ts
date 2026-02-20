@@ -55,6 +55,13 @@ export async function sendOrderToChef(
   }
 ): Promise<number | null> {
   try {
+    // Получаем координаты заказа из БД
+    const { data: order } = await supabase
+      .from('orders')
+      .select('latitude, longitude')
+      .eq('id', orderId)
+      .single();
+    
     // Сразу отправляем уведомление админам (поваров больше нет)
     await notifyRestaurantAdminsAboutNewOrder(
       restaurantId,
@@ -62,7 +69,9 @@ export async function sendOrderToChef(
       {
         orderText: orderData.orderText,
         address: orderData.address,
-        userName: orderData.userName
+        userName: orderData.userName,
+        latitude: order?.latitude || null,
+        longitude: order?.longitude || null
       }
     );
 
@@ -289,6 +298,8 @@ export async function notifyRestaurantAdminsAboutNewOrder(
     orderText: string;
     address: string | null;
     userName?: string;
+    latitude?: number | null;
+    longitude?: number | null;
   }
 ): Promise<void> {
   try {
@@ -333,11 +344,37 @@ export async function notifyRestaurantAdminsAboutNewOrder(
       `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
       `Holat: ⏳ Tasdiqlanishni kutmoqda`;
 
-    // Отправляем уведомление всем админам ресторана (без кнопок)
+    // Создаем клавиатуру с кнопкой локации, если есть координаты или адрес
+    const hasLocation = orderData.latitude && orderData.longitude;
+    let keyboard: any = undefined;
+    
+    if (hasLocation) {
+      const mapUrl = `https://www.google.com/maps?q=${orderData.latitude},${orderData.longitude}`;
+      keyboard = {
+        inline_keyboard: [
+          [
+            { text: '📍 Manzilni ko\'rish', url: mapUrl }
+          ]
+        ]
+      };
+    } else if (orderData.address) {
+      // Если нет координат, но есть адрес, создаем ссылку на поиск по адресу
+      const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(orderData.address)}`;
+      keyboard = {
+        inline_keyboard: [
+          [
+            { text: '📍 Manzilni ko\'rish', url: mapUrl }
+          ]
+        ]
+      };
+    }
+
+    // Отправляем уведомление всем админам ресторана
     const notificationPromises = admins.map(async (admin) => {
       try {
         await sendTelegramMessage(admin.telegram_id, message, { 
-          parse_mode: 'Markdown'
+          parse_mode: 'Markdown',
+          ...(keyboard ? { reply_markup: keyboard } : {})
         });
       } catch (error: any) {
         console.error(`Error sending notification to restaurant admin ${admin.telegram_id}:`, error);

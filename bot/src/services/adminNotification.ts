@@ -143,11 +143,9 @@ export async function notifyRestaurantAdminsAboutNewOrder(
       `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
       `Holat: ⏳ Tasdiqlanishni kutmoqda`;
 
-    // Создаем клавиатуру с кнопками
+    // Создаем клавиатуру только с кнопкой локации (без кнопки "Передать курьеру")
     const hasLocation = orderData.latitude && orderData.longitude;
-    const keyboardButtons: any[] = [
-      [Markup.button.callback('🚚 Передать курьеру', `order:assign_courier:${orderId}`)]
-    ];
+    const keyboardButtons: any[] = [];
     
     // Добавляем кнопку с адресом/координатами, если они указаны
     if (hasLocation) {
@@ -163,7 +161,8 @@ export async function notifyRestaurantAdminsAboutNewOrder(
       ]);
     }
     
-    const keyboard = Markup.inlineKeyboard(keyboardButtons);
+    // Если есть кнопки, создаем клавиатуру, иначе отправляем без клавиатуры
+    const keyboard = keyboardButtons.length > 0 ? Markup.inlineKeyboard(keyboardButtons) : undefined;
 
     // Отправляем уведомление всем админам ресторана
     // ВАЖНО: Это уведомление только для админов, НЕ для курьеров
