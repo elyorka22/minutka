@@ -547,11 +547,9 @@ export default function HomeClient({
           ) : selectedCategory && !isAllCategory ? (
             // Показываем товары выбранной категории
             categoryItems.length > 0 ? (
-              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div className="grid grid-cols-2 gap-4">
                 {categoryItems.map((item) => (
-                  <div key={item.id} className="flex-shrink-0" style={{ width: '150px', minWidth: '150px' }}>
-                    <MenuItem item={item} />
-                  </div>
+                  <MenuItem key={item.id} item={item} />
                 ))}
               </div>
             ) : (
@@ -562,11 +560,9 @@ export default function HomeClient({
           ) : (
             // Показываем все товары главной страницы
             allItems.length > 0 ? (
-              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-4" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div className="grid grid-cols-2 gap-4">
                 {allItems.map((item) => (
-                  <div key={item.id} className="flex-shrink-0" style={{ width: '150px', minWidth: '150px' }}>
-                    <MenuItem item={item} />
-                  </div>
+                  <MenuItem key={item.id} item={item} />
                 ))}
               </div>
             ) : (
