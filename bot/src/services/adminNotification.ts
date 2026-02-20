@@ -437,8 +437,7 @@ export async function notifyCouriersAboutOrder(
     const address = orderData.address || 'Ko\'rsatilmagan';
     const hasLocation = orderData.latitude && orderData.longitude;
 
-    // ВАЖНО: Курьеры получают только подтвержденные заказы от админа
-    // Это уведомление отправляется только после того, как админ нажал "Передать курьеру"
+    // ВАЖНО: Курьеры получают только подтвержденные заказы
     const message = `📦 *Tasdiqlangan buyurtma*\n\n` +
       `🆔 Buyurtma: #${orderId.slice(0, 8)}\n` +
       `🍽️ Restoran: ${orderData.restaurantName}\n` +
@@ -450,7 +449,6 @@ export async function notifyCouriersAboutOrder(
       `⚠️ *Kim birinchi olsa, shu buyurtmani oladi!*`;
 
     // Создаем клавиатуру с кнопкой "Взять заказ" (только для курьеров)
-    // ВАЖНО: Курьеры НЕ должны получать кнопку "Передать курьеру" - это только для админов
     const keyboardButtons: any[] = [
       [Markup.button.callback('✅ Olmoq', `courier:take:${orderId}`)]
     ];
@@ -467,7 +465,6 @@ export async function notifyCouriersAboutOrder(
 
     // Отправляем уведомление всем активным курьерам
     // ВАЖНО: Курьеры получают только подтвержденные заказы с кнопкой "✅ Olmoq"
-    // Это уведомление отправляется только после того, как админ нажал "Передать курьеру"
     console.log(`[Courier Notification] Sending confirmed order to ${couriers.length} couriers with button "✅ Olmoq"`);
     const notificationPromises = couriers.map(async (courier) => {
       try {
