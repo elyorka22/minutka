@@ -233,37 +233,48 @@ export default function HomeClient({
     });
   }, [initialStores, selectedCategory, searchQuery, initialCategoryStoreMap, pharmaciesCategory, storesCategory, initialStoreCategories, initialStoreCategoryStoreMap]);
 
-  // Загружаем товары выбранной категории
+  // Загружаем товары для вкладки "Asosiy"
   useEffect(() => {
-    console.log('[HomeClient] useEffect triggered:', { selectedCategory, categoriesCount: initialStoreCategories.length });
-    
-    // Если выбрана категория "Все" или нет категории - показываем магазины
-    if (isAllCategory) {
-      console.log('[HomeClient] Showing stores (All category)');
-      setCategoryItems([]);
-      return;
-    }
-    
-    // Если выбрана другая категория - загружаем товары этой категории
-    if (selectedCategory) {
-      console.log('[HomeClient] Loading items for category:', selectedCategory);
-      setLoadingCategoryItems(true);
-      getMenuItems(undefined, true, selectedCategory)
-        .then(items => {
-          console.log('[HomeClient] Loaded items:', items.length, items);
-          setCategoryItems(items);
-          setLoadingCategoryItems(false);
-        })
-        .catch(error => {
-          console.error('[HomeClient] Error loading category items:', error);
-          setCategoryItems([]);
-          setLoadingCategoryItems(false);
-        });
+    // Если выбрана вкладка "Asosiy"
+    if (selectedTab === 'asosiy') {
+      // Если выбрана категория (не "Все") - загружаем товары этой категории
+      if (selectedCategory && !isAllCategory) {
+        console.log('[HomeClient] Loading items for category:', selectedCategory);
+        setLoadingCategoryItems(true);
+        getMenuItems(undefined, true, selectedCategory)
+          .then(items => {
+            console.log('[HomeClient] Loaded category items:', items.length);
+            setCategoryItems(items);
+            setLoadingCategoryItems(false);
+          })
+          .catch(error => {
+            console.error('[HomeClient] Error loading category items:', error);
+            setCategoryItems([]);
+            setLoadingCategoryItems(false);
+          });
+      } else {
+        // Если выбрана "Все" или нет категории - загружаем все товары
+        console.log('[HomeClient] Loading all items for Asosiy tab');
+        setLoadingAllItems(true);
+        getMenuItems(undefined, true)
+          .then(items => {
+            console.log('[HomeClient] Loaded all items:', items.length);
+            setAllItems(items);
+            setLoadingAllItems(false);
+          })
+          .catch(error => {
+            console.error('[HomeClient] Error loading all items:', error);
+            setAllItems([]);
+            setLoadingAllItems(false);
+          });
+        setCategoryItems([]);
+      }
     } else {
-      console.log('[HomeClient] No category selected, showing stores');
+      // Для других вкладок очищаем товары
       setCategoryItems([]);
+      setAllItems([]);
     }
-  }, [selectedCategory, initialStoreCategories]);
+  }, [selectedTab, selectedCategory, isAllCategory]);
 
   // Сбрасываем выбранную категорию, если она не подходит
   useEffect(() => {
@@ -573,67 +584,6 @@ export default function HomeClient({
           </>
         )} */}
 
-      {/* Stores Section - показываем товары категории или все магазины */}
-      {!searchQuery && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
-          {selectedCategory && categoryItems.length > 0 && (
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              {initialStoreCategories.find((c) => c.name === selectedCategory)?.name || selectedCategory}
-            </h2>
-          )}
-          
-          {/* Если выбрана категория (не "Все") - показываем товары или загрузку */}
-          {selectedCategory ? (
-            <>
-              {loadingCategoryItems ? (
-                <div className="text-center py-12 text-gray-500">Yuklanmoqda...</div>
-              ) : categoryItems.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {categoryItems.map((item) => {
-                    // Преобразуем MenuItemWithStore в MenuItem для компонента
-                    const menuItem = {
-                      id: item.id,
-                      name: item.name,
-                      description: item.description,
-                      price: item.price,
-                      image_url: item.image_url,
-                      is_available: item.is_available,
-                      category: item.category,
-                      restaurant_id: item.restaurant_id || item.restaurant.id,
-                      is_banner: item.is_banner || false,
-                      created_at: item.created_at || new Date().toISOString(),
-                    };
-                return (
-                  <div key={item.id} className="relative">
-                    <MenuItem item={menuItem} />
-                  </div>
-                );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-12 text-gray-500 text-lg">
-                  Tez kunlarda
-                </div>
-              )}
-            </>
-          ) : (
-            /* Если выбрана "Все" или нет категории - показываем все магазины */
-            <>
-              {filteredStores.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  Do'konlar topilmadi
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 gap-4 md:gap-6">
-                  {filteredStores.map((store) => (
-                    <RestaurantCard key={store.id} restaurant={store} />
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-        </section>
-      )}
 
       {/* Search Results */}
       {searchQuery && (
