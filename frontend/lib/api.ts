@@ -684,6 +684,7 @@ export async function createMenuItem(menuItemData: {
   description?: string | null;
   price: number;
   category?: string | null;
+  categories?: string[]; // Массив категорий для many-to-many связи
   image_url?: string | null;
   is_available?: boolean;
   is_banner?: boolean;

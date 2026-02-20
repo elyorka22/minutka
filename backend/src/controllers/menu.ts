@@ -53,6 +53,35 @@ export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
     if (category && !restaurant_id) {
       console.log('[MenuController] Fetching items for category:', category);
       
+      // Получаем ID товаров, связанных с этой категорией через menu_item_category_relations
+      const { data: categoryRelations, error: relationsError } = await supabase
+        .from('menu_item_category_relations')
+        .select('menu_item_id')
+        .eq('category_name', category as string);
+
+      if (relationsError) {
+        console.error('[MenuController] Error fetching category relations:', relationsError);
+        throw relationsError;
+      }
+
+      const categoryMenuItemIds = categoryRelations?.map((rel: any) => rel.menu_item_id) || [];
+
+      // Также получаем товары со старым полем category (для обратной совместимости)
+      const { data: oldCategoryItems, error: oldCategoryError } = await supabase
+        .from('menu_items')
+        .select('id')
+        .eq('category', category as string)
+        .is('is_main_page', false);
+
+      if (oldCategoryError) {
+        console.error('[MenuController] Error fetching old category items:', oldCategoryError);
+      }
+
+      const oldCategoryItemIds = oldCategoryItems?.map((item: any) => item.id) || [];
+      
+      // Объединяем ID товаров из обеих источников
+      const allMenuItemIds = [...new Set([...categoryMenuItemIds, ...oldCategoryItemIds])];
+
       // Сначала получаем товары из магазинов
       let storeQuery = supabase
         .from('menu_items')
@@ -65,9 +94,15 @@ export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
             image_url
           )
         `)
-        .eq('category', category as string)
         .eq('is_banner', false)
         .is('is_main_page', false); // Исключаем товары главной страницы
+
+      // Если есть ID товаров из связей, фильтруем по ним, иначе используем старое поле category
+      if (allMenuItemIds.length > 0) {
+        storeQuery = storeQuery.in('id', allMenuItemIds);
+      } else {
+        storeQuery = storeQuery.eq('category', category as string);
+      }
 
       // Если не запрошены недоступные товары, фильтруем только доступные
       if (include_unavailable !== 'true') {
@@ -88,13 +123,18 @@ export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
       );
 
       // Теперь получаем товары главной страницы с этой категорией
-      // Используем те же ID, но фильтруем по is_main_page = true
       let mainPageQuery = supabase
         .from('menu_items')
         .select('*')
-        .in('id', allMenuItemIds)
         .eq('is_main_page', true)
         .eq('is_banner', false);
+
+      // Если есть ID товаров из связей, фильтруем по ним
+      if (allMenuItemIds.length > 0) {
+        mainPageQuery = mainPageQuery.in('id', allMenuItemIds);
+      } else {
+        mainPageQuery = mainPageQuery.eq('category', category as string);
+      }
 
       if (include_unavailable !== 'true') {
         mainPageQuery = mainPageQuery.eq('is_available', true);
