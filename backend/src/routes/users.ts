@@ -3,9 +3,15 @@
 // ============================================
 
 import express from 'express';
-import { getUsers, getUserById, getUserByTelegramId, createUser } from '../controllers/users';
+import { getUsers, getUserById, getUserByTelegramId, createUser, getUsersStats } from '../controllers/users';
 
 const router = express.Router();
+
+/**
+ * GET /api/users/stats
+ * Получить статистику активных пользователей бота
+ */
+router.get('/stats', getUsersStats);
 
 /**
  * POST /api/users
