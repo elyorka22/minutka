@@ -21,11 +21,40 @@ export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id, category, include_unavailable } = req.query;
 
-    // Если указана категория, возвращаем товары этой категории из всех магазинов
+    // Если запрашиваются товары главной страницы (is_main_page = true)
+    if (req.query.main_page === 'true') {
+      console.log('[MenuController] Fetching main page items');
+      
+      let query = supabase
+        .from('menu_items')
+        .select('*')
+        .eq('is_main_page', true)
+        .eq('is_banner', false); // Исключаем баннеры
+
+      // Если не запрошены недоступные товары, фильтруем только доступные
+      if (include_unavailable !== 'true') {
+        query = query.eq('is_available', true);
+      }
+
+      const { data, error } = await query
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.error('[MenuController] Error fetching main page items:', error);
+        throw error;
+      }
+
+      console.log('[MenuController] Found main page items:', data?.length || 0);
+      res.json({ success: true, data: data || [] });
+      return;
+    }
+
+    // Если указана категория, возвращаем товары этой категории из всех магазинов и главной страницы
     if (category && !restaurant_id) {
       console.log('[MenuController] Fetching items for category:', category);
       
-      let query = supabase
+      // Сначала получаем товары из магазинов
+      let storeQuery = supabase
         .from('menu_items')
         .select(`
           *,
@@ -37,29 +66,84 @@ export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
           )
         `)
         .eq('category', category as string)
-        .eq('is_banner', false); // Исключаем баннеры
+        .eq('is_banner', false)
+        .is('is_main_page', false); // Исключаем товары главной страницы
 
       // Если не запрошены недоступные товары, фильтруем только доступные
+      if (include_unavailable !== 'true') {
+        storeQuery = storeQuery.eq('is_available', true);
+      }
+
+      const { data: storeData, error: storeError } = await storeQuery
+        .order('name', { ascending: true });
+
+      if (storeError) {
+        console.error('[MenuController] Error fetching store items:', storeError);
+        throw storeError;
+      }
+
+      // Фильтруем товары только из магазинов
+      const storeItems = (storeData || []).filter((item: any) => 
+        item.restaurant && item.restaurant.type === 'store'
+      );
+
+      // Теперь получаем товары главной страницы с этой категорией
+      let mainPageQuery = supabase
+        .from('menu_items')
+        .select('*')
+        .eq('category', category as string)
+        .eq('is_main_page', true)
+        .eq('is_banner', false);
+
+      if (include_unavailable !== 'true') {
+        mainPageQuery = mainPageQuery.eq('is_available', true);
+      }
+
+      const { data: mainPageData, error: mainPageError } = await mainPageQuery
+        .order('name', { ascending: true });
+
+      if (mainPageError) {
+        console.error('[MenuController] Error fetching main page items:', mainPageError);
+        // Не прерываем выполнение, просто логируем ошибку
+      }
+
+      // Объединяем товары из магазинов и главной страницы
+      const allItems = [
+        ...storeItems,
+        ...(mainPageData || []).map((item: any) => ({
+          ...item,
+          restaurant: null // Товары главной страницы не привязаны к магазину
+        }))
+      ];
+
+      console.log('[MenuController] Found items:', allItems.length, 'for category:', category);
+      res.json({ success: true, data: allItems });
+      return;
+    }
+
+    // Если запрашиваются все товары без фильтров (для главной страницы)
+    if (!restaurant_id && !category) {
+      // Возвращаем только товары главной страницы
+      let query = supabase
+        .from('menu_items')
+        .select('*')
+        .eq('is_main_page', true)
+        .eq('is_banner', false);
+
       if (include_unavailable !== 'true') {
         query = query.eq('is_available', true);
       }
 
-      // Фильтруем только магазины (type = 'store')
       const { data, error } = await query
         .order('name', { ascending: true });
 
       if (error) {
-        console.error('[MenuController] Error fetching items:', error);
+        console.error('[MenuController] Error fetching all main page items:', error);
         throw error;
       }
 
-      // Фильтруем товары только из магазинов
-      const storeItems = (data || []).filter((item: any) => 
-        item.restaurant && item.restaurant.type === 'store'
-      );
-
-      console.log('[MenuController] Found items:', storeItems.length, 'for category:', category);
-      res.json({ success: true, data: storeItems });
+      console.log('[MenuController] Found all main page items:', data?.length || 0);
+      res.json({ success: true, data: data || [] });
       return;
     }
 
@@ -128,16 +212,31 @@ export async function getMenuItemById(req: AuthenticatedRequest, res: Response) 
  */
 export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, name, description, price, category, image_url, is_available, is_banner, discount_percent } = req.body;
+    const { restaurant_id, name, description, price, category, image_url, is_available, is_banner, discount_percent, is_main_page } = req.body;
 
     // Валидация обязательных полей
-    if (!restaurant_id || !name || price === undefined) {
-      return res.status(400).json({ success: false, error: 'Missing required fields: restaurant_id, name, price' });
+    if (!name || price === undefined) {
+      return res.status(400).json({ success: false, error: 'Missing required fields: name, price' });
     }
 
-    // Валидация типов и значений
-    if (!validateUuid(restaurant_id)) {
-      return res.status(400).json({ success: false, error: 'Invalid restaurant_id format' });
+    // Если is_main_page = true, то restaurant_id должен быть null
+    if (is_main_page === true) {
+      if (restaurant_id !== null && restaurant_id !== undefined) {
+        return res.status(400).json({ success: false, error: 'Main page items cannot have restaurant_id' });
+      }
+      // Только супер-админы могут создавать товары главной страницы
+      if (!req.user || req.user.role !== 'super_admin') {
+        return res.status(403).json({ success: false, error: 'Forbidden: Only super admins can create main page items' });
+      }
+    } else {
+      // Если is_main_page = false или не указано, restaurant_id обязателен
+      if (!restaurant_id) {
+        return res.status(400).json({ success: false, error: 'Missing required field: restaurant_id' });
+      }
+      // Валидация типов и значений
+      if (!validateUuid(restaurant_id)) {
+        return res.status(400).json({ success: false, error: 'Invalid restaurant_id format' });
+      }
     }
 
     if (!validateString(name, 1, 255)) {
@@ -190,7 +289,7 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
     const { data, error } = await supabase
       .from('menu_items')
       .insert({
-        restaurant_id,
+        restaurant_id: is_main_page === true ? null : restaurant_id,
         name,
         description: description || null,
         price,
@@ -198,6 +297,8 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
         image_url: image_url || null,
         is_available: is_available ?? true,
         is_banner: is_banner ?? false,
+        is_main_page: is_main_page ?? false,
+        discount_percent: discount_percent !== undefined ? (discount_percent === null || discount_percent === '' ? null : parseInt(discount_percent)) : null,
       })
       .select()
       .single();
@@ -221,7 +322,7 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
 export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, price, category, image_url, is_available, is_banner, discount_percent } = req.body;
+    const { name, description, price, category, image_url, is_available, is_banner, discount_percent, is_main_page } = req.body;
     
     // Логируем входящий запрос
     console.log('updateMenuItem called:', {
@@ -371,6 +472,13 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
     if (image_url !== undefined) updateData.image_url = image_url;
     if (is_available !== undefined) updateData.is_available = is_available;
     if (is_banner !== undefined) updateData.is_banner = is_banner;
+    if (is_main_page !== undefined) {
+      updateData.is_main_page = is_main_page;
+      // Если is_main_page = true, то restaurant_id должен быть null
+      if (is_main_page === true) {
+        updateData.restaurant_id = null;
+      }
+    }
     if (discount_percent !== undefined) {
       updateData.discount_percent = discount_percent !== null ? Number(discount_percent) : null;
     }

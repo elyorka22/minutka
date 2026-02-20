@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const navigation = [
   { name: 'Статистика', href: '/admin', icon: '📊' },
+  { name: 'Товары главной страницы', href: '/admin/main-page-items', icon: '🏠' },
   { name: 'Магазины', href: '/admin/stores', icon: '🛒' },
   { name: 'Категории магазинов', href: '/admin/store-categories', icon: '📂' },
   { name: 'Карусели магазинов', href: '/admin/store-carousels', icon: '🎠' },

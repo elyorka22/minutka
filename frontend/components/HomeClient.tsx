@@ -253,17 +253,17 @@ export default function HomeClient({
             setLoadingCategoryItems(false);
           });
       } else {
-        // Если выбрана "Все" или нет категории - загружаем все товары
-        console.log('[HomeClient] Loading all items for Asosiy tab');
+        // Если выбрана "Все" или нет категории - загружаем все товары главной страницы
+        console.log('[HomeClient] Loading all main page items for Asosiy tab');
         setLoadingAllItems(true);
-        getMenuItems(undefined, true)
+        getMenuItems(undefined, true, undefined, true) // mainPage = true
           .then(items => {
-            console.log('[HomeClient] Loaded all items:', items.length);
+            console.log('[HomeClient] Loaded all main page items:', items.length);
             setAllItems(items);
             setLoadingAllItems(false);
           })
           .catch(error => {
-            console.error('[HomeClient] Error loading all items:', error);
+            console.error('[HomeClient] Error loading all main page items:', error);
             setAllItems([]);
             setLoadingAllItems(false);
           });

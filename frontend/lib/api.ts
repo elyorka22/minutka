@@ -380,7 +380,7 @@ export async function deleteBanner(id: string): Promise<void> {
 }
 
 // Menu Items API
-export async function getMenuItems(restaurantId?: string, includeUnavailable: boolean = false, category?: string): Promise<any[]> {
+export async function getMenuItems(restaurantId?: string, includeUnavailable: boolean = false, category?: string, mainPage?: boolean): Promise<any[]> {
   try {
     const params: any = {};
     if (restaurantId) {
@@ -391,6 +391,9 @@ export async function getMenuItems(restaurantId?: string, includeUnavailable: bo
     }
     if (includeUnavailable) {
       params.include_unavailable = 'true';
+    }
+    if (mainPage) {
+      params.main_page = 'true';
     }
     const response = await api.get<{ success: boolean; data: any[] }>('/api/menu', { params });
     return response.data.data || [];
@@ -659,7 +662,7 @@ export async function updateStoreCarouselItemsOrder(carouselId: string, items: {
 }
 
 export async function createMenuItem(menuItemData: {
-  restaurant_id: string;
+  restaurant_id?: string | null;
   name: string;
   description?: string | null;
   price: number;
@@ -668,6 +671,7 @@ export async function createMenuItem(menuItemData: {
   is_available?: boolean;
   is_banner?: boolean;
   discount_percent?: number | null;
+  is_main_page?: boolean;
 }): Promise<any> {
   try {
     const response = await api.post<{ success: boolean; data: any }>('/api/menu', menuItemData);
@@ -687,6 +691,7 @@ export async function updateMenuItem(id: string, menuItemData: {
   is_available?: boolean;
   is_banner?: boolean;
   discount_percent?: number | null;
+  is_main_page?: boolean;
 }): Promise<any> {
   try {
     const response = await api.patch<{ success: boolean; data: any }>(`/api/menu/${id}`, menuItemData);
