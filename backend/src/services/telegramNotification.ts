@@ -352,8 +352,7 @@ export async function notifySuperAdminsAboutNewOrder(
 }
 
 /**
- * Уведомить админов ресторана о новом заказе (когда повар выключен)
- * Отправляет уведомление с кнопкой "Передать курьеру"
+ * Уведомить админов ресторана о новом заказе
  */
 export async function notifyRestaurantAdminsAboutNewOrder(
   restaurantId: string,
@@ -365,38 +364,20 @@ export async function notifyRestaurantAdminsAboutNewOrder(
   }
 ): Promise<void> {
   try {
-    // Получаем настройки ресторана
-    const { data: restaurant, error: restaurantError } = await supabase
-      .from('restaurants')
-      .select('admin_notifications_enabled')
-      .eq('id', restaurantId)
-      .single();
-
-    if (restaurantError) {
-      console.error('Error fetching restaurant settings:', restaurantError);
-    }
-
-    const adminNotificationsEnabled = restaurant?.admin_notifications_enabled ?? true;
-
-    if (!adminNotificationsEnabled) {
-      console.log(`Admin notifications are disabled for restaurant ${restaurantId}`);
-      return;
-    }
-
-    // Получаем всех активных админов ресторана с включенными уведомлениями
+    // Админы всегда получают уведомления (убрана проверка admin_notifications_enabled)
+    // Получаем всех активных админов ресторана
     let { data: admins, error } = await supabase
       .from('restaurant_admins')
       .select('telegram_id')
       .eq('restaurant_id', restaurantId)
-      .eq('is_active', true)
-      .eq('notifications_enabled', true);
+      .eq('is_active', true);
 
     if (error || !admins || admins.length === 0) {
+      console.log(`No active restaurant admins found for restaurant ${restaurantId}`);
       return;
     }
 
     // ВАЖНО: Исключаем курьеров из получения админских уведомлений
-    // Курьеры должны получать уведомления только после нажатия админом "Передать курьеру"
     const adminTelegramIds = admins.map(admin => admin.telegram_id);
     const { data: couriers, error: courierCheckError } = await supabase
       .from('couriers')
@@ -424,21 +405,11 @@ export async function notifyRestaurantAdminsAboutNewOrder(
       `📍 Manzil: ${orderData.address || 'Ko\'rsatilmagan'}\n\n` +
       `Holat: ⏳ Tasdiqlanishni kutmoqda`;
 
-    // Создаем клавиатуру с кнопкой "Передать курьеру"
-    const keyboard = {
-      inline_keyboard: [
-        [
-          { text: '🚚 Передать курьеру', callback_data: `order:assign_courier:${orderId}` }
-        ]
-      ]
-    };
-
-    // Отправляем уведомление всем админам ресторана
+    // Отправляем уведомление всем админам ресторана (без кнопок)
     const notificationPromises = admins.map(async (admin) => {
       try {
         await sendTelegramMessage(admin.telegram_id, message, { 
-          parse_mode: 'Markdown',
-          reply_markup: keyboard
+          parse_mode: 'Markdown'
         });
       } catch (error: any) {
         console.error(`Error sending notification to restaurant admin ${admin.telegram_id}:`, error);

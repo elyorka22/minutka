@@ -140,23 +140,14 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
     // Используем "Foydalanuvchi" по умолчанию, так как пользователь не создается
     const userName = 'Foydalanuvchi';
 
-    // Отправляем уведомления асинхронно (не блокируем ответ)
+    // Отправляем уведомления админам ресторана асинхронно (не блокируем ответ)
     Promise.all([
-      // Отправляем заказ повару
+      // Отправляем заказ админам ресторана (поваров больше нет)
       sendOrderToChef(data.id, restaurant_id, {
         orderText: order_text,
         address,
         userName
-      }).then((messageId) => {
-        // Сохраняем ID сообщения в БД
-        if (messageId) {
-          return supabase
-            .from('orders')
-            .update({ telegram_message_id: messageId })
-            .eq('id', data.id);
-        }
       })
-      // Уведомления админам ресторана теперь отправляются после нажатия поваром "Tayyor"
     ]).catch((error) => {
       console.error('Error sending notifications:', error);
       // Не прерываем создание заказа, если уведомления не отправились

@@ -8,10 +8,10 @@ import { apiRequest } from '../config/api';
 import { notifyRestaurantAdminsAboutReadyOrder } from '../services/adminNotification';
 
 /**
- * Обработчик действий повара (chef) и админа ресторана с заказом
+ * Обработчик действий админа ресторана с заказом
  * @param ctx - контекст Telegram
  * @param orderId - ID заказа
- * @param action - действие: delete (повар нажал "Tayyor"), delivered (админ нажал "Доставлен")
+ * @param action - действие: delivered (админ нажал "Доставлен")
  */
 export async function orderStatusHandler(
   ctx: Context,
@@ -19,75 +19,7 @@ export async function orderStatusHandler(
   action: string
 ) {
   try {
-    // Повар нажал "Tayyor" - удаляем сообщение и уведомляем админов ресторана
-    if (action === 'delete') {
-      await ctx.answerCbQuery('✅ Buyurtma tayyor!');
-      
-        // Получаем информацию о заказе для уведомления админов
-      try {
-        const { data: order, error: orderError } = await supabase
-          .from('orders')
-          .select('restaurant_id, order_text, address, user_id, latitude, longitude')
-          .eq('id', orderId)
-          .single();
-
-        if (orderError || !order) {
-          console.error('Error fetching order:', orderError);
-        } else {
-          // Получаем информацию о пользователе
-          let userName = 'Foydalanuvchi';
-          if (order.user_id) {
-            const { data: user } = await supabase
-              .from('users')
-              .select('username, first_name')
-              .eq('id', order.user_id)
-              .single();
-            
-            if (user) {
-              userName = user.username ? `@${user.username}` : (user.first_name || 'Foydalanuvchi');
-            }
-          }
-
-          // Уведомляем админов ресторана о готовом заказе
-          console.log('Calling notifyRestaurantAdminsAboutReadyOrder with:', {
-            restaurantId: order.restaurant_id,
-            orderId,
-            orderText: order.order_text,
-            address: order.address,
-            userName
-          });
-          await notifyRestaurantAdminsAboutReadyOrder(
-            order.restaurant_id,
-            orderId,
-            {
-              orderText: order.order_text,
-              address: order.address,
-              userName,
-              latitude: order.latitude || null,
-              longitude: order.longitude || null
-            }
-          );
-          console.log('notifyRestaurantAdminsAboutReadyOrder completed');
-        }
-      } catch (error) {
-        console.error('Error notifying restaurant admins:', error);
-      }
-
-      // Удаляем сообщение с заказом у повара
-      try {
-        await ctx.deleteMessage();
-      } catch (error) {
-        console.error('Error deleting message:', error);
-        // Если не удалось удалить, просто обновляем сообщение
-        await ctx.editMessageText(
-          `✅ *Buyurtma tayyor!*\n\n` +
-          `Buyurtma #${orderId.slice(0, 8)} tayyor.`,
-          { parse_mode: 'Markdown' }
-        );
-      }
-      return;
-    }
-
+    // Обработчик кнопки "Tayyor" от повара удален - поваров больше нет
     // Обработчик "Передать курьеру" удален - эта функциональность больше не используется
 
     // Админ ресторана нажал "Доставлен" - меняем статус заказа (для обратной совместимости)

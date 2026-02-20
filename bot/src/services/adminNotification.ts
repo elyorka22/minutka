@@ -76,8 +76,7 @@ export async function notifySuperAdminsAboutNewOrder(orderId: string, orderData:
 }
 
 /**
- * Уведомить админов ресторана о новом заказе (когда повар выключен)
- * Отправляет уведомление с кнопкой "Передать курьеру"
+ * Уведомить админов ресторана о новом заказе
  */
 export async function notifyRestaurantAdminsAboutNewOrder(
   restaurantId: string,
@@ -192,8 +191,8 @@ export async function notifyRestaurantAdminsAboutNewOrder(
 }
 
 /**
- * Уведомить админов ресторана о готовом заказе (после нажатия поваром "Tayyor")
- * Отправляет уведомление с кнопкой "Передать курьеру"
+ * Уведомить админов ресторана о готовом заказе
+ * (Эта функция больше не используется, так как поваров нет, но оставлена для обратной совместимости)
  */
 export async function notifyRestaurantAdminsAboutReadyOrder(
   restaurantId: string,
