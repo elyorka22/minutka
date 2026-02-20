@@ -6,8 +6,14 @@
 
 import { useState, useEffect } from 'react';
 import { User } from '@/lib/types';
-import { getUsers } from '@/lib/api';
+import { getUsers, getUsersStats } from '@/lib/api';
 import Pagination from '@/components/Pagination';
+
+interface UsersStats {
+  totalUsers: number;
+  activeUsers: number;
+  usersWithOrders: number;
+}
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -15,6 +21,8 @@ export default function AdminUsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState<any>(null);
+  const [stats, setStats] = useState<UsersStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
   const pageSize = 20;
 
   useEffect(() => {
@@ -32,6 +40,21 @@ export default function AdminUsersPage() {
     }
     fetchUsers();
   }, [currentPage]);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        setLoadingStats(true);
+        const statsData = await getUsersStats();
+        setStats(statsData);
+      } catch (error) {
+        console.error('Error fetching users stats:', error);
+      } finally {
+        setLoadingStats(false);
+      }
+    }
+    fetchStats();
+  }, []);
 
   const filteredUsers = users.filter((user) => {
     const query = searchQuery.toLowerCase();
@@ -51,10 +74,53 @@ export default function AdminUsersPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">👥 Управление пользователями</h1>
-        <div className="text-sm text-gray-600">
-          Всего: <span className="font-semibold">{users.length}</span>
-        </div>
       </div>
+
+      {/* Statistics Cards */}
+      {!loadingStats && stats && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Всего пользователей</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalUsers}</p>
+                <p className="text-xs text-gray-500 mt-1">Зарегистрировано в боте</p>
+              </div>
+              <div className="text-4xl">👥</div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Активные пользователи</p>
+                <p className="text-2xl font-bold text-green-600">{stats.activeUsers}</p>
+                <p className="text-xs text-gray-500 mt-1">Заказы за последние 30 дней</p>
+              </div>
+              <div className="text-4xl">✅</div>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Сделали заказы</p>
+                <p className="text-2xl font-bold text-blue-600">{stats.usersWithOrders}</p>
+                <p className="text-xs text-gray-500 mt-1">Когда-либо делали заказы</p>
+              </div>
+              <div className="text-4xl">🛒</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {loadingStats && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-lg shadow-md p-6 animate-pulse">
+              <div className="h-20 bg-gray-200 rounded"></div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Search */}
       <div className="mb-6">

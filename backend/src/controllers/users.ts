@@ -183,6 +183,92 @@ export async function getUserByTelegramId(req: Request, res: Response) {
 }
 
 /**
+ * GET /api/users/stats
+ * Получить статистику активных пользователей бота
+ */
+export async function getUsersStats(req: Request, res: Response) {
+  try {
+    // Период для активных пользователей (последние 30 дней)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const thirtyDaysAgoISO = thirtyDaysAgo.toISOString();
+
+    // Получаем статистику параллельно
+    const [
+      totalUsersResult,
+      activeUsersResult,
+      usersWithOrdersResult
+    ] = await Promise.all([
+      // Всего пользователей с telegram_id (реальные пользователи бота)
+      supabase
+        .from('users')
+        .select('id', { count: 'exact', head: true })
+        .not('telegram_id', 'is', null),
+      // Активные пользователи (которые делали заказы за последние 30 дней)
+      supabase
+        .from('orders')
+        .select('user_telegram_id')
+        .not('user_telegram_id', 'is', null)
+        .gte('created_at', thirtyDaysAgoISO),
+      // Всего пользователей, которые когда-либо делали заказы
+      supabase
+        .from('orders')
+        .select('user_telegram_id')
+        .not('user_telegram_id', 'is', null)
+    ]);
+
+    // Обрабатываем ошибки
+    const errors = [
+      totalUsersResult.error,
+      activeUsersResult.error,
+      usersWithOrdersResult.error
+    ].filter(Boolean);
+
+    if (errors.length > 0) {
+      throw errors[0];
+    }
+
+    // Подсчитываем уникальных активных пользователей (за последние 30 дней)
+    const activeUsersData = activeUsersResult.data || [];
+    const activeUserTelegramIds = new Set(
+      activeUsersData
+        .map((order: any) => order.user_telegram_id)
+        .filter((id: any) => id !== null && id !== undefined)
+    );
+    const activeUsersCount = activeUserTelegramIds.size;
+
+    // Подсчитываем всех пользователей, которые когда-либо делали заказы
+    const usersWithOrdersData = usersWithOrdersResult.data || [];
+    const allOrderUserTelegramIds = new Set(
+      usersWithOrdersData
+        .map((order: any) => order.user_telegram_id)
+        .filter((id: any) => id !== null && id !== undefined)
+    );
+    const usersWithOrdersCount = allOrderUserTelegramIds.size;
+
+    const totalUsers = totalUsersResult.count || 0;
+
+    const stats = {
+      totalUsers, // Всего зарегистрированных пользователей с telegram_id
+      activeUsers: activeUsersCount, // Активные пользователи (заказы за последние 30 дней)
+      usersWithOrders: usersWithOrdersCount // Пользователи, которые когда-либо делали заказы
+    };
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error: any) {
+    console.error('Error fetching users stats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch users stats',
+      message: error.message
+    });
+  }
+}
+
+/**
  * POST /api/users
  * Создать нового пользователя
  */

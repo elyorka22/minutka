@@ -947,6 +947,15 @@ export async function getOrders(restaurantId?: string, archived: boolean = false
 }
 
 // Users API
+export async function getUsersStats(): Promise<{
+  totalUsers: number;
+  activeUsers: number;
+  usersWithOrders: number;
+}> {
+  const response = await api.get<{ success: boolean; data: { totalUsers: number; activeUsers: number; usersWithOrders: number } }>('/api/users/stats');
+  return response.data.data;
+}
+
 export async function getUsers(page?: number, limit?: number): Promise<{ data: any[]; pagination?: any }> {
   try {
     const params: any = {};
