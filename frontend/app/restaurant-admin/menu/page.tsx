@@ -211,6 +211,7 @@ export default function RestaurantAdminMenuPage() {
                   image_url: item.image_url,
                   is_available: item.is_available,
                   is_banner: item.is_banner,
+                  discount_percent: item.discount_percent,
                 });
                 setMenuItems((prevItems) => [...prevItems, created]);
                 showSuccess('Блюдо успешно создано!');
@@ -248,6 +249,7 @@ const MenuItemFormModal = ({
     category: item?.category || '',
     is_available: item?.is_available ?? true,
     is_banner: item?.is_banner ?? false,
+    discount_percent: item?.discount_percent?.toString() || '',
   });
   const [categories, setCategories] = useState<MenuCategory[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -283,6 +285,7 @@ const MenuItemFormModal = ({
       image_url: formData.image_url || null,
       is_available: formData.is_available,
       is_banner: formData.is_banner,
+      discount_percent: formData.discount_percent ? parseInt(formData.discount_percent) : null,
       created_at: item?.created_at || new Date().toISOString(),
     } as MenuItem;
     onSave(newItem);

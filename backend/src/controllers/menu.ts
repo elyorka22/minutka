@@ -128,7 +128,7 @@ export async function getMenuItemById(req: AuthenticatedRequest, res: Response) 
  */
 export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, name, description, price, category, image_url, is_available, is_banner } = req.body;
+    const { restaurant_id, name, description, price, category, image_url, is_available, is_banner, discount_percent } = req.body;
 
     // Валидация обязательных полей
     if (!restaurant_id || !name || price === undefined) {
@@ -221,7 +221,7 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
 export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, price, category, image_url, is_available, is_banner } = req.body;
+    const { name, description, price, category, image_url, is_available, is_banner, discount_percent } = req.body;
     
     // Логируем входящий запрос
     console.log('updateMenuItem called:', {
@@ -355,6 +355,14 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
       });
     }
 
+    // Валидация discount_percent
+    if (discount_percent !== undefined && discount_percent !== null) {
+      const discount = Number(discount_percent);
+      if (isNaN(discount) || discount < 0 || discount > 100) {
+        return res.status(400).json({ success: false, error: 'Discount percent must be between 0 and 100' });
+      }
+    }
+
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
@@ -362,6 +370,10 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
     if (category !== undefined) updateData.category = category;
     if (image_url !== undefined) updateData.image_url = image_url;
     if (is_available !== undefined) updateData.is_available = is_available;
+    if (is_banner !== undefined) updateData.is_banner = is_banner;
+    if (discount_percent !== undefined) {
+      updateData.discount_percent = discount_percent !== null ? Number(discount_percent) : null;
+    }
 
     const { data, error } = await supabase
       .from('menu_items')
