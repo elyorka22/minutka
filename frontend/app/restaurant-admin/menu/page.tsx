@@ -112,11 +112,11 @@ export default function RestaurantAdminMenuPage() {
 
 
       {/* Menu Items Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         {filteredItems.map((item) => (
           <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden">
             {item.image_url && (
-              <div className="relative w-full h-48">
+              <div className="relative w-full h-32">
                 <Image
                   src={item.image_url}
                   alt={item.name}
@@ -125,23 +125,23 @@ export default function RestaurantAdminMenuPage() {
                 />
               </div>
             )}
-            <div className="p-4">
+            <div className="p-3">
               <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900">{item.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm text-gray-900 line-clamp-2">{item.name}</h3>
                   {!item.is_available && (
-                    <p className="text-sm text-red-600 font-medium mt-1">Hoziq mavjud emas</p>
+                    <p className="text-xs text-red-600 font-medium mt-1">Hoziq mavjud emas</p>
                   )}
                 </div>
-                <span className="text-lg font-bold text-primary-600">{item.price} so'm</span>
+                <span className="text-base font-bold text-primary-600 ml-2 flex-shrink-0">{item.price} so'm</span>
               </div>
               {item.description && (
-                <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{item.description}</p>
               )}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <div className="flex flex-col gap-2">
                 <button
                   onClick={() => handleToggleAvailable(item.id)}
-                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-semibold ${
+                  className={`w-full px-2 py-1.5 rounded-lg text-xs font-semibold ${
                     item.is_available
                       ? 'bg-green-100 text-green-800 hover:bg-green-200'
                       : 'bg-red-100 text-red-800 hover:bg-red-200'
@@ -149,18 +149,20 @@ export default function RestaurantAdminMenuPage() {
                 >
                   {item.is_available ? 'В наличии' : 'Нет в наличии'}
                 </button>
-                <button
-                  onClick={() => handleEdit(item)}
-                  className="px-3 py-2 bg-primary-100 text-primary-700 rounded-lg text-sm font-semibold hover:bg-primary-200"
-                >
-                  ✏️ Редактировать
-                </button>
-                <button
-                  onClick={() => handleDelete(item.id)}
-                  className="px-3 py-2 bg-red-100 text-red-700 rounded-lg text-sm font-semibold hover:bg-red-200"
-                >
-                  🗑️
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="flex-1 px-2 py-1.5 bg-primary-100 text-primary-700 rounded-lg text-xs font-semibold hover:bg-primary-200"
+                  >
+                    ✏️ Редактировать
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="px-2 py-1.5 bg-red-100 text-red-700 rounded-lg text-xs font-semibold hover:bg-red-200"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             </div>
           </div>
