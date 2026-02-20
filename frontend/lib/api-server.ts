@@ -79,7 +79,8 @@ export async function getPharmaciesStoresServer(active?: boolean): Promise<Pharm
 // Bot Settings API (server-side)
 export async function getBotSettingsServer(): Promise<any[]> {
   const url = `${API_BASE_URL}/api/bot-settings`;
-  const data = await fetchWithCache<any[]>(url, {}, 300); // Кэш 5 минут
+  // Минимальное кэширование (10 секунд) для настроек бота, чтобы изменения были видны быстро
+  const data = await fetchWithCache<any[]>(url, {}, 10); // Кэш 10 секунд
   return Array.isArray(data) ? data : [];
 }
 
