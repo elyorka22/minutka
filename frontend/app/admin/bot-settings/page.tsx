@@ -57,6 +57,8 @@ export default function BotSettingsPage() {
       setAppSlogan(appSloganSetting?.value || 'Telegram orqali ovqat yetkazib berish');
       setBannerTitle(bannerTitleSetting?.value || 'Ovqat buyurtma qiling!');
       setBannerSubtitle(bannerSubtitleSetting?.value || 'Restoran tanlang va Telegram-bot orqali buyurtma bering');
+      setButtonBotInfoText(buttonBotInfoTextSetting?.value || 'ℹ️ Bot haqida');
+      setButtonPartnershipText(buttonPartnershipTextSetting?.value || '🤝 Hamkorlik');
     } catch (error) {
       console.error('Error fetching bot settings:', error);
       // Используем значения по умолчанию
@@ -66,6 +68,8 @@ export default function BotSettingsPage() {
       setAppSlogan('Telegram orqali ovqat yetkazib berish');
       setBannerTitle('Ovqat buyurtma qiling!');
       setBannerSubtitle('Restoran tanlang va Telegram-bot orqali buyurtma bering');
+      setButtonBotInfoText('ℹ️ Bot haqida');
+      setButtonPartnershipText('🤝 Hamkorlik');
     } finally {
       setLoading(false);
     }
