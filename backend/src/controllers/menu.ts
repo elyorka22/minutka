@@ -556,7 +556,6 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
     }
 
     // Обновляем связи с категориями, если передан массив categories
-    const { categories } = req.body;
     if (categories !== undefined) {
       console.log('[MenuController] Updating category relations for item:', id, 'categories:', categories);
       // Удаляем все существующие связи
