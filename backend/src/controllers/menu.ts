@@ -88,10 +88,11 @@ export async function getMenuItems(req: AuthenticatedRequest, res: Response) {
       );
 
       // Теперь получаем товары главной страницы с этой категорией
+      // Используем те же ID, но фильтруем по is_main_page = true
       let mainPageQuery = supabase
         .from('menu_items')
         .select('*')
-        .eq('category', category as string)
+        .in('id', allMenuItemIds)
         .eq('is_main_page', true)
         .eq('is_banner', false);
 
@@ -293,7 +294,7 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
         name,
         description: description || null,
         price,
-        category: category || null, // Категория опциональна
+        category: category || null, // Категория опциональна (для обратной совместимости)
         image_url: image_url || null,
         is_available: is_available ?? true,
         is_banner: is_banner ?? false,
@@ -305,6 +306,23 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
 
     if (error) {
       throw error;
+    }
+
+    // Сохраняем связи с категориями, если передан массив categories
+    if (req.body.categories && Array.isArray(req.body.categories) && req.body.categories.length > 0) {
+      const relations = req.body.categories.map((categoryName: string) => ({
+        menu_item_id: data.id,
+        category_name: categoryName
+      }));
+
+      const { error: relationsError } = await supabase
+        .from('menu_item_category_relations')
+        .insert(relations);
+
+      if (relationsError) {
+        console.error('Error creating category relations:', relationsError);
+        // Не прерываем выполнение, так как товар уже создан
+      }
     }
 
     res.status(201).json({ success: true, data: data as MenuItem });
@@ -492,6 +510,32 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
 
     if (error) {
       throw error;
+    }
+
+    // Обновляем связи с категориями, если передан массив categories
+    if (req.body.categories !== undefined) {
+      // Удаляем все существующие связи
+      await supabase
+        .from('menu_item_category_relations')
+        .delete()
+        .eq('menu_item_id', id);
+
+      // Создаем новые связи, если передан массив
+      if (Array.isArray(req.body.categories) && req.body.categories.length > 0) {
+        const relations = req.body.categories.map((categoryName: string) => ({
+          menu_item_id: id,
+          category_name: categoryName
+        }));
+
+        const { error: relationsError } = await supabase
+          .from('menu_item_category_relations')
+          .insert(relations);
+
+        if (relationsError) {
+          console.error('Error updating category relations:', relationsError);
+          // Не прерываем выполнение, так как товар уже обновлен
+        }
+      }
     }
 
     res.json({ success: true, data: data as MenuItem });

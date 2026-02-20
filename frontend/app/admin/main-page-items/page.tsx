@@ -241,6 +241,7 @@ function MenuItemFormModal({ item, onClose, onSave }: MenuItemFormModalProps) {
     is_available: item?.is_available ?? true,
     is_banner: item?.is_banner ?? false,
     discount_percent: item?.discount_percent?.toString() || '',
+    selectedCategories: [] as string[], // Массив выбранных категорий
   });
   const [saving, setSaving] = useState(false);
   const [storeCategories, setStoreCategories] = useState<any[]>([]);
@@ -260,6 +261,27 @@ function MenuItemFormModal({ item, onClose, onSave }: MenuItemFormModalProps) {
     fetchCategories();
   }, []);
 
+  // Загружаем категории товара при редактировании
+  useEffect(() => {
+    async function fetchItemCategories() {
+      if (item?.id) {
+        try {
+          const response = await fetch(`/api/menu-items/${item.id}/categories`);
+          const result = await response.json();
+          if (result.success && Array.isArray(result.data)) {
+            setFormData(prev => ({ ...prev, selectedCategories: result.data }));
+          }
+        } catch (error) {
+          console.error('Error fetching item categories:', error);
+        }
+      } else {
+        // При создании нового товара очищаем выбранные категории
+        setFormData(prev => ({ ...prev, selectedCategories: [] }));
+      }
+    }
+    fetchItemCategories();
+  }, [item?.id]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.price) {
@@ -273,7 +295,8 @@ function MenuItemFormModal({ item, onClose, onSave }: MenuItemFormModalProps) {
         name: formData.name,
         description: formData.description || null,
         price: parseFloat(formData.price),
-        category: formData.category || null,
+        category: formData.category || null, // Для обратной совместимости
+        categories: formData.selectedCategories, // Массив категорий
         image_url: formData.image_url || null,
         is_available: formData.is_available,
         is_banner: formData.is_banner,
@@ -353,31 +376,58 @@ function MenuItemFormModal({ item, onClose, onSave }: MenuItemFormModalProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Категория
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Категории
               </label>
               {loadingCategories ? (
                 <div className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
                   Загрузка категорий...
                 </div>
               ) : (
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                  <option value="">Не выбрано</option>
-                  {storeCategories
-                    .filter(cat => cat.is_active)
-                    .map((category) => (
-                      <option key={category.id} value={category.name}>
-                        {category.name}
-                      </option>
-                    ))}
-                </select>
+                <div className="border border-gray-300 rounded-lg p-4 max-h-64 overflow-y-auto">
+                  {storeCategories.filter(cat => cat.is_active).length === 0 ? (
+                    <p className="text-sm text-gray-500 text-center py-4">Категории не найдены</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {storeCategories
+                        .filter(cat => cat.is_active)
+                        .map((category) => {
+                          const isSelected = formData.selectedCategories.includes(category.name);
+                          return (
+                            <label
+                              key={category.id}
+                              className="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                            >
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setFormData({
+                                      ...formData,
+                                      selectedCategories: [...formData.selectedCategories, category.name],
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      selectedCategories: formData.selectedCategories.filter(
+                                        (cat) => cat !== category.name
+                                      ),
+                                    });
+                                  }
+                                }}
+                                className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                              />
+                              <span className="text-sm text-gray-900">{category.name}</span>
+                            </label>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
               )}
               <p className="text-xs text-gray-500 mt-1">
-                Выберите категорию из существующих категорий магазинов
+                Выберите одну или несколько категорий из существующих категорий магазинов
               </p>
             </div>
 
