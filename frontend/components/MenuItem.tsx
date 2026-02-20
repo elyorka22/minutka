@@ -122,13 +122,26 @@ export default function MenuItem({ item }: MenuItemProps) {
       {/* Контент под картинкой */}
       <div className="p-3 flex flex-col flex-1">
         {/* Цена (под картинкой) */}
-        <span
-          className={`text-base font-semibold mb-1 ${
-            !item.is_available ? 'text-gray-400' : 'text-primary-600'
-          }`}
-        >
-          {item.price} so'm
-        </span>
+        <div className="mb-1">
+          {item.discount_percent && item.discount_percent > 0 ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-400 line-through">
+                {item.price} so'm
+              </span>
+              <span className="text-base font-semibold text-primary-600">
+                {Math.round(item.price * (1 - item.discount_percent / 100))} so'm
+              </span>
+            </div>
+          ) : (
+            <span
+              className={`text-base font-semibold ${
+                !item.is_available ? 'text-gray-400' : 'text-primary-600'
+              }`}
+            >
+              {item.price} so'm
+            </span>
+          )}
+        </div>
         
         {/* Название блюда (под ценой) */}
         <h3
