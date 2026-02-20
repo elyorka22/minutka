@@ -101,6 +101,11 @@ export default function AdminBannersPage() {
               <h3 className="font-semibold text-gray-900 mb-2">{banner.title || 'Без названия'}</h3>
               <p className="text-sm text-gray-600 mb-2">
                 Позиция: <span className="font-medium">{banner.position}</span>
+                {banner.position === 'homepage' && banner.tab && (
+                  <span className="ml-2 text-xs text-gray-500">
+                    (Вкладка: {banner.tab === 'asosiy' ? 'Asosiy' : banner.tab === 'do\'konlar' ? 'Do\'konlar' : 'Xizmatlar'})
+                  </span>
+                )}
               </p>
               {banner.link_url && (
                 <p className="text-xs text-gray-500 mb-4 truncate">{banner.link_url}</p>
