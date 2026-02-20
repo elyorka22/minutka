@@ -79,7 +79,7 @@ export default function BotSettingsPage() {
     setSaving(true);
     try {
       // Сохраняем все тексты сообщений
-      const [welcomeResponse, botInfoResponse, partnershipResponse, appSloganResponse, bannerTitleResponse, bannerSubtitleResponse] = await Promise.all([
+      const [welcomeResponse, botInfoResponse, partnershipResponse, appSloganResponse, bannerTitleResponse, bannerSubtitleResponse, buttonBotInfoTextResponse, buttonPartnershipTextResponse] = await Promise.all([
         fetch(`${API_BASE_URL}/api/bot-settings/welcome_message`, {
           method: 'PATCH',
           headers: {
