@@ -75,6 +75,8 @@ export default function HomeClient({
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
   const { items: cartItems } = useCart();
+  // Вкладки: 'asosiy', 'do\'konlar', 'xizmatlar'
+  const [selectedTab, setSelectedTab] = useState<'asosiy' | 'do\'konlar' | 'xizmatlar'>('asosiy');
   // По умолчанию категория "Все" (null означает "Все")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,6 +84,8 @@ export default function HomeClient({
   const [pharmaciesStores, setPharmaciesStores] = useState(initialPharmaciesStores);
   const [categoryItems, setCategoryItems] = useState<MenuItemWithStore[]>([]);
   const [loadingCategoryItems, setLoadingCategoryItems] = useState(false);
+  const [allItems, setAllItems] = useState<MenuItemWithStore[]>([]);
+  const [loadingAllItems, setLoadingAllItems] = useState(false);
   
   // Определяем, выбрана ли категория "Все" (Hammasi)
   const isAllCategory = useMemo(() => {
@@ -341,6 +345,51 @@ export default function HomeClient({
         </div>
       </header>
 
+      {/* Tabs - Asosiy, Do'konlar, Xizmatlar */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
+        <div className="flex gap-4 border-b border-gray-200">
+          <button
+            onClick={() => {
+              setSelectedTab('asosiy');
+              setSelectedCategory(null);
+            }}
+            className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
+              selectedTab === 'asosiy'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Asosiy
+          </button>
+          <button
+            onClick={() => {
+              setSelectedTab('do\'konlar');
+              setSelectedCategory(null);
+            }}
+            className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
+              selectedTab === 'do\'konlar'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Do'konlar
+          </button>
+          <button
+            onClick={() => {
+              setSelectedTab('xizmatlar');
+              setSelectedCategory(null);
+            }}
+            className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
+              selectedTab === 'xizmatlar'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Xizmatlar
+          </button>
+        </div>
+      </section>
+
       {/* Search Bar */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
         <div className="relative">
@@ -396,8 +445,8 @@ export default function HomeClient({
         </section>
       )}
 
-      {/* Store Categories Carousel - Категории магазинов под баннером */}
-      {initialStoreCategories.length > 0 && (
+      {/* Store Categories Carousel - Категории магазинов под баннером (только для вкладки Asosiy) */}
+      {selectedTab === 'asosiy' && initialStoreCategories.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
           <RestaurantCategories
             categories={initialStoreCategories.map(cat => ({
@@ -586,23 +635,31 @@ export default function HomeClient({
         </section>
       )}
 
-      {/* Stores Section - показываем магазины при поиске */}
+      {/* Search Results */}
       {searchQuery && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             🔍 Qidiruv natijalari: "{searchQuery}"
           </h2>
-          {filteredStores.length === 0 ? (
+          {selectedTab === 'asosiy' ? (
+            /* На вкладке Asosiy показываем товары при поиске */
             <div className="text-center py-12 text-gray-500">
-              Do'konlar topilmadi
+              Qidiruv natijalari tez orada
             </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:gap-6">
-              {filteredStores.map((store) => (
-                <RestaurantCard key={store.id} restaurant={store} />
-              ))}
-            </div>
-          )}
+          ) : selectedTab === 'do\'konlar' ? (
+            /* На вкладке Do'konlar показываем магазины при поиске */
+            filteredStores.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                Do'konlar topilmadi
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:gap-6">
+                {filteredStores.map((store) => (
+                  <RestaurantCard key={store.id} restaurant={store} />
+                ))}
+              </div>
+            )
+          ) : null}
         </section>
       )}
 
