@@ -35,12 +35,8 @@ export default function BotSettingsPage() {
 
   const fetchMessages = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/bot-settings`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch settings');
-      }
-      const data = await response.json();
-      const settings = data.data || [];
+      const response = await api.get('/api/bot-settings');
+      const settings = response.data.data || [];
       
       // Находим тексты сообщений
       const welcomeSetting = settings.find((s: BotSetting) => s.key === 'welcome_message');
@@ -80,68 +76,16 @@ export default function BotSettingsPage() {
     setSaving(true);
     try {
       // Сохраняем все тексты сообщений
-      const [welcomeResponse, botInfoResponse, partnershipResponse, appSloganResponse, bannerTitleResponse, bannerSubtitleResponse, buttonBotInfoTextResponse, buttonPartnershipTextResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}/api/bot-settings/welcome_message`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ value: welcomeMessage }),
-        }),
-        fetch(`${API_BASE_URL}/api/bot-settings/bot_info`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ value: botInfoMessage }),
-        }),
-        fetch(`${API_BASE_URL}/api/bot-settings/partnership`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ value: partnershipMessage }),
-        }),
-        fetch(`${API_BASE_URL}/api/bot-settings/app_slogan`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ value: appSlogan }),
-        }),
-        fetch(`${API_BASE_URL}/api/bot-settings/banner_title`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ value: bannerTitle }),
-        }),
-        fetch(`${API_BASE_URL}/api/bot-settings/banner_subtitle`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ value: bannerSubtitle }),
-        }),
-        fetch(`${API_BASE_URL}/api/bot-settings/button_bot_info_text`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ value: buttonBotInfoText }),
-        }),
-        fetch(`${API_BASE_URL}/api/bot-settings/button_partnership_text`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ value: buttonPartnershipText }),
-        }),
+      await Promise.all([
+        api.patch('/api/bot-settings/welcome_message', { value: welcomeMessage }),
+        api.patch('/api/bot-settings/bot_info', { value: botInfoMessage }),
+        api.patch('/api/bot-settings/partnership', { value: partnershipMessage }),
+        api.patch('/api/bot-settings/app_slogan', { value: appSlogan }),
+        api.patch('/api/bot-settings/banner_title', { value: bannerTitle }),
+        api.patch('/api/bot-settings/banner_subtitle', { value: bannerSubtitle }),
+        api.patch('/api/bot-settings/button_bot_info_text', { value: buttonBotInfoText }),
+        api.patch('/api/bot-settings/button_partnership_text', { value: buttonPartnershipText }),
       ]);
-
-      if (!welcomeResponse.ok || !botInfoResponse.ok || !partnershipResponse.ok || !appSloganResponse.ok || !bannerTitleResponse.ok || !bannerSubtitleResponse.ok || !buttonBotInfoTextResponse.ok || !buttonPartnershipTextResponse.ok) {
-        throw new Error('Failed to save settings');
-      }
 
       showSuccess('Настройки успешно сохранены!');
     } catch (error) {
