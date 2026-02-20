@@ -266,11 +266,8 @@ function MenuItemFormModal({ item, onClose, onSave }: MenuItemFormModalProps) {
     async function fetchItemCategories() {
       if (item?.id) {
         try {
-          const response = await fetch(`/api/menu-items/${item.id}/categories`);
-          const result = await response.json();
-          if (result.success && Array.isArray(result.data)) {
-            setFormData(prev => ({ ...prev, selectedCategories: result.data }));
-          }
+          const categories = await getMenuItemCategories(item.id);
+          setFormData(prev => ({ ...prev, selectedCategories: categories }));
         } catch (error) {
           console.error('Error fetching item categories:', error);
         }
