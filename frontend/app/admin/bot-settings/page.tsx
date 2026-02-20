@@ -122,9 +122,23 @@ export default function BotSettingsPage() {
           },
           body: JSON.stringify({ value: bannerSubtitle }),
         }),
+        fetch(`${API_BASE_URL}/api/bot-settings/button_bot_info_text`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ value: buttonBotInfoText }),
+        }),
+        fetch(`${API_BASE_URL}/api/bot-settings/button_partnership_text`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ value: buttonPartnershipText }),
+        }),
       ]);
 
-      if (!welcomeResponse.ok || !botInfoResponse.ok || !partnershipResponse.ok || !appSloganResponse.ok || !bannerTitleResponse.ok || !bannerSubtitleResponse.ok) {
+      if (!welcomeResponse.ok || !botInfoResponse.ok || !partnershipResponse.ok || !appSloganResponse.ok || !bannerTitleResponse.ok || !bannerSubtitleResponse.ok || !buttonBotInfoTextResponse.ok || !buttonPartnershipTextResponse.ok) {
         throw new Error('Failed to save settings');
       }
 
