@@ -61,7 +61,10 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
     let orderText = `🍽️ "${restaurantName}" restoranidan buyurtma\n\n`;
     
     items.forEach((cartItem) => {
-      orderText += `${cartItem.item.name} x${cartItem.quantity} - ${cartItem.item.price * cartItem.quantity} so'm\n`;
+      const itemPrice = cartItem.item.discount_percent && cartItem.item.discount_percent > 0
+        ? Math.round(cartItem.item.price * (1 - cartItem.item.discount_percent / 100))
+        : cartItem.item.price;
+      orderText += `${cartItem.item.name} x${cartItem.quantity} - ${itemPrice * cartItem.quantity} so'm\n`;
     });
     
     orderText += `\n💰 Jami: ${totalPrice} so'm\n`;
@@ -259,7 +262,12 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                           </button>
                         </div>
                         <span className="text-base sm:text-lg font-bold text-primary-600 text-right min-w-[70px] sm:min-w-[80px]">
-                          {cartItem.item.price * cartItem.quantity} so'm
+                          {(() => {
+                            const itemPrice = cartItem.item.discount_percent && cartItem.item.discount_percent > 0
+                              ? Math.round(cartItem.item.price * (1 - cartItem.item.discount_percent / 100))
+                              : cartItem.item.price;
+                            return itemPrice * cartItem.quantity;
+                          })()} so'm
                         </span>
                         <button
                           onClick={() => removeItem(cartItem.item.id)}

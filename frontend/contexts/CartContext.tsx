@@ -77,12 +77,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems([]);
   }, []);
 
+  // Получить цену товара с учетом скидки
+  const getItemPrice = useCallback((item: MenuItem): number => {
+    if (item.discount_percent && item.discount_percent > 0) {
+      return Math.round(item.price * (1 - item.discount_percent / 100));
+    }
+    return item.price;
+  }, []);
+
   // Получить общую стоимость
   const getTotalPrice = useCallback(() => {
     return items.reduce((total, cartItem) => {
-      return total + cartItem.item.price * cartItem.quantity;
+      const itemPrice = getItemPrice(cartItem.item);
+      return total + itemPrice * cartItem.quantity;
     }, 0);
-  }, [items]);
+  }, [items, getItemPrice]);
 
   // Получить общее количество товаров
   const getTotalItems = useCallback(() => {
