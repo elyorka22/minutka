@@ -253,7 +253,7 @@ export async function getMenuItemById(req: AuthenticatedRequest, res: Response) 
  */
 export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, name, description, price, category, image_url, is_available, is_banner, discount_percent, is_main_page } = req.body;
+    const { restaurant_id, name, description, price, category, categories, image_url, is_available, is_banner, discount_percent, is_main_page } = req.body;
 
     // Валидация обязательных полей
     if (!name || price === undefined) {
@@ -349,8 +349,9 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
     }
 
     // Сохраняем связи с категориями, если передан массив categories
-    if (req.body.categories && Array.isArray(req.body.categories) && req.body.categories.length > 0) {
-      const relations = req.body.categories.map((categoryName: string) => ({
+    if (categories && Array.isArray(categories) && categories.length > 0) {
+      console.log('[MenuController] Creating category relations for item:', data.id, 'categories:', categories);
+      const relations = categories.map((categoryName: string) => ({
         menu_item_id: data.id,
         category_name: categoryName
       }));
@@ -360,8 +361,10 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
         .insert(relations);
 
       if (relationsError) {
-        console.error('Error creating category relations:', relationsError);
+        console.error('[MenuController] Error creating category relations:', relationsError);
         // Не прерываем выполнение, так как товар уже создан
+      } else {
+        console.log('[MenuController] Successfully created', relations.length, 'category relations');
       }
     }
 
@@ -380,7 +383,7 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
 export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, price, category, image_url, is_available, is_banner, discount_percent, is_main_page } = req.body;
+    const { name, description, price, category, categories, image_url, is_available, is_banner, discount_percent, is_main_page } = req.body;
     
     // Логируем входящий запрос
     console.log('updateMenuItem called:', {
@@ -553,16 +556,22 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
     }
 
     // Обновляем связи с категориями, если передан массив categories
-    if (req.body.categories !== undefined) {
+    const { categories } = req.body;
+    if (categories !== undefined) {
+      console.log('[MenuController] Updating category relations for item:', id, 'categories:', categories);
       // Удаляем все существующие связи
-      await supabase
+      const { error: deleteError } = await supabase
         .from('menu_item_category_relations')
         .delete()
         .eq('menu_item_id', id);
 
+      if (deleteError) {
+        console.error('[MenuController] Error deleting old category relations:', deleteError);
+      }
+
       // Создаем новые связи, если передан массив
-      if (Array.isArray(req.body.categories) && req.body.categories.length > 0) {
-        const relations = req.body.categories.map((categoryName: string) => ({
+      if (Array.isArray(categories) && categories.length > 0) {
+        const relations = categories.map((categoryName: string) => ({
           menu_item_id: id,
           category_name: categoryName
         }));
@@ -572,8 +581,10 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
           .insert(relations);
 
         if (relationsError) {
-          console.error('Error updating category relations:', relationsError);
+          console.error('[MenuController] Error creating category relations:', relationsError);
           // Не прерываем выполнение, так как товар уже обновлен
+        } else {
+          console.log('[MenuController] Successfully updated', relations.length, 'category relations');
         }
       }
     }
