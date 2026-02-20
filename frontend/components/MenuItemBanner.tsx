@@ -64,6 +64,12 @@ export default function MenuItemBanner({ item }: MenuItemBannerProps) {
       {/* Большая картинка */}
       {item.image_url && (
         <div className="relative w-full h-48 md:h-56">
+          {/* Ярлык скидки в левом верхнем углу */}
+          {item.discount_percent && item.discount_percent > 0 && (
+            <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
+              -{item.discount_percent}%
+            </div>
+          )}
           <Image
             src={item.image_url}
             alt={item.name}
@@ -138,13 +144,24 @@ export default function MenuItemBanner({ item }: MenuItemBannerProps) {
         
         {/* Цена */}
         <div className="flex items-center justify-between">
-          <span
-            className={`text-lg md:text-xl font-bold ${
-              !item.is_available ? 'text-gray-400' : 'text-primary-600'
-            }`}
-          >
-            {item.price} so'm
-          </span>
+          {item.discount_percent && item.discount_percent > 0 ? (
+            <div className="flex items-center gap-2">
+              <span className="text-sm md:text-base text-gray-400 line-through">
+                {item.price} so'm
+              </span>
+              <span className="text-lg md:text-xl font-bold text-primary-600">
+                {Math.round(item.price * (1 - item.discount_percent / 100))} so'm
+              </span>
+            </div>
+          ) : (
+            <span
+              className={`text-lg md:text-xl font-bold ${
+                !item.is_available ? 'text-gray-400' : 'text-primary-600'
+              }`}
+            >
+              {item.price} so'm
+            </span>
+          )}
         </div>
       </div>
     </div>
