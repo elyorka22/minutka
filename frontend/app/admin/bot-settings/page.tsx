@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/contexts/ToastContext';
+import { api } from '@/lib/api';
 
 interface BotSetting {
   id: string;
@@ -14,8 +15,6 @@ interface BotSetting {
   created_at: string;
   updated_at: string;
 }
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
 export default function BotSettingsPage() {
   const { showSuccess, showError } = useToast();
