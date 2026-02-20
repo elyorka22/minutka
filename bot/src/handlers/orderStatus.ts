@@ -5,7 +5,6 @@
 import { Context } from 'telegraf';
 import { supabase } from '../config/supabase';
 import { apiRequest } from '../config/api';
-import { notifyRestaurantAdminsAboutReadyOrder } from '../services/adminNotification';
 
 /**
  * Обработчик действий админа ресторана с заказом
