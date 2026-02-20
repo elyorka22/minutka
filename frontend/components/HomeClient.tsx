@@ -109,6 +109,16 @@ export default function HomeClient({
   
   // Получаем название магазина для корзины
   const cartRestaurantName = useMemo(() => {
+    // Проверяем, являются ли товары в корзине товарами главной страницы
+    const isMainPageCart = cartItems.some(cartItem => 
+      (cartItem.item as any).is_main_page === true || 
+      !cartItem.item.restaurant_id
+    );
+    
+    if (isMainPageCart) {
+      return 'Главная страница';
+    }
+    
     // Если есть товары в корзине, находим магазин по restaurant_id
     if (cartItems.length > 0 && cartItems[0].item.restaurant_id) {
       const store = initialStores.find(s => s.id === cartItems[0].item.restaurant_id);
