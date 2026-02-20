@@ -20,10 +20,7 @@ const navigation = [
   { name: 'Пользователи', href: '/admin/users', icon: '👥' },
   { name: 'Баннеры', href: '/admin/banners', icon: '🖼️' },
   { name: 'Админы', href: '/admin/admins', icon: '👥' },
-  { name: 'Повара', href: '/admin/chefs', icon: '👨‍🍳' },
-  { name: 'Курьеры', href: '/admin/couriers', icon: '🚚' },
   { name: 'Супер-админы', href: '/admin/super-admins', icon: '🛡️' },
-  { name: 'Аптеки/Магазины', href: '/admin/pharmacies-stores', icon: '💊' },
   { name: 'Настройки бота', href: '/admin/bot-settings', icon: '🤖' },
   { name: 'Изменить пароль', href: '/admin/change-password', icon: '🔐' },
 ];
