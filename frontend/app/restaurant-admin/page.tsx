@@ -71,6 +71,15 @@ export default function RestaurantAdminDashboard() {
       }
     }
     fetchData();
+    
+    // Автоматическое обновление данных каждые 10 секунд
+    const interval = setInterval(() => {
+      if (currentRestaurantId) {
+        fetchData();
+      }
+    }, 10000); // 10 секунд
+    
+    return () => clearInterval(interval);
   }, [currentRestaurantId]);
 
   if (loading) {

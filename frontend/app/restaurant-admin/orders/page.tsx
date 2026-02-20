@@ -74,6 +74,15 @@ export default function RestaurantAdminOrdersPage() {
       }
     }
     fetchOrders();
+    
+    // Автоматическое обновление списка заказов каждые 10 секунд
+    const interval = setInterval(() => {
+      if (currentRestaurantId) {
+        fetchOrders();
+      }
+    }, 10000); // 10 секунд
+    
+    return () => clearInterval(interval);
   }, [currentRestaurantId, currentPage]);
 
   const handleAssignToCourier = async (orderId: string, type: 'general' | 'restaurant') => {
