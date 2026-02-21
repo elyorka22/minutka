@@ -97,8 +97,10 @@ export default function RestaurantAdminStoreCategoriesPage() {
     }
     try {
       await deleteStoreCategory(id);
+      // Перезагружаем список категорий после удаления
+      const updatedCategories = await getAllStoreCategories(true);
+      setCategories(updatedCategories);
       showSuccess('Категория успешно удалена');
-      setCategories(categories.filter((cat) => cat.id !== id));
     } catch (error) {
       showError(handleApiError(error));
     }
