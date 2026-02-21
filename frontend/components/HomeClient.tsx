@@ -551,6 +551,10 @@ export default function HomeClient({
               const selectedCategoryData = initialStoreCategories.find(cat => cat.name === selectedCategory);
               const displayType = selectedCategoryData?.display_type || 'grid';
               
+              console.log('[HomeClient] Selected category data:', selectedCategoryData);
+              console.log('[HomeClient] Display type:', displayType);
+              console.log('[HomeClient] Category items:', categoryItems);
+              
               if (categoryItems.length === 0) {
                 return (
                   <div className="text-center py-12 text-gray-500">
@@ -566,6 +570,7 @@ export default function HomeClient({
                 
                 categoryItems.forEach((item) => {
                   const row = (item as any).carousel_row || 1; // По умолчанию ряд 1
+                  console.log('[HomeClient] Item:', item.name, 'carousel_row:', (item as any).carousel_row, 'assigned to row:', row);
                   if (!itemsByRow.has(row)) {
                     itemsByRow.set(row, []);
                   }
@@ -574,6 +579,8 @@ export default function HomeClient({
                 
                 // Сортируем ряды по номеру
                 const sortedRows = Array.from(itemsByRow.keys()).sort((a, b) => a - b);
+                
+                console.log('[HomeClient] Items grouped by rows:', Array.from(itemsByRow.entries()).map(([row, items]) => ({ row, count: items.length })));
                 
                 return (
                   <div className="space-y-6">
