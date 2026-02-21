@@ -544,31 +544,81 @@ export default function HomeClient({
           {loadingCategoryItems || loadingAllItems ? (
             <div className="text-center py-12 text-gray-500">Загрузка товаров...</div>
           ) : selectedCategory && !isAllCategory ? (
-            // Показываем товары выбранной категории
-            categoryItems.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4">
-                {categoryItems.map((item) => (
-                  <MenuItem key={item.id} item={item} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Tez kunlarda
-              </div>
-            )
+            // Показываем товары выбранной категории, сгруппированные по подкатегориям
+            (() => {
+              // Группируем товары по полю category (подкатегория)
+              const groupedItems = new Map<string, typeof categoryItems>();
+              categoryItems.forEach((item) => {
+                const subCategory = item.category || 'Без категории';
+                if (!groupedItems.has(subCategory)) {
+                  groupedItems.set(subCategory, []);
+                }
+                groupedItems.get(subCategory)!.push(item);
+              });
+
+              // Сортируем подкатегории по алфавиту
+              const sortedSubCategories = Array.from(groupedItems.keys()).sort();
+
+              return categoryItems.length > 0 ? (
+                <div className="space-y-6">
+                  {sortedSubCategories.map((subCategory) => {
+                    const items = groupedItems.get(subCategory)!;
+                    return (
+                      <div key={subCategory} className="space-y-3">
+                        <h3 className="text-lg font-bold text-gray-900">{subCategory}</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          {items.map((item) => (
+                            <MenuItem key={item.id} item={item} />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  Tez kunlarda
+                </div>
+              );
+            })()
           ) : (
-            // Показываем все товары главной страницы
-            allItems.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4">
-                {allItems.map((item) => (
-                  <MenuItem key={item.id} item={item} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Tez kunlarda
-              </div>
-            )
+            // Показываем все товары главной страницы, сгруппированные по подкатегориям
+            (() => {
+              // Группируем товары по полю category (подкатегория)
+              const groupedItems = new Map<string, typeof allItems>();
+              allItems.forEach((item) => {
+                const subCategory = item.category || 'Без категории';
+                if (!groupedItems.has(subCategory)) {
+                  groupedItems.set(subCategory, []);
+                }
+                groupedItems.get(subCategory)!.push(item);
+              });
+
+              // Сортируем подкатегории по алфавиту
+              const sortedSubCategories = Array.from(groupedItems.keys()).sort();
+
+              return allItems.length > 0 ? (
+                <div className="space-y-6">
+                  {sortedSubCategories.map((subCategory) => {
+                    const items = groupedItems.get(subCategory)!;
+                    return (
+                      <div key={subCategory} className="space-y-3">
+                        <h3 className="text-lg font-bold text-gray-900">{subCategory}</h3>
+                        <div className="grid grid-cols-2 gap-4">
+                          {items.map((item) => (
+                            <MenuItem key={item.id} item={item} />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  Tez kunlarda
+                </div>
+              );
+            })()
           )}
         </section>
       )}
