@@ -562,6 +562,7 @@ export async function createStoreCategory(data: {
   image_url?: string;
   display_order?: number;
   is_active?: boolean;
+  display_type?: 'grid' | 'carousel';
 }): Promise<StoreCategory> {
   const response = await api.post<{ success: boolean; data: StoreCategory }>('/api/store-categories', data);
   return response.data.data;
@@ -573,6 +574,7 @@ export async function updateStoreCategory(id: string, data: {
   image_url?: string;
   display_order?: number;
   is_active?: boolean;
+  display_type?: 'grid' | 'carousel';
 }): Promise<StoreCategory> {
   const response = await api.patch<{ success: boolean; data: StoreCategory }>(`/api/store-categories/${id}`, data);
   return response.data.data;
