@@ -621,9 +621,33 @@ export default function HomeClient({
                     {/* Ряды карусели с номерами */}
                     {sortedRows.map((row) => {
                       const rowItems = itemsByRow.get(row)!;
+                      const carouselId = `carousel-row-${row}`;
+                      
+                      const scrollRow = (direction: 'left' | 'right') => {
+                        const container = document.getElementById(carouselId);
+                        if (container) {
+                          const scrollAmount = 300;
+                          const currentScroll = container.scrollLeft;
+                          const newPosition = direction === 'left' 
+                            ? currentScroll - scrollAmount 
+                            : currentScroll + scrollAmount;
+                          container.scrollTo({ left: newPosition, behavior: 'smooth' });
+                        }
+                      };
+                      
                       return (
                         <div key={row} className="relative w-full" style={{ overflow: 'hidden' }}>
+                          {/* Стрелка влево - неяркая, видна на всех устройствах */}
+                          <button
+                            onClick={() => scrollRow('left')}
+                            className="flex absolute left-0 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/40 md:bg-white/60 backdrop-blur-sm border border-gray-200/30 md:border-gray-200/50 hover:bg-white/60 md:hover:bg-white/80 transition-all opacity-40 md:opacity-60 hover:opacity-60 md:hover:opacity-80"
+                            aria-label="Прокрутить влево"
+                          >
+                            <span className="text-xl md:text-2xl text-gray-300 md:text-gray-400">‹</span>
+                          </button>
+                          
                           <div
+                            id={carouselId}
                             className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
                             style={{ 
                               scrollbarWidth: 'none', 
@@ -651,6 +675,22 @@ export default function HomeClient({
                               </div>
                             ))}
                           </div>
+                          
+                          {/* Стрелка вправо - неяркая, видна на всех устройствах */}
+                          <button
+                            onClick={() => scrollRow('right')}
+                            className="flex absolute right-0 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/40 md:bg-white/60 backdrop-blur-sm border border-gray-200/30 md:border-gray-200/50 hover:bg-white/60 md:hover:bg-white/80 transition-all opacity-40 md:opacity-60 hover:opacity-60 md:hover:opacity-80"
+                            aria-label="Прокрутить вправо"
+                          >
+                            <span className="text-xl md:text-2xl text-gray-300 md:text-gray-400">›</span>
+                          </button>
+                          
+                          {/* Скрываем скроллбар */}
+                          <style jsx>{`
+                            #${carouselId}::-webkit-scrollbar {
+                              display: none;
+                            }
+                          `}</style>
                         </div>
                       );
                     })}
