@@ -637,13 +637,16 @@ export default function HomeClient({
                       
                       return (
                         <div key={row} className="relative w-full" style={{ overflow: 'hidden' }}>
-                          {/* Стрелка влево - неяркая, видна на всех устройствах */}
+                          {/* Градиент слева - показывает, что можно прокрутить влево */}
+                          <div className="absolute left-0 top-0 bottom-0 w-12 md:w-16 bg-gradient-to-r from-gray-50/80 to-transparent pointer-events-none z-[5]" />
+                          
+                          {/* Стрелка влево - заметная, но неяркая */}
                           <button
                             onClick={() => scrollRow('left')}
-                            className="flex absolute left-0 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/40 md:bg-white/60 backdrop-blur-sm border border-gray-200/30 md:border-gray-200/50 hover:bg-white/60 md:hover:bg-white/80 transition-all opacity-40 md:opacity-60 hover:opacity-60 md:hover:opacity-80"
+                            className="flex absolute left-1 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/85 md:bg-white/90 backdrop-blur-sm border border-gray-300/60 md:border-gray-300/70 shadow-md hover:bg-white hover:shadow-lg transition-all"
                             aria-label="Прокрутить влево"
                           >
-                            <span className="text-xl md:text-2xl text-gray-300 md:text-gray-400">‹</span>
+                            <span className="text-xl md:text-2xl text-gray-500 md:text-gray-600 font-medium">‹</span>
                           </button>
                           
                           <div
@@ -676,13 +679,16 @@ export default function HomeClient({
                             ))}
                           </div>
                           
-                          {/* Стрелка вправо - неяркая, видна на всех устройствах */}
+                          {/* Градиент справа - показывает, что контент продолжается */}
+                          <div className="absolute right-0 top-0 bottom-0 w-12 md:w-16 bg-gradient-to-l from-gray-50/80 to-transparent pointer-events-none z-[5]" />
+                          
+                          {/* Стрелка вправо - заметная, но неяркая */}
                           <button
                             onClick={() => scrollRow('right')}
-                            className="flex absolute right-0 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/40 md:bg-white/60 backdrop-blur-sm border border-gray-200/30 md:border-gray-200/50 hover:bg-white/60 md:hover:bg-white/80 transition-all opacity-40 md:opacity-60 hover:opacity-60 md:hover:opacity-80"
+                            className="flex absolute right-1 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/85 md:bg-white/90 backdrop-blur-sm border border-gray-300/60 md:border-gray-300/70 shadow-md hover:bg-white hover:shadow-lg transition-all"
                             aria-label="Прокрутить вправо"
                           >
-                            <span className="text-xl md:text-2xl text-gray-300 md:text-gray-400">›</span>
+                            <span className="text-xl md:text-2xl text-gray-500 md:text-gray-600 font-medium">›</span>
                           </button>
                           
                           {/* Скрываем скроллбар */}
