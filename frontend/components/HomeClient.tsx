@@ -594,12 +594,16 @@ export default function HomeClient({
               
               // Если тип отображения - карусель
               if (displayType === 'carousel') {
-                // Группируем товары по рядам (carousel_row)
+                // Разделяем товары: с carousel_row и без него
+                const itemsWithRow = categoryItems.filter(item => (item as any).carousel_row !== null && (item as any).carousel_row !== undefined);
+                const itemsWithoutRow = categoryItems.filter(item => (item as any).carousel_row === null || (item as any).carousel_row === undefined);
+                
+                // Группируем товары с carousel_row по рядам
                 const itemsByRow = new Map<number, typeof categoryItems>();
                 
-                categoryItems.forEach((item) => {
-                  const row = (item as any).carousel_row || 1; // По умолчанию ряд 1
-                  console.log('[HomeClient] Item:', item.name, 'carousel_row:', (item as any).carousel_row, 'assigned to row:', row);
+                itemsWithRow.forEach((item) => {
+                  const row = (item as any).carousel_row;
+                  console.log('[HomeClient] Item:', item.name, 'carousel_row:', row, 'assigned to row:', row);
                   if (!itemsByRow.has(row)) {
                     itemsByRow.set(row, []);
                   }
@@ -610,9 +614,11 @@ export default function HomeClient({
                 const sortedRows = Array.from(itemsByRow.keys()).sort((a, b) => a - b);
                 
                 console.log('[HomeClient] Items grouped by rows:', Array.from(itemsByRow.entries()).map(([row, items]) => ({ row, count: items.length })));
+                console.log('[HomeClient] Items without row:', itemsWithoutRow.length);
                 
                 return (
                   <div className="space-y-6">
+                    {/* Ряды карусели с номерами */}
                     {sortedRows.map((row) => {
                       const rowItems = itemsByRow.get(row)!;
                       return (
@@ -654,6 +660,15 @@ export default function HomeClient({
                         </div>
                       );
                     })}
+                    
+                    {/* Товары без номера ряда - отображаются после всех рядов */}
+                    {itemsWithoutRow.length > 0 && (
+                      <div className="grid grid-cols-2 gap-4">
+                        {itemsWithoutRow.map((item) => (
+                          <MenuItem key={item.id} item={item} />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 );
               }
