@@ -14,7 +14,7 @@ import RestaurantCategories from './RestaurantCategories';
 import PharmacyStoreCard from './PharmacyStoreCard';
 import MenuItem from './MenuItem';
 import { useAuth } from '@/contexts/AuthContext';
-import { getMenuItems } from '@/lib/api';
+import { getMenuItems, getAllStoreCategories } from '@/lib/api';
 import Cart from './Cart';
 import { useCart } from '@/contexts/CartContext';
 
@@ -97,14 +97,43 @@ export default function HomeClient({
   const [loadingCategoryItems, setLoadingCategoryItems] = useState(false);
   const [allItems, setAllItems] = useState<MenuItemWithStore[]>([]);
   const [loadingAllItems, setLoadingAllItems] = useState(false);
+  const [storeCategories, setStoreCategories] = useState(initialStoreCategories);
+  
+  // Загружаем актуальные категории на клиенте для получения display_type
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const categories = await getAllStoreCategories(true);
+        // Группируем по названию, как на сервере
+        const categoryMap = new Map<string, any>();
+        categories.forEach((cat) => {
+          if (cat.is_active) {
+            if (!categoryMap.has(cat.name)) {
+              categoryMap.set(cat.name, {
+                id: cat.name,
+                name: cat.name,
+                image_url: cat.image_url,
+                description: cat.description,
+                display_type: cat.display_type || 'grid',
+              });
+            }
+          }
+        });
+        setStoreCategories(Array.from(categoryMap.values()));
+      } catch (error) {
+        console.error('[HomeClient] Error fetching categories:', error);
+      }
+    }
+    fetchCategories();
+  }, []);
   
   // Определяем, выбрана ли категория "Все" (Hammasi)
   const isAllCategory = useMemo(() => {
     if (!selectedCategory) return true;
-    return initialStoreCategories.some(cat => 
+    return storeCategories.some(cat => 
       (cat.name === 'Все' || cat.name === 'Hammasi') && cat.name === selectedCategory
     );
-  }, [selectedCategory, initialStoreCategories]);
+  }, [selectedCategory, storeCategories]);
   
   // Получаем restaurantId для корзины из первого товара в корзине или первого товара категории
   const cartRestaurantId = useMemo(() => {
@@ -229,7 +258,7 @@ export default function HomeClient({
       // Фильтр по категории магазинов (store_categories) применяется только если это категория магазинов
       if (selectedCategory) {
         // Проверяем, является ли выбранная категория категорией магазинов
-        const isStoreCategory = initialStoreCategories.some(cat => cat.name === selectedCategory);
+        const isStoreCategory = storeCategories.some(cat => cat.name === selectedCategory);
         if (isStoreCategory) {
           // Фильтруем магазины, у которых есть товары с этой категорией
           const storeIds = initialStoreCategoryStoreMap[selectedCategory] || [];
@@ -251,7 +280,7 @@ export default function HomeClient({
       }
       return true;
     });
-  }, [initialStores, selectedCategory, searchQuery, initialCategoryStoreMap, pharmaciesCategory, storesCategory, initialStoreCategories, initialStoreCategoryStoreMap]);
+  }, [initialStores, selectedCategory, searchQuery, initialCategoryStoreMap, pharmaciesCategory, storesCategory, storeCategories, initialStoreCategoryStoreMap]);
 
   // Загружаем товары для вкладки "Asosiy"
   useEffect(() => {
@@ -311,7 +340,7 @@ export default function HomeClient({
         setSelectedCategory(null);
       }
     }
-  }, [selectedCategory, initialStoreCategories]);
+  }, [selectedCategory, storeCategories]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -475,10 +504,10 @@ export default function HomeClient({
       )}
 
       {/* Store Categories Carousel - Категории магазинов под баннером (только для вкладки Asosiy) */}
-      {selectedTab === 'asosiy' && initialStoreCategories.length > 0 && (
+      {selectedTab === 'asosiy' && storeCategories.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
           <RestaurantCategories
-            categories={initialStoreCategories.map(cat => ({
+            categories={storeCategories.map(cat => ({
               id: cat.name, // Используем название как ID для единообразия
               name: cat.name,
               image_url: cat.image_url || '',
@@ -487,7 +516,7 @@ export default function HomeClient({
             selectedCategory={selectedCategory}
             onCategorySelect={(categoryId) => {
               console.log('[HomeClient] Category selected:', categoryId);
-              console.log('[HomeClient] Available categories:', initialStoreCategories.map(c => ({ id: c.id, name: c.name })));
+              console.log('[HomeClient] Available categories:', storeCategories.map(c => ({ id: c.id, name: c.name, display_type: c.display_type })));
               
               // Если выбрана категория "Все", сбрасываем фильтр
               if (categoryId === null || categoryId === 'all') {
@@ -498,7 +527,7 @@ export default function HomeClient({
               
               // Ищем категорию по ID или названию
               // Важно: categoryId может быть либо UUID (cat.id), либо название (cat.name)
-              const category = initialStoreCategories.find(c => 
+              const category = storeCategories.find(c => 
                 c.id === categoryId || 
                 c.name === categoryId ||
                 (c.id || c.name) === categoryId
@@ -520,7 +549,7 @@ export default function HomeClient({
               } else {
                 // Если категория не найдена, возможно categoryId это уже название
                 // Проверяем, есть ли категория с таким названием
-                const categoryByName = initialStoreCategories.find(c => c.name === categoryId);
+                const categoryByName = storeCategories.find(c => c.name === categoryId);
                 if (categoryByName && categoryByName.name !== 'Все' && categoryByName.name !== 'Hammasi') {
                   console.log('[HomeClient] Found category by name, setting to:', categoryByName.name);
                   setSelectedCategory(categoryByName.name);
@@ -531,7 +560,7 @@ export default function HomeClient({
               }
             }}
             allCategoryImage={
-              initialStoreCategories.find(
+              storeCategories.find(
                 (c) => c.name === 'Все' || c.name === 'Hammasi' || c.name?.toLowerCase() === 'все' || c.name?.toLowerCase() === 'hammasi' || c.id === 'all'
               )?.image_url
             }
@@ -548,7 +577,7 @@ export default function HomeClient({
             // Показываем товары выбранной категории
             (() => {
               // Находим выбранную категорию для проверки типа отображения
-              const selectedCategoryData = initialStoreCategories.find(cat => cat.name === selectedCategory);
+              const selectedCategoryData = storeCategories.find(cat => cat.name === selectedCategory);
               const displayType = selectedCategoryData?.display_type || 'grid';
               
               console.log('[HomeClient] Selected category data:', selectedCategoryData);
