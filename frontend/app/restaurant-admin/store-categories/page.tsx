@@ -179,9 +179,9 @@ export default function RestaurantAdminStoreCategoriesPage() {
         is_active: true,
         selectedMenuItems: [],
       });
-      // Обновляем список
-      const items = await getStoreCategories(currentRestaurantId!, true);
-      setCategories(items);
+      // Перезагружаем список категорий
+      const updatedCategories = await getAllStoreCategories(true);
+      setCategories(updatedCategories);
     } catch (error) {
       showError(handleApiError(error));
     }
