@@ -499,6 +499,9 @@ export default function AdminCategoriesPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Статус
                   </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Отображение
+                  </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Действия
                   </th>
@@ -543,6 +546,30 @@ export default function AdminCategoriesPage() {
                         >
                           {category.is_active ? 'Активна' : 'Неактивна'}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={async () => {
+                            const newDisplayType = (category.display_type || 'grid') === 'carousel' ? 'grid' : 'carousel';
+                            try {
+                              await updateStoreCategory(category.id, {
+                                display_type: newDisplayType,
+                              });
+                              const updatedCategories = await getAllStoreCategories(true);
+                              setCategories(updatedCategories);
+                              showSuccess(`Тип отображения изменен на: ${newDisplayType === 'carousel' ? 'Карусель' : '2 колонки'}`);
+                            } catch (error) {
+                              showError(handleApiError(error));
+                            }
+                          }}
+                          className={`px-3 py-1 rounded text-xs font-medium ${
+                            (category.display_type || 'grid') === 'carousel'
+                              ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                              : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                          }`}
+                        >
+                          {(category.display_type || 'grid') === 'carousel' ? '🎠 Карусель' : '📋 2 колонки'}
+                        </button>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button

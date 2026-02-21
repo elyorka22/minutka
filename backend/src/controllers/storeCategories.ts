@@ -15,6 +15,7 @@ export interface StoreCategory {
   image_url?: string | null;
   display_order: number;
   is_active: boolean;
+  display_type?: 'grid' | 'carousel';
   created_at: string;
   updated_at: string;
 }
@@ -94,7 +95,7 @@ export async function getStoreCategoryById(req: AuthenticatedRequest, res: Respo
  */
 export async function createStoreCategory(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, name, description, image_url, display_order, is_active } = req.body;
+    const { restaurant_id, name, description, image_url, display_order, is_active, display_type } = req.body;
 
     // Валидация обязательных полей
     if (!restaurant_id || !name) {
@@ -163,6 +164,7 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
         image_url: image_url || null,
         display_order: newDisplayOrder,
         is_active: is_active ?? true,
+        display_type: display_type || 'grid',
       })
       .select()
       .single();
@@ -193,7 +195,7 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
 export async function updateStoreCategory(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, image_url, display_order, is_active } = req.body;
+    const { name, description, image_url, display_order, is_active, display_type } = req.body;
 
     // Валидация ID
     if (!validateUuid(id)) {
@@ -256,6 +258,7 @@ export async function updateStoreCategory(req: AuthenticatedRequest, res: Respon
     if (image_url !== undefined) updateData.image_url = image_url;
     if (display_order !== undefined) updateData.display_order = display_order;
     if (is_active !== undefined) updateData.is_active = is_active;
+    if (display_type !== undefined) updateData.display_type = display_type;
 
     const { data, error } = await supabase
       .from('store_categories')

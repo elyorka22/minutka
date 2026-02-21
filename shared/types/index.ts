@@ -171,6 +171,7 @@ export interface StoreCategory {
   image_url?: string | null;
   display_order: number;
   is_active: boolean;
+  display_type?: 'grid' | 'carousel';
   created_at: string;
   updated_at: string;
 }

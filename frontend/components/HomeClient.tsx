@@ -545,17 +545,70 @@ export default function HomeClient({
             <div className="text-center py-12 text-gray-500">Загрузка товаров...</div>
           ) : selectedCategory && !isAllCategory ? (
             // Показываем товары выбранной категории
-            categoryItems.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4">
-                {categoryItems.map((item) => (
-                  <MenuItem key={item.id} item={item} />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Tez kunlarda
-              </div>
-            )
+            (() => {
+              // Находим выбранную категорию для проверки типа отображения
+              const selectedCategoryData = initialStoreCategories.find(cat => cat.name === selectedCategory);
+              const displayType = selectedCategoryData?.display_type || 'grid';
+              
+              if (categoryItems.length === 0) {
+                return (
+                  <div className="text-center py-12 text-gray-500">
+                    Tez kunlarda
+                  </div>
+                );
+              }
+              
+              // Если тип отображения - карусель
+              if (displayType === 'carousel') {
+                return (
+                  <div className="relative w-full" style={{ overflow: 'hidden' }}>
+                    <div
+                      className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+                      style={{ 
+                        scrollbarWidth: 'none', 
+                        msOverflowStyle: 'none',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        flexWrap: 'nowrap',
+                        width: '100%',
+                        overflowX: 'auto',
+                        overflowY: 'hidden',
+                        WebkitOverflowScrolling: 'touch',
+                        alignItems: 'stretch',
+                      } as React.CSSProperties}
+                    >
+                      {categoryItems.map((item) => (
+                        <div 
+                          key={item.id} 
+                          className="flex-shrink-0"
+                          style={{ 
+                            width: '150px',
+                            minWidth: '150px',
+                            maxWidth: '150px',
+                            flexShrink: 0,
+                            flexGrow: 0,
+                            flexBasis: '150px',
+                            display: 'flex',
+                            height: '100%'
+                          }}
+                        >
+                          <MenuItem item={item} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+              
+              // По умолчанию - сетка из 2 колонок
+              return (
+                <div className="grid grid-cols-2 gap-4">
+                  {categoryItems.map((item) => (
+                    <MenuItem key={item.id} item={item} />
+                  ))}
+                </div>
+              );
+            })()
           ) : (
             // Показываем все товары главной страницы
             allItems.length > 0 ? (
