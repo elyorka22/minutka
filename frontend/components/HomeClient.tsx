@@ -553,7 +553,7 @@ export default function HomeClient({
               </div>
             ) : (
               <div className="text-center py-12 text-gray-500">
-                Товары в этой категории не найдены
+                Tez kunlarda
               </div>
             )
           ) : (
@@ -566,7 +566,7 @@ export default function HomeClient({
               </div>
             ) : (
               <div className="text-center py-12 text-gray-500">
-                Товары не найдены
+                Tez kunlarda
               </div>
             )
           )}
@@ -646,13 +646,13 @@ export default function HomeClient({
           {selectedTab === 'asosiy' ? (
             /* На вкладке Asosiy показываем товары при поиске */
             <div className="text-center py-12 text-gray-500">
-              Qidiruv natijalari tez orada
+              Tez kunlarda
             </div>
           ) : selectedTab === 'do\'konlar' ? (
             /* На вкладке Do'konlar показываем магазины при поиске */
             filteredStores.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
-                Do'konlar topilmadi
+                Tez kunlarda
               </div>
             ) : (
               <div className="grid grid-cols-1 gap-4 md:gap-6">
@@ -702,7 +702,7 @@ export default function HomeClient({
           <h2 className="text-2xl font-bold text-gray-900 mb-4">🛒 Do'konlar</h2>
           {filteredStores.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
-              Do'konlar topilmadi
+              Tez kunlarda
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:gap-6">
@@ -711,6 +711,15 @@ export default function HomeClient({
               ))}
             </div>
           )}
+        </section>
+      )}
+
+      {/* Xizmatlar Tab - пустое состояние */}
+      {selectedTab === 'xizmatlar' && !searchQuery && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+          <div className="text-center py-12 text-gray-500">
+            Tez kunlarda
+          </div>
         </section>
       )}
     </div>
