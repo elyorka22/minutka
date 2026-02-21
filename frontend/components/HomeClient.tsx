@@ -224,23 +224,22 @@ export default function HomeClient({
       ) {
         return false;
       }
-      // Фильтр по категории магазинов (store_categories)
+      // На вкладке Do'konlar показываем все магазины, если нет поиска
+      // Фильтр по категории магазинов (store_categories) применяется только если это категория магазинов
       if (selectedCategory) {
         // Проверяем, является ли выбранная категория категорией магазинов
         const isStoreCategory = initialStoreCategories.some(cat => cat.name === selectedCategory);
         if (isStoreCategory) {
           // Фильтруем магазины, у которых есть товары с этой категорией
           const storeIds = initialStoreCategoryStoreMap[selectedCategory] || [];
-          if (storeIds.length > 0 && !storeIds.includes(s.id)) {
-            return false;
-          }
-        } else {
-          // Старая логика для категорий ресторанов
-          const storeIds = initialCategoryStoreMap[selectedCategory] || [];
+          // Если есть магазины с этой категорией, показываем только их
+          // Если нет, показываем все магазины
           if (storeIds.length > 0 && !storeIds.includes(s.id)) {
             return false;
           }
         }
+        // Если это не категория магазинов (например, категория товаров), не фильтруем магазины
+        // Это позволяет показывать все магазины на вкладке Do'konlar, даже если выбрана категория товаров
       }
       // Фильтр по поисковому запросу
       if (searchQuery.trim()) {
@@ -682,7 +681,7 @@ export default function HomeClient({
           </section>
         )}
 
-      {/* Stores Section */}
+      {/* Stores Section - для старой логики с категориями */}
       {stores.length > 0 &&
         storesCategory &&
         selectedCategory === storesCategory.id &&
@@ -696,6 +695,24 @@ export default function HomeClient({
             </div>
           </section>
         )}
+
+      {/* All Stores on Do'konlar Tab - все магазины на вкладке Do'konlar */}
+      {selectedTab === 'do\'konlar' && !searchQuery && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">🛒 Do'konlar</h2>
+          {filteredStores.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              Do'konlar topilmadi
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:gap-6">
+              {filteredStores.map((store) => (
+                <RestaurantCard key={store.id} restaurant={store} />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }
