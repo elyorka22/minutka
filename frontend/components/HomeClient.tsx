@@ -627,50 +627,42 @@ export default function HomeClient({
                       const InfiniteCarousel = () => {
                         const containerRef = useRef<HTMLDivElement>(null);
                         const isScrollingRef = useRef(false);
-                        const [cardWidth, setCardWidth] = useState(280);
                         
                         // Дублируем карточки для бесконечной прокрутки
                         const duplicatedItems = [...rowItems, ...rowItems, ...rowItems];
-                        const gap = 16;
-                        const itemWidth = cardWidth + gap;
                         
-                        // Вычисляем ширину карточки в зависимости от размера экрана
-                        useEffect(() => {
-                          const updateCardWidth = () => {
-                            const screenWidth = window.innerWidth;
-                            // На мобильных: 80% ширины экрана, на десктопе: 320px
-                            const width = screenWidth < 768 
-                              ? Math.floor(screenWidth * 0.8) 
-                              : 320;
-                            setCardWidth(width);
-                          };
-                          
-                          updateCardWidth();
-                          window.addEventListener('resize', updateCardWidth);
-                          return () => window.removeEventListener('resize', updateCardWidth);
-                        }, []);
+                        // Функция для вычисления ширины карточки
+                        const getItemWidth = (container: HTMLDivElement) => {
+                          const containerWidth = container.offsetWidth;
+                          const cardWidthPercent = 50; // 50%
+                          const remInPx = 16; // 1rem = 16px (обычно)
+                          const cardWidth = (containerWidth * cardWidthPercent / 100) - (0.5 * remInPx); // calc(50% - 0.5rem)
+                          const gap = 16; // gap-4 = 16px
+                          return cardWidth + gap;
+                        };
                         
                         // Инициализация: устанавливаем начальную позицию на средний набор карточек
                         useEffect(() => {
                           const container = containerRef.current;
-                          if (container && rowItems.length > 0 && cardWidth > 0) {
+                          if (container && rowItems.length > 0) {
+                            const itemWidth = getItemWidth(container);
                             // Прокручиваем к началу среднего набора (второй копии)
                             const startPosition = rowItems.length * itemWidth;
                             container.scrollLeft = startPosition;
                           }
-                        }, [rowItems.length, cardWidth, itemWidth]);
+                        }, [rowItems.length]);
                         
                         // Обработка бесконечной прокрутки
                         useEffect(() => {
                           const container = containerRef.current;
-                          if (!container || rowItems.length === 0 || cardWidth === 0) return;
+                          if (!container || rowItems.length === 0) return;
                           
                           const handleScroll = () => {
                             if (isScrollingRef.current) return;
                             
-                            const scrollLeft = container.scrollLeft;
-                            const itemWidthWithGap = itemWidth;
+                            const itemWidthWithGap = getItemWidth(container);
                             const totalItems = rowItems.length;
+                            const scrollLeft = container.scrollLeft;
                             
                             // Если прокрутили до начала первого набора, перескакиваем на начало среднего
                             if (scrollLeft < itemWidthWithGap) {
@@ -688,31 +680,27 @@ export default function HomeClient({
                           
                           container.addEventListener('scroll', handleScroll);
                           return () => container.removeEventListener('scroll', handleScroll);
-                        }, [rowItems.length, cardWidth, itemWidth]);
+                        }, [rowItems.length]);
                         
                         const scrollToNext = () => {
                           const container = containerRef.current;
-                          if (!container || cardWidth === 0) return;
+                          if (!container) return;
                           
+                          const itemWidthWithGap = getItemWidth(container);
                           const currentScroll = container.scrollLeft;
-                          const itemWidthWithGap = itemWidth;
                           const nextPosition = Math.round(currentScroll / itemWidthWithGap) * itemWidthWithGap + itemWidthWithGap;
                           container.scrollTo({ left: nextPosition, behavior: 'smooth' });
                         };
                         
                         const scrollToPrev = () => {
                           const container = containerRef.current;
-                          if (!container || cardWidth === 0) return;
+                          if (!container) return;
                           
+                          const itemWidthWithGap = getItemWidth(container);
                           const currentScroll = container.scrollLeft;
-                          const itemWidthWithGap = itemWidth;
                           const prevPosition = Math.round(currentScroll / itemWidthWithGap) * itemWidthWithGap - itemWidthWithGap;
                           container.scrollTo({ left: prevPosition, behavior: 'smooth' });
                         };
-                        
-                        if (cardWidth === 0) {
-                          return <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />;
-                        }
                         
                         return (
                           <div className="relative w-full" style={{ overflow: 'hidden' }}>
@@ -745,18 +733,15 @@ export default function HomeClient({
                                 WebkitOverflowScrolling: 'touch',
                                 alignItems: 'stretch',
                                 scrollSnapType: 'x mandatory',
-                                paddingLeft: `calc(50% - ${cardWidth / 2}px)`,
-                                paddingRight: `calc(50% - ${cardWidth / 2}px)`,
+                                paddingLeft: 'calc(25% + 0.25rem)',
+                                paddingRight: 'calc(25% + 0.25rem)',
                               } as React.CSSProperties}
                             >
                               {duplicatedItems.map((item, index) => (
                                 <div 
                                   key={`${item.id}-${index}`}
-                                  className="flex-shrink-0"
+                                  className="flex-shrink-0 w-[calc(50%-0.5rem)] min-w-[calc(50%-0.5rem)] max-w-[calc(50%-0.5rem)]"
                                   style={{ 
-                                    width: `${cardWidth}px`,
-                                    minWidth: `${cardWidth}px`,
-                                    maxWidth: `${cardWidth}px`,
                                     flexShrink: 0,
                                     display: 'flex',
                                     scrollSnapAlign: 'center',
