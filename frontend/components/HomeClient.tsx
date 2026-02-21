@@ -329,7 +329,7 @@ export default function HomeClient({
   useEffect(() => {
     if (selectedCategory) {
       // Для магазинов проверяем, является ли это категорией магазинов (store_categories)
-      const isStoreCategory = initialStoreCategories.some(cat => cat.name === selectedCategory);
+        const isStoreCategory = storeCategories.some(cat => cat.name === selectedCategory);
       
       if (isStoreCategory) {
         // Это категория магазинов - не сбрасываем, даже если нет товаров
