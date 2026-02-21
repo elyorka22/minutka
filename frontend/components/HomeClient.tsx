@@ -631,36 +631,58 @@ export default function HomeClient({
                         // Дублируем карточки для бесконечной прокрутки
                         const duplicatedItems = [...rowItems, ...rowItems, ...rowItems];
                         
-                        // Функция для вычисления ширины карточки
+                        // Функция для вычисления ширины карточки (такой же как в grid grid-cols-2 gap-4)
                         const getItemWidth = (container: HTMLDivElement) => {
                           const containerWidth = container.offsetWidth;
-                          const cardWidthPercent = 50; // 50%
-                          const remInPx = 16; // 1rem = 16px (обычно)
-                          const cardWidth = (containerWidth * cardWidthPercent / 100) - (0.5 * remInPx); // calc(50% - 0.5rem)
+                          // В grid grid-cols-2 gap-4 каждая карточка занимает (100% - 16px) / 2
+                          // gap-4 = 16px, значит каждая карточка = (containerWidth - 16px) / 2
                           const gap = 16; // gap-4 = 16px
-                          return cardWidth + gap;
+                          const cardWidth = (containerWidth - gap) / 2; // Точно такой же размер как в grid
+                          return cardWidth + gap; // Возвращаем ширину карточки + gap для прокрутки
                         };
+                        
+                        // Состояние для ширины карточки
+                        const [cardWidthPx, setCardWidthPx] = useState<number | null>(null);
+                        
+                        // Вычисляем ширину карточки при монтировании и изменении размера
+                        useEffect(() => {
+                          const updateCardWidth = () => {
+                            const container = containerRef.current;
+                            if (container) {
+                              const containerWidth = container.offsetWidth;
+                              const gap = 16;
+                              const width = (containerWidth - gap) / 2;
+                              setCardWidthPx(width);
+                            }
+                          };
+                          
+                          updateCardWidth();
+                          window.addEventListener('resize', updateCardWidth);
+                          return () => window.removeEventListener('resize', updateCardWidth);
+                        }, []);
                         
                         // Инициализация: устанавливаем начальную позицию на средний набор карточек
                         useEffect(() => {
                           const container = containerRef.current;
-                          if (container && rowItems.length > 0) {
-                            const itemWidth = getItemWidth(container);
+                          if (container && rowItems.length > 0 && cardWidthPx !== null) {
+                            const gap = 16;
+                            const itemWidth = cardWidthPx + gap;
                             // Прокручиваем к началу среднего набора (второй копии)
                             const startPosition = rowItems.length * itemWidth;
                             container.scrollLeft = startPosition;
                           }
-                        }, [rowItems.length]);
+                        }, [rowItems.length, cardWidthPx]);
                         
                         // Обработка бесконечной прокрутки
                         useEffect(() => {
                           const container = containerRef.current;
-                          if (!container || rowItems.length === 0) return;
+                          if (!container || rowItems.length === 0 || cardWidthPx === null) return;
                           
                           const handleScroll = () => {
                             if (isScrollingRef.current) return;
                             
-                            const itemWidthWithGap = getItemWidth(container);
+                            const gap = 16;
+                            const itemWidthWithGap = cardWidthPx + gap;
                             const totalItems = rowItems.length;
                             const scrollLeft = container.scrollLeft;
                             
@@ -680,13 +702,14 @@ export default function HomeClient({
                           
                           container.addEventListener('scroll', handleScroll);
                           return () => container.removeEventListener('scroll', handleScroll);
-                        }, [rowItems.length]);
+                        }, [rowItems.length, cardWidthPx]);
                         
                         const scrollToNext = () => {
                           const container = containerRef.current;
-                          if (!container) return;
+                          if (!container || cardWidthPx === null) return;
                           
-                          const itemWidthWithGap = getItemWidth(container);
+                          const gap = 16;
+                          const itemWidthWithGap = cardWidthPx + gap;
                           const currentScroll = container.scrollLeft;
                           const nextPosition = Math.round(currentScroll / itemWidthWithGap) * itemWidthWithGap + itemWidthWithGap;
                           container.scrollTo({ left: nextPosition, behavior: 'smooth' });
@@ -694,13 +717,18 @@ export default function HomeClient({
                         
                         const scrollToPrev = () => {
                           const container = containerRef.current;
-                          if (!container) return;
+                          if (!container || cardWidthPx === null) return;
                           
-                          const itemWidthWithGap = getItemWidth(container);
+                          const gap = 16;
+                          const itemWidthWithGap = cardWidthPx + gap;
                           const currentScroll = container.scrollLeft;
                           const prevPosition = Math.round(currentScroll / itemWidthWithGap) * itemWidthWithGap - itemWidthWithGap;
                           container.scrollTo({ left: prevPosition, behavior: 'smooth' });
                         };
+                        
+                        if (cardWidthPx === null) {
+                          return <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />;
+                        }
                         
                         return (
                           <div className="relative w-full" style={{ overflow: 'hidden' }}>
@@ -733,24 +761,31 @@ export default function HomeClient({
                                 WebkitOverflowScrolling: 'touch',
                                 alignItems: 'stretch',
                                 scrollSnapType: 'x mandatory',
-                                paddingLeft: 'calc(25% + 0.25rem)',
-                                paddingRight: 'calc(25% + 0.25rem)',
+                                paddingLeft: cardWidthPx ? `calc(50% - ${cardWidthPx / 2}px)` : '0',
+                                paddingRight: cardWidthPx ? `calc(50% - ${cardWidthPx / 2}px)` : '0',
                               } as React.CSSProperties}
                             >
-                              {duplicatedItems.map((item, index) => (
-                                <div 
-                                  key={`${item.id}-${index}`}
-                                  className="flex-shrink-0 w-[calc(50%-0.5rem)] min-w-[calc(50%-0.5rem)] max-w-[calc(50%-0.5rem)]"
-                                  style={{ 
-                                    flexShrink: 0,
-                                    display: 'flex',
-                                    scrollSnapAlign: 'center',
-                                    scrollSnapStop: 'always',
-                                  }}
-                                >
-                                  <MenuItem item={item} />
-                                </div>
-                              ))}
+                              {duplicatedItems.map((item, index) => {
+                                // Размер карточки такой же, как в grid grid-cols-2 gap-4
+                                // Используем фиксированную ширину в пикселях
+                                return (
+                                  <div 
+                                    key={`${item.id}-${index}`}
+                                    className="flex-shrink-0"
+                                    style={{ 
+                                      width: cardWidthPx ? `${cardWidthPx}px` : 'calc((100% - 16px) / 2)',
+                                      minWidth: cardWidthPx ? `${cardWidthPx}px` : 'calc((100% - 16px) / 2)',
+                                      maxWidth: cardWidthPx ? `${cardWidthPx}px` : 'calc((100% - 16px) / 2)',
+                                      flexShrink: 0,
+                                      display: 'flex',
+                                      scrollSnapAlign: 'center',
+                                      scrollSnapStop: 'always',
+                                    }}
+                                  >
+                                    <MenuItem item={item} />
+                                  </div>
+                                );
+                              })}
                             </div>
                             
                             {/* Градиент справа */}
