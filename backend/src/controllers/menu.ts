@@ -253,7 +253,7 @@ export async function getMenuItemById(req: AuthenticatedRequest, res: Response) 
  */
 export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, name, description, price, category, categories, image_url, is_available, is_banner, discount_percent, is_main_page } = req.body;
+    const { restaurant_id, name, description, price, category, categories, image_url, is_available, is_banner, discount_percent, is_main_page, carousel_row } = req.body;
 
     // Валидация обязательных полей
     if (!name || price === undefined) {
@@ -340,6 +340,7 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
         is_banner: is_banner ?? false,
         is_main_page: is_main_page ?? false,
         discount_percent: discount_percent !== undefined ? (discount_percent === null || discount_percent === '' ? null : parseInt(discount_percent)) : null,
+        carousel_row: carousel_row !== undefined ? (carousel_row === null || carousel_row === '' ? null : parseInt(carousel_row)) : null,
       })
       .select()
       .single();
@@ -383,7 +384,7 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
 export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, price, category, categories, image_url, is_available, is_banner, discount_percent, is_main_page } = req.body;
+    const { name, description, price, category, categories, image_url, is_available, is_banner, discount_percent, is_main_page, carousel_row } = req.body;
     
     // Логируем входящий запрос
     console.log('updateMenuItem called:', {
@@ -542,6 +543,9 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
     }
     if (discount_percent !== undefined) {
       updateData.discount_percent = discount_percent !== null ? Number(discount_percent) : null;
+    }
+    if (carousel_row !== undefined) {
+      updateData.carousel_row = carousel_row !== null && carousel_row !== '' ? parseInt(carousel_row) : null;
     }
 
     const { data, error } = await supabase

@@ -30,6 +30,7 @@ export interface MenuItem {
   is_available: boolean;
   is_banner: boolean; // Помечает блюдо как баннер для большого отображения
   discount_percent?: number | null; // Процент скидки (0-100)
+  carousel_row?: number | null; // Номер ряда в карусели
   created_at: string;
 }
 

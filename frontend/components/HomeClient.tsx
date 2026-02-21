@@ -560,42 +560,63 @@ export default function HomeClient({
               
               // Если тип отображения - карусель
               if (displayType === 'carousel') {
+                // Группируем товары по рядам (carousel_row)
+                const itemsByRow = new Map<number, typeof categoryItems>();
+                
+                categoryItems.forEach((item) => {
+                  const row = (item as any).carousel_row || 1; // По умолчанию ряд 1
+                  if (!itemsByRow.has(row)) {
+                    itemsByRow.set(row, []);
+                  }
+                  itemsByRow.get(row)!.push(item);
+                });
+                
+                // Сортируем ряды по номеру
+                const sortedRows = Array.from(itemsByRow.keys()).sort((a, b) => a - b);
+                
                 return (
-                  <div className="relative w-full" style={{ overflow: 'hidden' }}>
-                    <div
-                      className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-                      style={{ 
-                        scrollbarWidth: 'none', 
-                        msOverflowStyle: 'none',
-                        display: 'flex',
-                        flexDirection: 'row',
-                        flexWrap: 'nowrap',
-                        width: '100%',
-                        overflowX: 'auto',
-                        overflowY: 'hidden',
-                        WebkitOverflowScrolling: 'touch',
-                        alignItems: 'stretch',
-                      } as React.CSSProperties}
-                    >
-                      {categoryItems.map((item) => (
-                        <div 
-                          key={item.id} 
-                          className="flex-shrink-0"
-                          style={{ 
-                            width: '150px',
-                            minWidth: '150px',
-                            maxWidth: '150px',
-                            flexShrink: 0,
-                            flexGrow: 0,
-                            flexBasis: '150px',
-                            display: 'flex',
-                            height: '100%'
-                          }}
-                        >
-                          <MenuItem item={item} />
+                  <div className="space-y-6">
+                    {sortedRows.map((row) => {
+                      const rowItems = itemsByRow.get(row)!;
+                      return (
+                        <div key={row} className="relative w-full" style={{ overflow: 'hidden' }}>
+                          <div
+                            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+                            style={{ 
+                              scrollbarWidth: 'none', 
+                              msOverflowStyle: 'none',
+                              display: 'flex',
+                              flexDirection: 'row',
+                              flexWrap: 'nowrap',
+                              width: '100%',
+                              overflowX: 'auto',
+                              overflowY: 'hidden',
+                              WebkitOverflowScrolling: 'touch',
+                              alignItems: 'stretch',
+                            } as React.CSSProperties}
+                          >
+                            {rowItems.map((item) => (
+                              <div 
+                                key={item.id} 
+                                className="flex-shrink-0"
+                                style={{ 
+                                  width: '150px',
+                                  minWidth: '150px',
+                                  maxWidth: '150px',
+                                  flexShrink: 0,
+                                  flexGrow: 0,
+                                  flexBasis: '150px',
+                                  display: 'flex',
+                                  height: '100%'
+                                }}
+                              >
+                                <MenuItem item={item} />
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
                 );
               }
