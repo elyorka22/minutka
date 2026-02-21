@@ -4,7 +4,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -623,82 +623,174 @@ export default function HomeClient({
                       const rowItems = itemsByRow.get(row)!;
                       const carouselId = `carousel-row-${row}`;
                       
-                      const scrollRow = (direction: 'left' | 'right') => {
-                        const container = document.getElementById(carouselId);
-                        if (container) {
-                          const scrollAmount = 300;
+                      // Компонент для бесконечной карусели
+                      const InfiniteCarousel = () => {
+                        const containerRef = useRef<HTMLDivElement>(null);
+                        const isScrollingRef = useRef(false);
+                        const [cardWidth, setCardWidth] = useState(280);
+                        
+                        // Дублируем карточки для бесконечной прокрутки
+                        const duplicatedItems = [...rowItems, ...rowItems, ...rowItems];
+                        const gap = 16;
+                        const itemWidth = cardWidth + gap;
+                        
+                        // Вычисляем ширину карточки в зависимости от размера экрана
+                        useEffect(() => {
+                          const updateCardWidth = () => {
+                            const screenWidth = window.innerWidth;
+                            // На мобильных: 80% ширины экрана, на десктопе: 320px
+                            const width = screenWidth < 768 
+                              ? Math.floor(screenWidth * 0.8) 
+                              : 320;
+                            setCardWidth(width);
+                          };
+                          
+                          updateCardWidth();
+                          window.addEventListener('resize', updateCardWidth);
+                          return () => window.removeEventListener('resize', updateCardWidth);
+                        }, []);
+                        
+                        // Инициализация: устанавливаем начальную позицию на средний набор карточек
+                        useEffect(() => {
+                          const container = containerRef.current;
+                          if (container && rowItems.length > 0 && cardWidth > 0) {
+                            // Прокручиваем к началу среднего набора (второй копии)
+                            const startPosition = rowItems.length * itemWidth;
+                            container.scrollLeft = startPosition;
+                          }
+                        }, [rowItems.length, cardWidth, itemWidth]);
+                        
+                        // Обработка бесконечной прокрутки
+                        useEffect(() => {
+                          const container = containerRef.current;
+                          if (!container || rowItems.length === 0 || cardWidth === 0) return;
+                          
+                          const handleScroll = () => {
+                            if (isScrollingRef.current) return;
+                            
+                            const scrollLeft = container.scrollLeft;
+                            const itemWidthWithGap = itemWidth;
+                            const totalItems = rowItems.length;
+                            
+                            // Если прокрутили до начала первого набора, перескакиваем на начало среднего
+                            if (scrollLeft < itemWidthWithGap) {
+                              isScrollingRef.current = true;
+                              container.scrollLeft = totalItems * itemWidthWithGap + scrollLeft;
+                              setTimeout(() => { isScrollingRef.current = false; }, 50);
+                            }
+                            // Если прокрутили до конца последнего набора, перескакиваем на конец среднего
+                            else if (scrollLeft > (totalItems * 2 - 1) * itemWidthWithGap) {
+                              isScrollingRef.current = true;
+                              container.scrollLeft = totalItems * itemWidthWithGap + (scrollLeft - totalItems * 2 * itemWidthWithGap);
+                              setTimeout(() => { isScrollingRef.current = false; }, 50);
+                            }
+                          };
+                          
+                          container.addEventListener('scroll', handleScroll);
+                          return () => container.removeEventListener('scroll', handleScroll);
+                        }, [rowItems.length, cardWidth, itemWidth]);
+                        
+                        const scrollToNext = () => {
+                          const container = containerRef.current;
+                          if (!container || cardWidth === 0) return;
+                          
                           const currentScroll = container.scrollLeft;
-                          const newPosition = direction === 'left' 
-                            ? currentScroll - scrollAmount 
-                            : currentScroll + scrollAmount;
-                          container.scrollTo({ left: newPosition, behavior: 'smooth' });
+                          const itemWidthWithGap = itemWidth;
+                          const nextPosition = Math.round(currentScroll / itemWidthWithGap) * itemWidthWithGap + itemWidthWithGap;
+                          container.scrollTo({ left: nextPosition, behavior: 'smooth' });
+                        };
+                        
+                        const scrollToPrev = () => {
+                          const container = containerRef.current;
+                          if (!container || cardWidth === 0) return;
+                          
+                          const currentScroll = container.scrollLeft;
+                          const itemWidthWithGap = itemWidth;
+                          const prevPosition = Math.round(currentScroll / itemWidthWithGap) * itemWidthWithGap - itemWidthWithGap;
+                          container.scrollTo({ left: prevPosition, behavior: 'smooth' });
+                        };
+                        
+                        if (cardWidth === 0) {
+                          return <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />;
                         }
+                        
+                        return (
+                          <div className="relative w-full" style={{ overflow: 'hidden' }}>
+                            {/* Градиент слева */}
+                            <div className="absolute left-0 top-0 bottom-0 w-12 md:w-16 bg-gradient-to-r from-gray-50/80 to-transparent pointer-events-none z-[5]" />
+                            
+                            {/* Стрелка влево */}
+                            <button
+                              onClick={scrollToPrev}
+                              className="flex absolute left-1 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/85 md:bg-white/90 backdrop-blur-sm border border-gray-300/60 md:border-gray-300/70 shadow-md hover:bg-white hover:shadow-lg transition-all"
+                              aria-label="Прокрутить влево"
+                            >
+                              <span className="text-xl md:text-2xl text-gray-500 md:text-gray-600 font-medium">‹</span>
+                            </button>
+                            
+                            {/* Карусель с центрированием */}
+                            <div
+                              ref={containerRef}
+                              id={carouselId}
+                              className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+                              style={{ 
+                                scrollbarWidth: 'none', 
+                                msOverflowStyle: 'none',
+                                display: 'flex',
+                                flexDirection: 'row',
+                                flexWrap: 'nowrap',
+                                width: '100%',
+                                overflowX: 'auto',
+                                overflowY: 'hidden',
+                                WebkitOverflowScrolling: 'touch',
+                                alignItems: 'stretch',
+                                scrollSnapType: 'x mandatory',
+                                paddingLeft: `calc(50% - ${cardWidth / 2}px)`,
+                                paddingRight: `calc(50% - ${cardWidth / 2}px)`,
+                              } as React.CSSProperties}
+                            >
+                              {duplicatedItems.map((item, index) => (
+                                <div 
+                                  key={`${item.id}-${index}`}
+                                  className="flex-shrink-0"
+                                  style={{ 
+                                    width: `${cardWidth}px`,
+                                    minWidth: `${cardWidth}px`,
+                                    maxWidth: `${cardWidth}px`,
+                                    flexShrink: 0,
+                                    display: 'flex',
+                                    scrollSnapAlign: 'center',
+                                    scrollSnapStop: 'always',
+                                  }}
+                                >
+                                  <MenuItem item={item} />
+                                </div>
+                              ))}
+                            </div>
+                            
+                            {/* Градиент справа */}
+                            <div className="absolute right-0 top-0 bottom-0 w-12 md:w-16 bg-gradient-to-l from-gray-50/80 to-transparent pointer-events-none z-[5]" />
+                            
+                            {/* Стрелка вправо */}
+                            <button
+                              onClick={scrollToNext}
+                              className="flex absolute right-1 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/85 md:bg-white/90 backdrop-blur-sm border border-gray-300/60 md:border-gray-300/70 shadow-md hover:bg-white hover:shadow-lg transition-all"
+                              aria-label="Прокрутить вправо"
+                            >
+                              <span className="text-xl md:text-2xl text-gray-500 md:text-gray-600 font-medium">›</span>
+                            </button>
+                            
+                            {/* Скрываем скроллбар */}
+                            <style jsx>{`
+                              #${carouselId}::-webkit-scrollbar {
+                                display: none;
+                              }
+                            `}</style>
+                          </div>
+                        );
                       };
                       
-                      return (
-                        <div key={row} className="relative w-full" style={{ overflow: 'hidden' }}>
-                          {/* Градиент слева - показывает, что можно прокрутить влево */}
-                          <div className="absolute left-0 top-0 bottom-0 w-12 md:w-16 bg-gradient-to-r from-gray-50/80 to-transparent pointer-events-none z-[5]" />
-                          
-                          {/* Стрелка влево - заметная, но неяркая */}
-                          <button
-                            onClick={() => scrollRow('left')}
-                            className="flex absolute left-1 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/85 md:bg-white/90 backdrop-blur-sm border border-gray-300/60 md:border-gray-300/70 shadow-md hover:bg-white hover:shadow-lg transition-all"
-                            aria-label="Прокрутить влево"
-                          >
-                            <span className="text-xl md:text-2xl text-gray-500 md:text-gray-600 font-medium">‹</span>
-                          </button>
-                          
-                          <div
-                            id={carouselId}
-                            className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-                            style={{ 
-                              scrollbarWidth: 'none', 
-                              msOverflowStyle: 'none',
-                              display: 'flex',
-                              flexDirection: 'row',
-                              flexWrap: 'nowrap',
-                              width: '100%',
-                              overflowX: 'auto',
-                              overflowY: 'hidden',
-                              WebkitOverflowScrolling: 'touch',
-                              alignItems: 'stretch',
-                            } as React.CSSProperties}
-                          >
-                            {rowItems.map((item) => (
-                              <div 
-                                key={item.id} 
-                                className="flex-shrink-0 w-[calc(50%-0.5rem)] min-w-[calc(50%-0.5rem)] max-w-[calc(50%-0.5rem)]"
-                                style={{ 
-                                  flexShrink: 0,
-                                  display: 'flex',
-                                }}
-                              >
-                                <MenuItem item={item} />
-                              </div>
-                            ))}
-                          </div>
-                          
-                          {/* Градиент справа - показывает, что контент продолжается */}
-                          <div className="absolute right-0 top-0 bottom-0 w-12 md:w-16 bg-gradient-to-l from-gray-50/80 to-transparent pointer-events-none z-[5]" />
-                          
-                          {/* Стрелка вправо - заметная, но неяркая */}
-                          <button
-                            onClick={() => scrollRow('right')}
-                            className="flex absolute right-1 top-1/2 -translate-y-1/2 z-10 items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/85 md:bg-white/90 backdrop-blur-sm border border-gray-300/60 md:border-gray-300/70 shadow-md hover:bg-white hover:shadow-lg transition-all"
-                            aria-label="Прокрутить вправо"
-                          >
-                            <span className="text-xl md:text-2xl text-gray-500 md:text-gray-600 font-medium">›</span>
-                          </button>
-                          
-                          {/* Скрываем скроллбар */}
-                          <style jsx>{`
-                            #${carouselId}::-webkit-scrollbar {
-                              display: none;
-                            }
-                          `}</style>
-                        </div>
-                      );
+                      return <InfiniteCarousel key={row} />;
                     })}
                     
                     {/* Товары без номера ряда - отображаются после всех рядов */}
