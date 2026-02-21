@@ -51,6 +51,7 @@ interface MenuItemWithStore {
   category: string | null;
   restaurant_id: string;
   is_banner: boolean;
+  carousel_row?: number | null;
   created_at: string;
   restaurant: {
     id: string;
