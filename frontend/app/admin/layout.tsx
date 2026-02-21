@@ -13,7 +13,7 @@ const navigation = [
   { name: 'Статистика', href: '/admin', icon: '📊' },
   { name: 'Товары главной страницы', href: '/admin/main-page-items', icon: '🏠' },
   { name: 'Магазины', href: '/admin/stores', icon: '🛒' },
-  { name: 'Категории магазинов', href: '/admin/store-categories', icon: '📂' },
+  { name: 'Категории', href: '/admin/categories', icon: '📂' },
   { name: 'Заказы', href: '/admin/orders', icon: '📦' },
   { name: 'Архив заказов', href: '/admin/orders/archive', icon: '📚' },
   { name: 'Пользователи', href: '/admin/users', icon: '👥' },
