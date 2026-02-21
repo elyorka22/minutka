@@ -110,6 +110,7 @@ export async function getAllStoreCategoriesServer(): Promise<any[]> {
             name: cat.name,
             image_url: cat.image_url,
             description: cat.description,
+            display_type: cat.display_type || 'grid', // Тип отображения (grid или carousel)
           });
         }
       }
