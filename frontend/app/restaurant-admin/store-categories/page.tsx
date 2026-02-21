@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { StoreCategory, getStoreCategories, createStoreCategory, updateStoreCategory, deleteStoreCategory, getMenuItems, updateMenuItem } from '@/lib/api';
+import { StoreCategory, getStoreCategories, getAllStoreCategories, createStoreCategory, updateStoreCategory, deleteStoreCategory, getMenuItems, updateMenuItem } from '@/lib/api';
 import { MenuItem } from '@/lib/types';
 import ImageUpload from '@/components/ImageUpload';
 import { useRestaurantId } from '@/hooks/useRestaurantId';
@@ -37,8 +37,12 @@ export default function RestaurantAdminStoreCategoriesPage() {
         return;
       }
       try {
-        const items = await getStoreCategories(currentRestaurantId!, true);
-        setCategories(items);
+        // Загружаем все категории (для управления категориями главной страницы)
+        const allCategories = await getAllStoreCategories(true);
+        // Фильтруем только те, которые принадлежат текущему магазину
+        const storeCategories = await getStoreCategories(currentRestaurantId!, true);
+        // Объединяем: показываем все категории, но помечаем, какие принадлежат магазину
+        setCategories(allCategories);
       } catch (error) {
         console.error('Error fetching store categories:', error);
         showError(handleApiError(error));
