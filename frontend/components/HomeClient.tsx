@@ -641,48 +641,26 @@ export default function HomeClient({
                           return cardWidth + gap; // Возвращаем ширину карточки + gap для прокрутки
                         };
                         
-                        // Состояние для ширины карточки
-                        const [cardWidthPx, setCardWidthPx] = useState<number | null>(null);
-                        
-                        // Вычисляем ширину карточки при монтировании и изменении размера
-                        useEffect(() => {
-                          const updateCardWidth = () => {
-                            const container = containerRef.current;
-                            if (container) {
-                              const containerWidth = container.offsetWidth;
-                              const gap = 16;
-                              const width = (containerWidth - gap) / 2;
-                              setCardWidthPx(width);
-                            }
-                          };
-                          
-                          updateCardWidth();
-                          window.addEventListener('resize', updateCardWidth);
-                          return () => window.removeEventListener('resize', updateCardWidth);
-                        }, []);
-                        
                         // Инициализация: устанавливаем начальную позицию на средний набор карточек
                         useEffect(() => {
                           const container = containerRef.current;
-                          if (container && rowItems.length > 0 && cardWidthPx !== null) {
-                            const gap = 16;
-                            const itemWidth = cardWidthPx + gap;
+                          if (container && rowItems.length > 0) {
+                            const itemWidth = getItemWidth(container);
                             // Прокручиваем к началу среднего набора (второй копии)
                             const startPosition = rowItems.length * itemWidth;
                             container.scrollLeft = startPosition;
                           }
-                        }, [rowItems.length, cardWidthPx]);
+                        }, [rowItems.length]);
                         
                         // Обработка бесконечной прокрутки
                         useEffect(() => {
                           const container = containerRef.current;
-                          if (!container || rowItems.length === 0 || cardWidthPx === null) return;
+                          if (!container || rowItems.length === 0) return;
                           
                           const handleScroll = () => {
                             if (isScrollingRef.current) return;
                             
-                            const gap = 16;
-                            const itemWidthWithGap = cardWidthPx + gap;
+                            const itemWidthWithGap = getItemWidth(container);
                             const totalItems = rowItems.length;
                             const scrollLeft = container.scrollLeft;
                             
@@ -702,14 +680,13 @@ export default function HomeClient({
                           
                           container.addEventListener('scroll', handleScroll);
                           return () => container.removeEventListener('scroll', handleScroll);
-                        }, [rowItems.length, cardWidthPx]);
+                        }, [rowItems.length]);
                         
                         const scrollToNext = () => {
                           const container = containerRef.current;
-                          if (!container || cardWidthPx === null) return;
+                          if (!container) return;
                           
-                          const gap = 16;
-                          const itemWidthWithGap = cardWidthPx + gap;
+                          const itemWidthWithGap = getItemWidth(container);
                           const currentScroll = container.scrollLeft;
                           const nextPosition = Math.round(currentScroll / itemWidthWithGap) * itemWidthWithGap + itemWidthWithGap;
                           container.scrollTo({ left: nextPosition, behavior: 'smooth' });
@@ -717,18 +694,13 @@ export default function HomeClient({
                         
                         const scrollToPrev = () => {
                           const container = containerRef.current;
-                          if (!container || cardWidthPx === null) return;
+                          if (!container) return;
                           
-                          const gap = 16;
-                          const itemWidthWithGap = cardWidthPx + gap;
+                          const itemWidthWithGap = getItemWidth(container);
                           const currentScroll = container.scrollLeft;
                           const prevPosition = Math.round(currentScroll / itemWidthWithGap) * itemWidthWithGap - itemWidthWithGap;
                           container.scrollTo({ left: prevPosition, behavior: 'smooth' });
                         };
-                        
-                        if (cardWidthPx === null) {
-                          return <div className="h-64 bg-gray-100 animate-pulse rounded-lg" />;
-                        }
                         
                         return (
                           <div className="relative w-full" style={{ overflow: 'hidden' }}>
@@ -761,21 +733,21 @@ export default function HomeClient({
                                 WebkitOverflowScrolling: 'touch',
                                 alignItems: 'stretch',
                                 scrollSnapType: 'x mandatory',
-                                paddingLeft: cardWidthPx ? `calc(50% - ${cardWidthPx / 2}px)` : '0',
-                                paddingRight: cardWidthPx ? `calc(50% - ${cardWidthPx / 2}px)` : '0',
+                                paddingLeft: 'calc(25% + 4px)',
+                                paddingRight: 'calc(25% + 4px)',
                               } as React.CSSProperties}
                             >
                               {duplicatedItems.map((item, index) => {
                                 // Размер карточки такой же, как в grid grid-cols-2 gap-4
-                                // Используем фиксированную ширину в пикселях
+                                // В grid: (100% - 16px) / 2, но с учетом padding нужно использовать доступную ширину
+                                // Доступная ширина = 100% - 2 * padding = 100% - 2 * (25% + 4px) = 50% - 8px
+                                // Карточка = (50% - 8px - 16px) / 2 = (50% - 24px) / 2 = 25% - 12px
+                                // Но проще использовать тот же calc, что и в grid, так как padding компенсируется
                                 return (
                                   <div 
                                     key={`${item.id}-${index}`}
-                                    className="flex-shrink-0"
+                                    className="flex-shrink-0 w-[calc(50%-0.5rem)] min-w-[calc(50%-0.5rem)] max-w-[calc(50%-0.5rem)]"
                                     style={{ 
-                                      width: cardWidthPx ? `${cardWidthPx}px` : 'calc((100% - 16px) / 2)',
-                                      minWidth: cardWidthPx ? `${cardWidthPx}px` : 'calc((100% - 16px) / 2)',
-                                      maxWidth: cardWidthPx ? `${cardWidthPx}px` : 'calc((100% - 16px) / 2)',
                                       flexShrink: 0,
                                       display: 'flex',
                                       scrollSnapAlign: 'center',
