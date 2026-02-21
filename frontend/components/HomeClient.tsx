@@ -641,7 +641,7 @@ export default function HomeClient({
                             {rowItems.map((item) => (
                               <div 
                                 key={item.id} 
-                                className="flex-shrink-0"
+                                className="flex-shrink-0 w-[calc(50%-0.5rem)] min-w-[calc(50%-0.5rem)] max-w-[calc(50%-0.5rem)]"
                                 style={{ 
                                   flexShrink: 0,
                                   display: 'flex',
