@@ -70,7 +70,7 @@ export default function MenuItem({ item }: MenuItemProps) {
     >
       {/* Картинка с плюсиком в правом нижнем углу */}
       {item.image_url && (
-        <div className="relative w-full h-56 md:h-64 bg-gray-100">
+        <div className="relative w-full h-56 md:h-64 bg-white">
           {/* Ярлык скидки в левом верхнем углу */}
           {item.discount_percent && item.discount_percent > 0 && (
             <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
