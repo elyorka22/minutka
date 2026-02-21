@@ -716,7 +716,7 @@ export default function HomeClient({
                               <span className="text-xl md:text-2xl text-gray-500 md:text-gray-600 font-medium">‹</span>
                             </button>
                             
-                            {/* Карусель с центрированием */}
+                            {/* Карусель */}
                             <div
                               ref={containerRef}
                               id={carouselId}
@@ -733,16 +733,10 @@ export default function HomeClient({
                                 WebkitOverflowScrolling: 'touch',
                                 alignItems: 'stretch',
                                 scrollSnapType: 'x mandatory',
-                                paddingLeft: 'calc(25% + 4px)',
-                                paddingRight: 'calc(25% + 4px)',
                               } as React.CSSProperties}
                             >
                               {duplicatedItems.map((item, index) => {
                                 // Размер карточки такой же, как в grid grid-cols-2 gap-4
-                                // В grid: (100% - 16px) / 2, но с учетом padding нужно использовать доступную ширину
-                                // Доступная ширина = 100% - 2 * padding = 100% - 2 * (25% + 4px) = 50% - 8px
-                                // Карточка = (50% - 8px - 16px) / 2 = (50% - 24px) / 2 = 25% - 12px
-                                // Но проще использовать тот же calc, что и в grid, так как padding компенсируется
                                 return (
                                   <div 
                                     key={`${item.id}-${index}`}
@@ -750,7 +744,7 @@ export default function HomeClient({
                                     style={{ 
                                       flexShrink: 0,
                                       display: 'flex',
-                                      scrollSnapAlign: 'center',
+                                      scrollSnapAlign: 'start',
                                       scrollSnapStop: 'always',
                                     }}
                                   >
