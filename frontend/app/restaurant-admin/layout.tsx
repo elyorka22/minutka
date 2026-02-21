@@ -15,7 +15,7 @@ const navigation = [
   { name: 'Заказы', href: '/restaurant-admin/orders', icon: '📦' },
   { name: 'Архив заказов', href: '/restaurant-admin/orders/archive', icon: '📚' },
   { name: 'Меню', href: '/restaurant-admin/menu', icon: '🍽️' },
-  { name: 'Категории магазина', href: '/restaurant-admin/store-categories', icon: '🛒' },
+  { name: 'Категории', href: '/restaurant-admin/store-categories', icon: '🛒' },
   { name: 'Карусели магазина', href: '/restaurant-admin/store-carousels', icon: '🎠' },
   { name: 'Админы', href: '/restaurant-admin/admins', icon: '👥' },
   { name: 'Настройки', href: '/restaurant-admin/settings', icon: '⚙️' },

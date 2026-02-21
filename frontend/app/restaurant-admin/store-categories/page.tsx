@@ -214,7 +214,7 @@ export default function RestaurantAdminStoreCategoriesPage() {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Категории магазина</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Категории главной страницы</h1>
         <button
           onClick={async () => {
             setEditingCategory(null);
