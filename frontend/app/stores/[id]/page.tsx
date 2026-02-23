@@ -87,6 +87,7 @@ export default async function StorePage({ params }: PageProps) {
         items: [],
       });
     }
+  }
 
   // Собираем все ID товаров, которые уже в каруселях
   const carouselItemIds = new Set<string>();
