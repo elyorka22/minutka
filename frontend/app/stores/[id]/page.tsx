@@ -8,6 +8,7 @@ import { getStoreCarouselsServer, getStoreCarouselItemsServer } from '@/lib/api-
 import Link from 'next/link';
 import Image from 'next/image';
 import MenuItemBanner from '@/components/MenuItemBanner';
+import MenuItem from '@/components/MenuItem';
 import Cart from '@/components/Cart';
 import StoreItemsCarousel from '@/components/StoreItemsCarousel';
 import { MenuItem as MenuItemType } from '@/lib/types';
@@ -86,7 +87,20 @@ export default async function StorePage({ params }: PageProps) {
         items: [],
       });
     }
-  }
+
+  // Собираем все ID товаров, которые уже в каруселях
+  const carouselItemIds = new Set<string>();
+  carouselGroups.forEach(group => {
+    group.items.forEach(item => {
+      carouselItemIds.add(String(item.id));
+    });
+  });
+
+  // Фильтруем обычные товары, исключая те, что уже в каруселях
+  const regularItemsNotInCarousels = regularItems.filter(item => {
+    const itemId = String(item.id);
+    return !carouselItemIds.has(itemId);
+  });
 
     // Форматируем время работы для отображения
     const formatWorkingHours = () => {
@@ -178,6 +192,18 @@ export default async function StorePage({ params }: PageProps) {
               <StoreItemsCarousel items={group.items} carouselIndex={index} />
             </div>
           ))}
+
+          {/* Regular Items Section - Обычные товары, не в каруселях */}
+          {regularItemsNotInCarousels.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Mahsulotlar</h2>
+              <div className="grid grid-cols-2 gap-4">
+                {regularItemsNotInCarousels.map((item) => (
+                  <MenuItem key={item.id} item={item} />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Recommended Banners */}
           {recommendedBanners.length > 0 && (
