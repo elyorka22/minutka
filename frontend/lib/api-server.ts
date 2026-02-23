@@ -101,20 +101,22 @@ export async function getAllStoreCategoriesServer(): Promise<any[]> {
     // Группируем по названию - если категория с таким названием уже есть, берем первую
     const categoryMap = new Map<string, any>();
     
-    categories.forEach((cat) => {
-      if (cat.is_active) {
-        // Группируем по названию - если категория с таким названием уже есть, берем первую
-        if (!categoryMap.has(cat.name)) {
-          categoryMap.set(cat.name, {
-            id: cat.name, // Используем название как ID для фильтрации
-            name: cat.name,
-            image_url: cat.image_url,
-            description: cat.description,
-            display_type: cat.display_type || 'grid', // Тип отображения (grid или carousel)
-          });
-        }
-      }
-    });
+        categories.forEach((cat) => {
+          if (cat.is_active) {
+            // Группируем по названию - если категория с таким названием уже есть, берем первую
+            if (!categoryMap.has(cat.name)) {
+              categoryMap.set(cat.name, {
+                id: cat.name, // Используем название как ID для фильтрации
+                name: cat.name,
+                image_url: cat.image_url,
+                description: cat.description,
+                display_type: cat.display_type || 'grid', // Тип отображения (grid или carousel)
+                button_text: cat.button_text,
+                button_link: cat.button_link,
+              });
+            }
+          }
+        });
     
     return Array.from(categoryMap.values());
   } catch (error) {

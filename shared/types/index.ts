@@ -173,6 +173,8 @@ export interface StoreCategory {
   display_order: number;
   is_active: boolean;
   display_type?: 'grid' | 'carousel';
+  button_text?: string | null;
+  button_link?: string | null;
   created_at: string;
   updated_at: string;
 }

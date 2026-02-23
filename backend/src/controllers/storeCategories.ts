@@ -95,7 +95,7 @@ export async function getStoreCategoryById(req: AuthenticatedRequest, res: Respo
  */
 export async function createStoreCategory(req: AuthenticatedRequest, res: Response) {
   try {
-    const { restaurant_id, name, description, image_url, display_order, is_active, display_type } = req.body;
+    const { restaurant_id, name, description, image_url, display_order, is_active, display_type, button_text, button_link } = req.body;
 
     // Валидация обязательных полей
     if (!restaurant_id || !name) {
@@ -165,6 +165,8 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
         display_order: newDisplayOrder,
         is_active: is_active ?? true,
         display_type: display_type || 'grid',
+        button_text: button_text || null,
+        button_link: button_link || null,
       })
       .select()
       .single();
@@ -195,7 +197,7 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
 export async function updateStoreCategory(req: AuthenticatedRequest, res: Response) {
   try {
     const { id } = req.params;
-    const { name, description, image_url, display_order, is_active, display_type } = req.body;
+    const { name, description, image_url, display_order, is_active, display_type, button_text, button_link } = req.body;
 
     // Валидация ID
     if (!validateUuid(id)) {
@@ -259,6 +261,8 @@ export async function updateStoreCategory(req: AuthenticatedRequest, res: Respon
     if (display_order !== undefined) updateData.display_order = display_order;
     if (is_active !== undefined) updateData.is_active = is_active;
     if (display_type !== undefined) updateData.display_type = display_type;
+    if (button_text !== undefined) updateData.button_text = button_text || null;
+    if (button_link !== undefined) updateData.button_link = button_link || null;
 
     const { data, error } = await supabase
       .from('store_categories')

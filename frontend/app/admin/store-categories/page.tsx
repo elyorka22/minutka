@@ -27,6 +27,8 @@ export default function AdminStoreCategoriesPage() {
     display_order: 0,
     is_active: true,
     selectedMenuItems: [] as string[], // IDs выбранных товаров
+    button_text: '',
+    button_link: '',
   });
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loadingMenuItems, setLoadingMenuItems] = useState(false);
@@ -92,6 +94,8 @@ export default function AdminStoreCategoriesPage() {
         display_order: category.display_order,
         is_active: category.is_active,
         selectedMenuItems: itemsInCategory,
+        button_text: category.button_text || '',
+        button_link: category.button_link || '',
       });
     } catch (error) {
       console.error('Error loading menu items:', error);
@@ -102,6 +106,8 @@ export default function AdminStoreCategoriesPage() {
         display_order: category.display_order,
         is_active: category.is_active,
         selectedMenuItems: [],
+        button_text: category.button_text || '',
+        button_link: category.button_link || '',
       });
     } finally {
       setLoadingMenuItems(false);
@@ -141,6 +147,8 @@ export default function AdminStoreCategoriesPage() {
           image_url: formData.image_url || undefined,
           display_order: formData.display_order,
           is_active: formData.is_active,
+          button_text: formData.button_text.trim() || undefined,
+          button_link: formData.button_link.trim() || undefined,
         });
         categoryId = updated.id;
         showSuccess('Категория успешно обновлена');
@@ -153,6 +161,8 @@ export default function AdminStoreCategoriesPage() {
           image_url: formData.image_url || undefined,
           display_order: formData.display_order,
           is_active: formData.is_active,
+          button_text: formData.button_text.trim() || undefined,
+          button_link: formData.button_link.trim() || undefined,
         });
         categoryId = created.id;
         showSuccess('Категория успешно создана');
@@ -194,6 +204,8 @@ export default function AdminStoreCategoriesPage() {
         display_order: 0,
         is_active: true,
         selectedMenuItems: [],
+        button_text: '',
+        button_link: '',
       });
       // Обновляем список
       const items = await getStoreCategories(selectedStoreId, true);
@@ -213,6 +225,8 @@ export default function AdminStoreCategoriesPage() {
       display_order: 0,
       is_active: true,
       selectedMenuItems: [],
+      button_text: '',
+      button_link: '',
     });
     setMenuItems([]);
   };
@@ -268,6 +282,8 @@ export default function AdminStoreCategoriesPage() {
                   display_order: categories.length > 0 ? Math.max(...categories.map(c => c.display_order)) + 1 : 0,
                   is_active: true,
                   selectedMenuItems: [],
+                  button_text: '',
+                  button_link: '',
                 });
                 setShowForm(true);
               }}
@@ -349,6 +365,8 @@ export default function AdminStoreCategoriesPage() {
                       display_order: 0, // Категория "Все" должна быть первой
                       is_active: true,
                       selectedMenuItems: [],
+                      button_text: '',
+                      button_link: '',
                     });
                     setShowForm(true);
                   }}
@@ -485,6 +503,42 @@ export default function AdminStoreCategoriesPage() {
                       ✓ Выбрано товаров: {formData.selectedMenuItems.length}
                     </p>
                   )}
+                </div>
+
+                <div className="border-t pt-4 mt-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Кнопка под категориями</h3>
+                  
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Текст кнопки
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.button_text}
+                      onChange={(e) => setFormData({ ...formData, button_text: e.target.value })}
+                      placeholder="Например: Написать в Telegram"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Текст, который будет отображаться на кнопке под категориями
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Ссылка (не отображается на клиентской части)
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.button_link}
+                      onChange={(e) => setFormData({ ...formData, button_link: e.target.value })}
+                      placeholder="https://t.me/your_bot"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ссылка, на которую будет вести кнопка (обычно на Telegram)
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex gap-2">
