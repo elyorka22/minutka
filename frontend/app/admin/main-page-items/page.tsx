@@ -430,34 +430,23 @@ function MenuItemFormModal({ item, onClose, onSave }: MenuItemFormModalProps) {
               </p>
             </div>
 
-            {/* Поле для номера ряда в карусели - показываем только если выбрана категория с display_type = 'carousel' */}
-            {(() => {
-              const hasCarouselCategory = formData.selectedCategories.some(catName => {
-                const category = storeCategories.find(c => c.name === catName);
-                return category?.display_type === 'carousel';
-              });
-              
-              if (!hasCarouselCategory) return null;
-              
-              return (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Номер ряда в карусели
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.carousel_row}
-                    onChange={(e) => setFormData({ ...formData, carousel_row: e.target.value })}
-                    min="1"
-                    placeholder="1, 2, 3..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Укажите номер ряда для отображения в карусели. Товары с одинаковым номером будут в одном ряду.
-                  </p>
-                </div>
-              );
-            })()}
+            {/* Поле для номера ряда в карусели - доступно для всех категорий */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Номер ряда в карусели
+              </label>
+              <input
+                type="number"
+                value={formData.carousel_row}
+                onChange={(e) => setFormData({ ...formData, carousel_row: e.target.value })}
+                min="1"
+                placeholder="1, 2, 3..."
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Укажите номер ряда для отображения в карусели. Товары с одинаковым номером будут в одном ряду.
+              </p>
+            </div>
 
             <div>
               <ImageUpload
