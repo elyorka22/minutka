@@ -482,7 +482,7 @@ function RestaurantFormModal({
               />
             </div>
 
-            {!store && (
+            {!restaurant && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -528,7 +528,7 @@ function RestaurantFormModal({
               </>
             )}
 
-            {store && (
+            {restaurant && (
               <>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
