@@ -168,7 +168,11 @@ export default async function RestaurantPage({ params }: PageProps) {
       </div>
 
       {/* Cart */}
-      <Cart restaurantId={restaurant.id} restaurantName={restaurant.name} />
+      <Cart
+        restaurantId={restaurant.id}
+        restaurantName={restaurant.name}
+        telegramBotUsername={TELEGRAM_BOT_USERNAME}
+      />
     </div>
   );
 }
