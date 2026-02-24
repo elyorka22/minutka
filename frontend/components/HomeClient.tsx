@@ -76,8 +76,8 @@ export default function HomeClient({
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
   const { items: cartItems } = useCart();
-  // Вкладки: 'asosiy', 'ovqatlar', 'do\'konlar', 'xizmatlar'
-  const [selectedTab, setSelectedTab] = useState<'asosiy' | 'ovqatlar' | 'do\'konlar' | 'xizmatlar'>('asosiy');
+  // Вкладки: 'asosiy', 'do\'konlar', 'xizmatlar'
+  const [selectedTab, setSelectedTab] = useState<'asosiy' | 'do\'konlar' | 'xizmatlar'>('asosiy');
   // По умолчанию категория "Все" (null означает "Все")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -420,19 +420,6 @@ export default function HomeClient({
             }`}
           >
             Asosiy
-          </button>
-          <button
-            onClick={() => {
-              setSelectedTab('ovqatlar');
-              setSelectedCategory(null);
-            }}
-            className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
-              selectedTab === 'ovqatlar'
-                ? 'border-primary-500 text-primary-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            Ovqatlar
           </button>
           <button
             onClick={() => {
@@ -925,19 +912,6 @@ export default function HomeClient({
             <div className="text-center py-12 text-gray-500">
               Tez kunlarda
             </div>
-          ) : selectedTab === 'ovqatlar' ? (
-            /* На вкладке Ovqatlar показываем рестораны при поиске */
-            filteredRestaurants.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                Restoranlar topilmadi
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-4 md:gap-6">
-                {filteredRestaurants.map((restaurant) => (
-                  <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-                ))}
-              </div>
-            )
           ) : selectedTab === 'do\'konlar' ? (
             /* На вкладке Do'konlar показываем магазины при поиске */
             filteredStores.length === 0 ? (
@@ -985,24 +959,6 @@ export default function HomeClient({
             </div>
           </section>
         )}
-
-      {/* All Restaurants on Ovqatlar Tab - все рестораны на вкладке Ovqatlar */}
-      {selectedTab === 'ovqatlar' && !searchQuery && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">🍽️ Ovqatlar</h2>
-          {filteredRestaurants.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              Tez kunlarda
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 gap-4 md:gap-6">
-              {filteredRestaurants.map((restaurant) => (
-                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
-              ))}
-            </div>
-          )}
-        </section>
-      )}
 
       {/* All Stores on Do'konlar Tab - все магазины на вкладке Do'konlar */}
       {selectedTab === 'do\'konlar' && !searchQuery && (
