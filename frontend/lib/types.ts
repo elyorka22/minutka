@@ -35,10 +35,12 @@ export interface MenuItem {
 }
 
 export interface MenuCategory {
-  name: string;
-  items: MenuItem[];
   id?: string;
-  image_url?: string | null;
+  name: string;
   description?: string | null;
+  display_order?: number;
+  is_active?: boolean;
+  image_url?: string | null;
+  items: MenuItem[];
 }
 
