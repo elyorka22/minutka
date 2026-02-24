@@ -160,7 +160,12 @@ export interface MenuItem {
 }
 
 export interface MenuCategory {
+  id?: string;
   name: string;
+  description?: string | null;
+  display_order?: number;
+  is_active?: boolean;
+  image_url?: string | null;
   items: MenuItem[];
 }
 
