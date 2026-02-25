@@ -5,8 +5,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { StoreCategory, getAllStoreCategories, createStoreCategory, updateStoreCategory, deleteStoreCategory, getMenuItems, updateMenuItem } from '@/lib/api';
-import { MenuItem } from '@/lib/types';
+import { StoreCategory, getAllStoreCategories, createStoreCategory, updateStoreCategory, deleteStoreCategory, getMenuItems, updateMenuItem, getStores } from '@/lib/api';
+import { MenuItem, Restaurant } from '@/lib/types';
 import ImageUpload from '@/components/ImageUpload';
 import { handleApiError } from '@/lib/errorHandler';
 import { useToast } from '@/contexts/ToastContext';
@@ -15,6 +15,9 @@ export default function AdminCategoriesPage() {
   const { showSuccess, showError } = useToast();
   const [categories, setCategories] = useState<StoreCategory[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingStores, setLoadingStores] = useState(true);
+  const [stores, setStores] = useState<Restaurant[]>([]);
+  const [selectedStoreId, setSelectedStoreId] = useState<string>(''); // Пустая строка = главная страница
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<StoreCategory | null>(null);
   const [formData, setFormData] = useState({
@@ -31,6 +34,22 @@ export default function AdminCategoriesPage() {
   const [loadingMenuItems, setLoadingMenuItems] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+
+  useEffect(() => {
+    async function fetchStores() {
+      try {
+        const result = await getStores();
+        const storeList = result.data.filter((s: Restaurant) => s.type === 'store');
+        setStores(storeList);
+      } catch (error) {
+        console.error('Error fetching stores:', error);
+        showError(handleApiError(error));
+      } finally {
+        setLoadingStores(false);
+      }
+    }
+    fetchStores();
+  }, [showError]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -53,6 +72,8 @@ export default function AdminCategoriesPage() {
   const handleEdit = async (category: StoreCategory) => {
     setEditingCategory(category);
     setSubmitting(false);
+    // Устанавливаем выбранный магазин, если категория привязана к магазину
+    setSelectedStoreId(category.restaurant_id || '');
     setFormData({
       name: category.name,
       description: category.description || '',
@@ -112,7 +133,8 @@ export default function AdminCategoriesPage() {
 
     setSubmitting(true);
 
-    // Для категорий главной страницы restaurant_id = null
+    // Определяем restaurant_id: если выбран магазин - используем его ID, иначе null (главная страница)
+    const restaurantId = selectedStoreId ? selectedStoreId : null;
 
     try {
       let categoryId: string;
@@ -132,9 +154,9 @@ export default function AdminCategoriesPage() {
         categoryId = updated.id;
         showSuccess('Категория успешно обновлена');
       } else {
-        // Создаем категорию главной страницы (restaurant_id = null)
+        // Создаем категорию
         const categoryData = {
-          restaurant_id: null as string | null,
+          restaurant_id: restaurantId,
           name: categoryName,
           description: formData.description?.trim() || undefined,
           image_url: formData.image_url || undefined,
@@ -144,42 +166,15 @@ export default function AdminCategoriesPage() {
           button_link: formData.button_link?.trim() || undefined,
         };
         console.log('[AdminCategories] Creating category with data:', categoryData);
-        console.log('[AdminCategories] Category data JSON:', JSON.stringify(categoryData, null, 2));
-        console.log('[AdminCategories] restaurant_id type:', typeof categoryData.restaurant_id, 'value:', categoryData.restaurant_id);
+        console.log('[AdminCategories] Selected store ID:', selectedStoreId);
+        console.log('[AdminCategories] Restaurant ID to send:', restaurantId);
         
-        try {
-          const created = await createStoreCategory(categoryData);
-          categoryId = created.id;
-          showSuccess('Категория успешно создана');
-        } catch (createError: any) {
-          // Логируем детальную информацию об ошибке создания
-          console.error('[AdminCategories] Error creating category:', createError);
-          console.error('[AdminCategories] Error response:', createError?.response?.data);
-          console.error('[AdminCategories] Request data that was sent:', JSON.stringify(categoryData, null, 2));
-          
-          // Показываем детальную ошибку в alert для мобильных устройств
-          let errorDetails = 'Ошибка при создании категории:\n\n';
-          errorDetails += `Отправленные данные:\n${JSON.stringify(categoryData, null, 2)}\n\n`;
-          
-          if (createError?.response?.data) {
-            errorDetails += `Ответ сервера:\n${JSON.stringify(createError.response.data, null, 2)}\n\n`;
-          }
-          if (createError?.response?.status) {
-            errorDetails += `HTTP статус: ${createError.response.status}\n`;
-          }
-          if (createError?.response?.config?.data) {
-            errorDetails += `Данные в запросе:\n${createError.response.config.data}\n`;
-          }
-          if (createError?.message) {
-            errorDetails += `Сообщение: ${createError.message}\n`;
-          }
-          
-          alert(errorDetails);
-          throw createError; // Пробрасываем ошибку дальше для общей обработки
-        }
+        const created = await createStoreCategory(categoryData);
+        categoryId = created.id;
+        showSuccess(restaurantId ? 'Категория магазина успешно создана' : 'Категория главной страницы успешно создана');
       }
 
-      // Обновляем категорию у выбранных товаров главной страницы
+      // Обновляем категорию у выбранных товаров
       if (formData.selectedMenuItems.length > 0) {
         try {
           // Сначала убираем категорию у всех товаров, которые были в старой категории (если редактируем)
@@ -262,6 +257,7 @@ export default function AdminCategoriesPage() {
     setShowForm(false);
     setEditingCategory(null);
     setSubmitting(false);
+    setSelectedStoreId('');
     setFormData({
       name: '',
       description: '',
@@ -279,13 +275,16 @@ export default function AdminCategoriesPage() {
     setFormData({ ...formData, image_url: url });
   };
 
-  // Загружаем товары главной страницы при открытии формы
+  // Загружаем товары в зависимости от выбранного магазина
   useEffect(() => {
     async function loadMenuItems() {
       if (!showForm) return;
       try {
         setLoadingMenuItems(true);
-        const items = await getMenuItems(undefined, true, undefined, true);
+        // Если выбран магазин - загружаем товары магазина, иначе товары главной страницы
+        const items = selectedStoreId 
+          ? await getMenuItems(selectedStoreId, true)
+          : await getMenuItems(undefined, true, undefined, true);
         setMenuItems(items);
         // Если редактируем категорию, предзаполняем выбранные товары
         if (editingCategory) {
@@ -302,9 +301,9 @@ export default function AdminCategoriesPage() {
       }
     }
     loadMenuItems();
-  }, [showForm, editingCategory]);
+  }, [showForm, editingCategory, selectedStoreId]);
 
-  if (loading) {
+  if (loading || loadingStores) {
     return <div className="text-center py-12">Загрузка...</div>;
   }
 
@@ -316,6 +315,7 @@ export default function AdminCategoriesPage() {
           onClick={async () => {
             setEditingCategory(null);
             setSubmitting(false);
+            setSelectedStoreId(''); // Сбрасываем выбор магазина
             
             // Загружаем товары главной страницы при открытии формы создания
             setLoadingMenuItems(true);
@@ -352,6 +352,32 @@ export default function AdminCategoriesPage() {
             {editingCategory ? 'Редактировать категорию' : 'Создать категорию'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Выбор магазина (опционально) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Магазин (опционально)
+              </label>
+              <select
+                value={selectedStoreId}
+                onChange={(e) => {
+                  setSelectedStoreId(e.target.value);
+                  // Очищаем выбранные товары при смене магазина
+                  setFormData(prev => ({ ...prev, selectedMenuItems: [] }));
+                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">-- Главная страница (без магазина) --</option>
+                {stores.map((store) => (
+                  <option key={store.id} value={store.id}>
+                    {store.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-gray-500 mt-1">
+                Выберите магазин для создания категории магазина, или оставьте пустым для категории главной страницы
+              </p>
+            </div>
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Название категории *
