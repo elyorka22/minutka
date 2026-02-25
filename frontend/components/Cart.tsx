@@ -111,7 +111,7 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
         !cartItem.item.restaurant_id
       );
       
-      await createOrder({
+      const orderData = {
         restaurant_id: isMainPageOrder ? null : restaurantId, // null для товаров главной страницы
         user_id: null, // Не создаем пользователя
         user_telegram_id: chatId ? parseInt(chatId, 10) : undefined, // Telegram ID для уведомлений
@@ -119,7 +119,19 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
         address: address || (latitude && longitude ? `Geolokatsiya: ${latitude}, ${longitude}` : undefined),
         latitude: latitude || undefined,
         longitude: longitude || undefined,
-      });
+      };
+      
+      console.log('[Cart] Creating order with data:', orderData);
+      console.log('[Cart] Is main page order:', isMainPageOrder);
+      console.log('[Cart] Restaurant ID from props:', restaurantId);
+      console.log('[Cart] Items in cart:', items.map(item => ({
+        id: item.item.id,
+        name: item.item.name,
+        restaurant_id: item.item.restaurant_id,
+        is_main_page: (item.item as any).is_main_page
+      })));
+      
+      await createOrder(orderData);
 
       // Успешно оформлен заказ
       showSuccess('Buyurtma muvaffaqiyatli qabul qilindi!');
@@ -136,24 +148,32 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
       setLongitude(null);
     } catch (error: any) {
       console.error('Error creating order:', error);
+      console.error('Error response:', error?.response?.data);
+      console.error('Error status:', error?.response?.status);
       
-      // Более детальное сообщение об ошибке
+      // Формируем детальное сообщение об ошибке для отображения пользователю
       let errorMessage = 'Noma\'lum xatolik';
+      let errorDetails = 'Ошибка при оформлении заказа:\n\n';
       
-      if (error.response?.data?.error) {
+      if (error?.response?.data?.error) {
         errorMessage = error.response.data.error;
-      } else if (error.response?.data?.message) {
+        errorDetails += `Ошибка: ${error.response.data.error}\n`;
+      }
+      if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
+        errorDetails += `Сообщение: ${error.response.data.message}\n`;
+      }
+      if (error?.response?.status) {
+        errorDetails += `HTTP статус: ${error.response.status}\n`;
+      }
+      if (error?.message) {
+        errorDetails += `Техническая ошибка: ${error.message}\n`;
       }
       
-      console.error('Error details:', {
-        message: errorMessage,
-        status: error.response?.status,
-        data: error.response?.data
-      });
+      // Показываем детальное сообщение в alert для мобильных устройств
+      alert(errorDetails);
       
+      // Также показываем через toast
       showError(`Buyurtma yuborishda xatolik yuz berdi: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);

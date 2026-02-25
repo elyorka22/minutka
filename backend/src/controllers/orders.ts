@@ -31,21 +31,34 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
   try {
     const { restaurant_id, user_id, user_telegram_id, order_text, address, latitude, longitude } = req.body;
 
+    // Версия кода для отладки
+    const CODE_VERSION = 'v2.0-null-restaurant-id-support';
+    
+    console.log(`[createOrder] Code version: ${CODE_VERSION}`);
+    console.log('[createOrder] Request body:', JSON.stringify(req.body, null, 2));
+    console.log('[createOrder] restaurant_id type:', typeof restaurant_id, 'value:', restaurant_id);
+    console.log('[createOrder] restaurant_id in body:', 'restaurant_id' in req.body);
+
+    // Нормализуем restaurant_id: если это undefined или пустая строка, преобразуем в null
+    const normalizedRestaurantId = restaurant_id === undefined || restaurant_id === '' || restaurant_id === 'null' ? null : restaurant_id;
+
     // Валидация обязательных полей
     // restaurant_id может быть null для заказов товаров главной страницы
     if (!order_text) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields: order_text'
+        error: 'Missing required fields: order_text',
+        code_version: CODE_VERSION
       });
     }
 
     // Валидация форматов
     // Если restaurant_id указан, он должен быть валидным UUID
-    if (restaurant_id !== null && restaurant_id !== undefined && !validateUuid(restaurant_id)) {
+    if (normalizedRestaurantId !== null && normalizedRestaurantId !== undefined && !validateUuid(normalizedRestaurantId)) {
       return res.status(400).json({
         success: false,
-        error: 'Invalid restaurant_id format'
+        error: 'Invalid restaurant_id format',
+        code_version: CODE_VERSION
       });
     }
 
@@ -87,27 +100,36 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
 
     // Проверка существования ресторана (если указан)
     // Если restaurant_id = null, это заказ товаров главной страницы
-    if (restaurant_id) {
+    if (normalizedRestaurantId) {
       const { data: restaurantCheck, error: restaurantError } = await supabase
         .from('restaurants')
         .select('id, is_active')
-        .eq('id', restaurant_id)
+        .eq('id', normalizedRestaurantId)
         .single();
 
       if (restaurantError || !restaurantCheck || !restaurantCheck.is_active) {
         return res.status(404).json({
           success: false,
-          error: 'Restaurant not found or inactive'
+          error: 'Restaurant not found or inactive',
+          code_version: CODE_VERSION
         });
       }
     }
+
+    console.log('[createOrder] Inserting order with:', {
+      restaurant_id: normalizedRestaurantId,
+      user_id: user_id || null,
+      user_telegram_id: user_telegram_id || null,
+      has_order_text: !!order_text,
+      has_address: !!address
+    });
 
     // Создание заказа
     // user_telegram_id используется для уведомлений, user_id может быть null
     const { data, error } = await supabase
       .from('orders')
       .insert({
-        restaurant_id,
+        restaurant_id: normalizedRestaurantId,
         user_id: user_id || null,
         user_telegram_id: user_telegram_id || null,
         order_text,
