@@ -97,15 +97,27 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
   try {
     const { restaurant_id, name, description, image_url, display_order, is_active, display_type, button_text, button_link } = req.body;
 
-    console.log('[createStoreCategory] Request body:', { restaurant_id, name, description, image_url, display_order, is_active, display_type, button_text, button_link });
+    // Версия кода для отладки
+    const CODE_VERSION = 'v2.0-null-restaurant-id-support';
+    
+    console.log(`[createStoreCategory] Code version: ${CODE_VERSION}`);
+    console.log('[createStoreCategory] Request body:', JSON.stringify(req.body, null, 2));
     console.log('[createStoreCategory] User:', req.user?.role, req.user?.telegram_id);
     console.log('[createStoreCategory] restaurant_id type:', typeof restaurant_id, 'value:', restaurant_id);
     console.log('[createStoreCategory] restaurant_id in body:', 'restaurant_id' in req.body);
+    console.log('[createStoreCategory] Full req.body keys:', Object.keys(req.body));
 
     // Валидация обязательных полей
     if (!name) {
-      return res.status(400).json({ success: false, error: 'Missing required field: name' });
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Missing required field: name',
+        code_version: CODE_VERSION 
+      });
     }
+    
+    // ВАЖНО: restaurant_id НЕ является обязательным полем для категорий главной страницы
+    // Если restaurant_id отсутствует или равен null - это категория главной страницы
 
     // Нормализуем restaurant_id: 
     // - Если поле отсутствует в запросе (undefined) - это категория главной страницы (null)
