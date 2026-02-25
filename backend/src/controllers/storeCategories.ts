@@ -99,14 +99,19 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
 
     console.log('[createStoreCategory] Request body:', { restaurant_id, name, description, image_url, display_order, is_active, display_type, button_text, button_link });
     console.log('[createStoreCategory] User:', req.user?.role, req.user?.telegram_id);
+    console.log('[createStoreCategory] restaurant_id type:', typeof restaurant_id, 'value:', restaurant_id);
+    console.log('[createStoreCategory] restaurant_id in body:', 'restaurant_id' in req.body);
 
     // Валидация обязательных полей
     if (!name) {
       return res.status(400).json({ success: false, error: 'Missing required field: name' });
     }
 
-    // Нормализуем restaurant_id: если это строка "null" или пустая строка, преобразуем в null
-    const normalizedRestaurantId = restaurant_id === null || restaurant_id === undefined || restaurant_id === '' || restaurant_id === 'null' ? null : restaurant_id;
+    // Нормализуем restaurant_id: 
+    // - Если поле отсутствует в запросе (undefined) - это категория главной страницы (null)
+    // - Если это null, пустая строка или строка "null" - тоже null
+    // - Иначе используем переданное значение
+    const normalizedRestaurantId = restaurant_id === undefined || restaurant_id === null || restaurant_id === '' || restaurant_id === 'null' ? null : restaurant_id;
 
     // Для категорий главной страницы restaurant_id может быть null (только для супер-админов)
     // Для категорий магазинов restaurant_id обязателен
