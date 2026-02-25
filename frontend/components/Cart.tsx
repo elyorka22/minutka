@@ -325,15 +325,15 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
               </div>
 
               {/* Форма оформления заказа */}
-              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4" noValidate>
                 {/* Скрытое поле для имени - заполняется автоматически из Telegram */}
+                {/* Убрали required, так как поле скрыто и браузер не может его валидировать */}
                 <div className="hidden">
                   <input
                     type="text"
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    required
                   />
                 </div>
                 
