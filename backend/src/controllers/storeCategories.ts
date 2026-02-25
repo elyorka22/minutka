@@ -177,7 +177,12 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
       maxOrderQuery = maxOrderQuery.is('restaurant_id', null);
     }
     
-    const { data: maxOrderData } = await maxOrderQuery.single();
+    const { data: maxOrderData, error: maxOrderError } = await maxOrderQuery.maybeSingle();
+    
+    // Игнорируем ошибку, если записей нет (это нормально для первой категории)
+    if (maxOrderError && maxOrderError.code !== 'PGRST116') {
+      console.error('[createStoreCategory] Error fetching max display_order:', maxOrderError);
+    }
 
     const newDisplayOrder = display_order !== undefined 
       ? display_order 
@@ -206,14 +211,39 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
       .single();
 
     if (error) {
+      console.error('[createStoreCategory] Supabase error:', error);
+      console.error('[createStoreCategory] Error code:', error.code);
+      console.error('[createStoreCategory] Error message:', error.message);
+      console.error('[createStoreCategory] Error details:', error.details);
+      
       // Проверяем на дубликат имени
       if (error.code === '23505') {
+        const errorMessage = normalizedRestaurantId 
+          ? 'A category with this name already exists for this store'
+          : 'A category with this name already exists on the main page';
         return res.status(400).json({
           success: false,
-          error: 'A category with this name already exists for this store'
+          error: errorMessage
         });
       }
-      throw error;
+      
+      // Проверяем на нарушение уникального индекса
+      if (error.code === '23505' || error.message?.includes('duplicate key')) {
+        const errorMessage = normalizedRestaurantId 
+          ? 'A category with this name already exists for this store'
+          : 'A category with this name already exists on the main page';
+        return res.status(400).json({
+          success: false,
+          error: errorMessage
+        });
+      }
+      
+      // Возвращаем детальное сообщение об ошибке
+      return res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to create store category',
+        details: error.details || error.hint
+      });
     }
 
     res.status(201).json({ success: true, data: data as StoreCategory });

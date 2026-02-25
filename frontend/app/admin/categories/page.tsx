@@ -193,9 +193,14 @@ export default function AdminCategoriesPage() {
       // Перезагружаем список категорий
       const updatedCategories = await getAllStoreCategories(true);
       setCategories(updatedCategories);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting category form:', error);
-      showError(handleApiError(error));
+      console.error('Error response:', error?.response?.data);
+      console.error('Error status:', error?.response?.status);
+      
+      // Показываем детальное сообщение об ошибке
+      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || handleApiError(error);
+      showError(errorMessage);
     } finally {
       setSubmitting(false);
     }
