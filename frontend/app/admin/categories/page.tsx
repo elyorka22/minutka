@@ -144,9 +144,39 @@ export default function AdminCategoriesPage() {
           button_link: formData.button_link?.trim() || undefined,
         };
         console.log('[AdminCategories] Creating category with data:', categoryData);
-        const created = await createStoreCategory(categoryData);
-        categoryId = created.id;
-        showSuccess('Категория успешно создана');
+        console.log('[AdminCategories] Category data JSON:', JSON.stringify(categoryData, null, 2));
+        console.log('[AdminCategories] restaurant_id type:', typeof categoryData.restaurant_id, 'value:', categoryData.restaurant_id);
+        
+        try {
+          const created = await createStoreCategory(categoryData);
+          categoryId = created.id;
+          showSuccess('Категория успешно создана');
+        } catch (createError: any) {
+          // Логируем детальную информацию об ошибке создания
+          console.error('[AdminCategories] Error creating category:', createError);
+          console.error('[AdminCategories] Error response:', createError?.response?.data);
+          console.error('[AdminCategories] Request data that was sent:', JSON.stringify(categoryData, null, 2));
+          
+          // Показываем детальную ошибку в alert для мобильных устройств
+          let errorDetails = 'Ошибка при создании категории:\n\n';
+          errorDetails += `Отправленные данные:\n${JSON.stringify(categoryData, null, 2)}\n\n`;
+          
+          if (createError?.response?.data) {
+            errorDetails += `Ответ сервера:\n${JSON.stringify(createError.response.data, null, 2)}\n\n`;
+          }
+          if (createError?.response?.status) {
+            errorDetails += `HTTP статус: ${createError.response.status}\n`;
+          }
+          if (createError?.response?.config?.data) {
+            errorDetails += `Данные в запросе:\n${createError.response.config.data}\n`;
+          }
+          if (createError?.message) {
+            errorDetails += `Сообщение: ${createError.message}\n`;
+          }
+          
+          alert(errorDetails);
+          throw createError; // Пробрасываем ошибку дальше для общей обработки
+        }
       }
 
       // Обновляем категорию у выбранных товаров главной страницы
@@ -198,9 +228,31 @@ export default function AdminCategoriesPage() {
       console.error('Error response:', error?.response?.data);
       console.error('Error status:', error?.response?.status);
       
-      // Показываем детальное сообщение об ошибке
-      const errorMessage = error?.response?.data?.error || error?.response?.data?.message || handleApiError(error);
-      showError(errorMessage);
+      // Формируем детальное сообщение об ошибке для отображения пользователю
+      let errorMessage = 'Ошибка при создании категории:\n\n';
+      
+      if (error?.response?.data?.error) {
+        errorMessage += `Ошибка: ${error.response.data.error}\n`;
+      }
+      if (error?.response?.data?.message) {
+        errorMessage += `Сообщение: ${error.response.data.message}\n`;
+      }
+      if (error?.response?.data?.details) {
+        errorMessage += `Детали: ${error.response.data.details}\n`;
+      }
+      if (error?.response?.status) {
+        errorMessage += `Статус: ${error.response.status}\n`;
+      }
+      if (error?.message) {
+        errorMessage += `Техническая ошибка: ${error.message}\n`;
+      }
+      
+      // Показываем детальное сообщение об ошибке в alert для мобильных устройств
+      alert(errorMessage);
+      
+      // Также показываем через toast
+      const shortMessage = error?.response?.data?.error || error?.response?.data?.message || handleApiError(error);
+      showError(shortMessage);
     } finally {
       setSubmitting(false);
     }
