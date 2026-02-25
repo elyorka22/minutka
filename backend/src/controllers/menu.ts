@@ -309,7 +309,8 @@ export async function createMenuItem(req: AuthenticatedRequest, res: Response) {
     }
 
     // Супер-админы могут создавать блюда для любых ресторанов
-    if (req.user.role !== 'super_admin') {
+    // Для товаров главной страницы проверка прав уже выполнена выше
+    if (req.user.role !== 'super_admin' && is_main_page !== true) {
       // Админы ресторана могут создавать блюда только для своего ресторана
       if (req.user.role === 'restaurant_admin' && req.user.restaurant_id !== restaurant_id) {
         return res.status(403).json({
@@ -432,7 +433,7 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
     // Получаем информацию о блюде для проверки restaurant_id
     const { data: menuItem, error: menuItemError } = await supabase
       .from('menu_items')
-      .select('restaurant_id')
+      .select('restaurant_id, is_main_page')
       .eq('id', id)
       .single();
 
@@ -462,8 +463,18 @@ export async function updateMenuItem(req: AuthenticatedRequest, res: Response) {
       body: { is_available, is_banner, name, description, price, category, image_url }
     });
 
+    // Товары главной страницы могут обновлять только супер-админы
+    if (menuItem.is_main_page === true) {
+      if (req.user.role !== 'super_admin') {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: Only super admins can update main page items'
+        });
+      }
+      // Разрешаем обновление для супер-админов
+    }
     // Супер-админы могут обновлять блюда любых ресторанов
-    if (req.user.role === 'super_admin') {
+    else if (req.user.role === 'super_admin') {
       // Разрешаем все обновления для супер-админов
     }
     // Для restaurant_admin и chef: если обновляется is_available, разрешаем без проверок
