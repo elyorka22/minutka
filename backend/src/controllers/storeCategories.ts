@@ -9,7 +9,7 @@ import { validateString, validateUuid } from '../utils/validation';
 
 export interface StoreCategory {
   id: string;
-  restaurant_id: string;
+  restaurant_id: string | null;
   name: string;
   description?: string | null;
   image_url?: string | null;
@@ -98,13 +98,22 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
     const { restaurant_id, name, description, image_url, display_order, is_active, display_type, button_text, button_link } = req.body;
 
     // Валидация обязательных полей
-    if (!restaurant_id || !name) {
-      return res.status(400).json({ success: false, error: 'Missing required fields: restaurant_id, name' });
+    if (!name) {
+      return res.status(400).json({ success: false, error: 'Missing required field: name' });
     }
 
-    // Валидация типов и значений
-    if (!validateUuid(restaurant_id)) {
+    // Для категорий главной страницы restaurant_id может быть null (только для супер-админов)
+    // Для категорий магазинов restaurant_id обязателен
+    if (restaurant_id && !validateUuid(restaurant_id)) {
       return res.status(400).json({ success: false, error: 'Invalid restaurant_id format' });
+    }
+
+    // Если restaurant_id не указан, разрешаем только супер-админам
+    if (!restaurant_id && req.user?.role !== 'super_admin') {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden: Only super admins can create main page categories (without restaurant_id)'
+      });
     }
 
     if (!validateString(name, 1, 255)) {
@@ -123,9 +132,16 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
       });
     }
 
-    // Супер-админы могут создавать категории для любых магазинов
+    // Супер-админы могут создавать категории для любых магазинов или главной страницы (restaurant_id = null)
     if (req.user.role !== 'super_admin') {
-      // Админы ресторана могут создавать категории только для своего магазина
+      // Админы ресторана могут создавать категории только для своего магазина (restaurant_id обязателен)
+      if (!restaurant_id) {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: Only super admins can create main page categories (without restaurant_id)'
+        });
+      }
+      
       if (req.user.role === 'restaurant_admin' && req.user.restaurant_id !== restaurant_id) {
         return res.status(403).json({
           success: false,
@@ -143,13 +159,19 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
     }
 
     // Получаем максимальный display_order для установки нового значения
-    const { data: maxOrderData } = await supabase
+    let maxOrderQuery = supabase
       .from('store_categories')
       .select('display_order')
-      .eq('restaurant_id', restaurant_id)
       .order('display_order', { ascending: false })
-      .limit(1)
-      .single();
+      .limit(1);
+    
+    if (restaurant_id) {
+      maxOrderQuery = maxOrderQuery.eq('restaurant_id', restaurant_id);
+    } else {
+      maxOrderQuery = maxOrderQuery.is('restaurant_id', null);
+    }
+    
+    const { data: maxOrderData } = await maxOrderQuery.single();
 
     const newDisplayOrder = display_order !== undefined 
       ? display_order 
@@ -235,8 +257,16 @@ export async function updateStoreCategory(req: AuthenticatedRequest, res: Respon
       });
     }
 
-    // Супер-админы могут обновлять категории любых магазинов
+    // Супер-админы могут обновлять категории любых магазинов или главной страницы (restaurant_id = null)
     if (req.user.role !== 'super_admin') {
+      // Категории главной страницы (restaurant_id = null) могут обновлять только супер-админы
+      if (!category.restaurant_id) {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: Only super admins can update main page categories (without restaurant_id)'
+        });
+      }
+      
       // Админы ресторана могут обновлять категории только своего магазина
       if (req.user.role === 'restaurant_admin' && req.user.restaurant_id !== category.restaurant_id) {
         return res.status(403).json({
@@ -320,8 +350,16 @@ export async function deleteStoreCategory(req: AuthenticatedRequest, res: Respon
       });
     }
 
-    // Супер-админы могут удалять категории любых магазинов
+    // Супер-админы могут удалять категории любых магазинов или главной страницы (restaurant_id = null)
     if (req.user.role !== 'super_admin') {
+      // Категории главной страницы (restaurant_id = null) могут удалять только супер-админы
+      if (!category.restaurant_id) {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden: Only super admins can delete main page categories (without restaurant_id)'
+        });
+      }
+      
       // Админы ресторана могут удалять категории только своего магазина
       if (req.user.role === 'restaurant_admin' && req.user.restaurant_id !== category.restaurant_id) {
         return res.status(403).json({

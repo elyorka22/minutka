@@ -558,7 +558,7 @@ export async function getStoreCategoryById(id: string): Promise<StoreCategory | 
 }
 
 export async function createStoreCategory(data: {
-  restaurant_id: string;
+  restaurant_id: string | null; // null для категорий главной страницы
   name: string;
   description?: string;
   image_url?: string;

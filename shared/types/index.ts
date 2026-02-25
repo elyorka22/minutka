@@ -171,7 +171,7 @@ export interface MenuCategory {
 
 export interface StoreCategory {
   id: string;
-  restaurant_id: string;
+  restaurant_id: string | null; // null для категорий главной страницы
   name: string;
   description?: string | null;
   image_url?: string | null;

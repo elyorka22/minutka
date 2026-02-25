@@ -5,19 +5,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { StoreCategory, getAllStoreCategories, createStoreCategory, updateStoreCategory, deleteStoreCategory, getMenuItems, updateMenuItem, getStores } from '@/lib/api';
-import { MenuItem, Restaurant } from '@/lib/types';
+import { StoreCategory, getAllStoreCategories, createStoreCategory, updateStoreCategory, deleteStoreCategory, getMenuItems, updateMenuItem } from '@/lib/api';
+import { MenuItem } from '@/lib/types';
 import ImageUpload from '@/components/ImageUpload';
 import { handleApiError } from '@/lib/errorHandler';
 import { useToast } from '@/contexts/ToastContext';
 
 export default function AdminCategoriesPage() {
   const { showSuccess, showError } = useToast();
-  const [selectedStoreId, setSelectedStoreId] = useState<string>('');
-  const [stores, setStores] = useState<Restaurant[]>([]);
   const [categories, setCategories] = useState<StoreCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [loadingStores, setLoadingStores] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<StoreCategory | null>(null);
   const [formData, setFormData] = useState({
@@ -33,24 +30,6 @@ export default function AdminCategoriesPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loadingMenuItems, setLoadingMenuItems] = useState(false);
 
-  useEffect(() => {
-    async function fetchStores() {
-      try {
-        const result = await getStores();
-        const storeList = result.data.filter((s: Restaurant) => s.type === 'store');
-        setStores(storeList);
-        if (storeList.length > 0 && !selectedStoreId) {
-          setSelectedStoreId(storeList[0].id);
-        }
-      } catch (error) {
-        console.error('Error fetching stores:', error);
-        showError(handleApiError(error));
-      } finally {
-        setLoadingStores(false);
-      }
-    }
-    fetchStores();
-  }, [showError]);
 
   useEffect(() => {
     async function fetchCategories() {
@@ -83,19 +62,17 @@ export default function AdminCategoriesPage() {
       button_link: category.button_link || '',
     });
 
-    // Загружаем товары для выбранного магазина (если есть) или всех магазинов
+    // Загружаем товары главной страницы
     setLoadingMenuItems(true);
     try {
-      if (selectedStoreId) {
-        const items = await getMenuItems(selectedStoreId, true);
-        setMenuItems(items);
-        // Предзаполняем выбранные товары, которые уже привязаны к этой категории
-        const itemsInCategory = items.filter(item => item.category === category.name);
-        setFormData(prev => ({
-          ...prev,
-          selectedMenuItems: itemsInCategory.map(item => item.id),
-        }));
-      }
+      const items = await getMenuItems(undefined, true, undefined, true);
+      setMenuItems(items);
+      // Предзаполняем выбранные товары, которые уже привязаны к этой категории
+      const itemsInCategory = items.filter(item => item.category === category.name);
+      setFormData(prev => ({
+        ...prev,
+        selectedMenuItems: itemsInCategory.map(item => item.id),
+      }));
     } catch (error) {
       console.error('Error loading menu items:', error);
     } finally {
@@ -127,17 +104,7 @@ export default function AdminCategoriesPage() {
       return;
     }
 
-    // Для создания категории нужен restaurant_id - используем первый магазин или выбранный
-    if (!selectedStoreId && stores.length === 0) {
-      showError('Нужно выбрать магазин для создания категории');
-      return;
-    }
-
-    const storeIdToUse = selectedStoreId || stores[0]?.id;
-    if (!storeIdToUse) {
-      showError('Нет доступных магазинов');
-      return;
-    }
+    // Для категорий главной страницы restaurant_id = null
 
     try {
       let categoryId: string;
@@ -157,9 +124,9 @@ export default function AdminCategoriesPage() {
         categoryId = updated.id;
         showSuccess('Категория успешно обновлена');
       } else {
-        // Создаем категорию
+        // Создаем категорию главной страницы (restaurant_id = null)
         const created = await createStoreCategory({
-          restaurant_id: storeIdToUse,
+          restaurant_id: null,
           name: categoryName,
           description: formData.description.trim() || undefined,
           image_url: formData.image_url || undefined,
@@ -172,8 +139,8 @@ export default function AdminCategoriesPage() {
         showSuccess('Категория успешно создана');
       }
 
-      // Обновляем категорию у выбранных товаров
-      if (formData.selectedMenuItems.length > 0 && selectedStoreId) {
+      // Обновляем категорию у выбранных товаров главной страницы
+      if (formData.selectedMenuItems.length > 0) {
         try {
           // Сначала убираем категорию у всех товаров, которые были в старой категории (если редактируем)
           if (editingCategory) {
@@ -241,13 +208,13 @@ export default function AdminCategoriesPage() {
     setFormData({ ...formData, image_url: url });
   };
 
-  // Загружаем товары при выборе магазина
+  // Загружаем товары главной страницы при открытии формы
   useEffect(() => {
     async function loadMenuItems() {
-      if (!selectedStoreId || !showForm) return;
+      if (!showForm) return;
       try {
         setLoadingMenuItems(true);
-        const items = await getMenuItems(selectedStoreId, true);
+        const items = await getMenuItems(undefined, true, undefined, true);
         setMenuItems(items);
         // Если редактируем категорию, предзаполняем выбранные товары
         if (editingCategory) {
@@ -264,9 +231,9 @@ export default function AdminCategoriesPage() {
       }
     }
     loadMenuItems();
-  }, [selectedStoreId, showForm, editingCategory]);
+  }, [showForm, editingCategory]);
 
-  if (loading || loadingStores) {
+  if (loading) {
     return <div className="text-center py-12">Загрузка...</div>;
   }
 
@@ -278,23 +245,15 @@ export default function AdminCategoriesPage() {
           onClick={async () => {
             setEditingCategory(null);
             
-            // Выбираем первый магазин, если не выбран
-            if (!selectedStoreId && stores.length > 0) {
-              setSelectedStoreId(stores[0].id);
-            }
-            
-            // Загружаем товары при открытии формы создания
-            if (selectedStoreId || stores.length > 0) {
-              const storeId = selectedStoreId || stores[0].id;
-              setLoadingMenuItems(true);
-              try {
-                const items = await getMenuItems(storeId, true);
-                setMenuItems(items);
-              } catch (error) {
-                console.error('Error loading menu items:', error);
-              } finally {
-                setLoadingMenuItems(false);
-              }
+            // Загружаем товары главной страницы при открытии формы создания
+            setLoadingMenuItems(true);
+            try {
+              const items = await getMenuItems(undefined, true, undefined, true);
+              setMenuItems(items);
+            } catch (error) {
+              console.error('Error loading menu items:', error);
+            } finally {
+              setLoadingMenuItems(false);
             }
             
             setFormData({
@@ -321,29 +280,6 @@ export default function AdminCategoriesPage() {
             {editingCategory ? 'Редактировать категорию' : 'Создать категорию'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Выбор магазина для привязки товаров */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Магазин (для привязки товаров)
-              </label>
-              <select
-                value={selectedStoreId}
-                onChange={(e) => setSelectedStoreId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-              >
-                <option value="">-- Выберите магазин --</option>
-                {stores.map((store) => (
-                  <option key={store.id} value={store.id}>
-                    {store.name}
-                  </option>
-                ))}
-              </select>
-              <p className="text-xs text-gray-500 mt-1">
-                Выберите магазин, товары которого будут привязаны к категории
-              </p>
-            </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Название категории *
@@ -409,17 +345,13 @@ export default function AdminCategoriesPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 🛒 Привязать товары к категории
               </label>
-              {!selectedStoreId ? (
-                <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
-                  Выберите магазин для загрузки товаров
-                </div>
-              ) : loadingMenuItems ? (
+              {loadingMenuItems ? (
                 <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
                   Загрузка товаров...
                 </div>
               ) : menuItems.length === 0 ? (
                 <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 text-sm">
-                  Нет доступных товаров. Создайте товары в разделе "Меню" магазина
+                  Нет доступных товаров. Создайте товары в разделе "Товары главной страницы"
                 </div>
               ) : (
                 <div className="border border-gray-300 rounded-lg p-3 max-h-60 overflow-y-auto bg-white">
