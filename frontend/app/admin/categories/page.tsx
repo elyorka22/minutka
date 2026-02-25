@@ -29,6 +29,7 @@ export default function AdminCategoriesPage() {
   });
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loadingMenuItems, setLoadingMenuItems] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
 
   useEffect(() => {
@@ -51,6 +52,7 @@ export default function AdminCategoriesPage() {
 
   const handleEdit = async (category: StoreCategory) => {
     setEditingCategory(category);
+    setSubmitting(false);
     setFormData({
       name: category.name,
       description: category.description || '',
@@ -104,6 +106,12 @@ export default function AdminCategoriesPage() {
       return;
     }
 
+    if (submitting) {
+      return; // Предотвращаем повторную отправку
+    }
+
+    setSubmitting(true);
+
     // Для категорий главной страницы restaurant_id = null
 
     try {
@@ -114,12 +122,12 @@ export default function AdminCategoriesPage() {
         // Обновляем категорию
         const updated = await updateStoreCategory(editingCategory.id, {
           name: categoryName,
-          description: formData.description.trim() || undefined,
+          description: formData.description?.trim() || undefined,
           image_url: formData.image_url || undefined,
           display_order: formData.display_order,
           is_active: formData.is_active,
-          button_text: formData.button_text.trim() || undefined,
-          button_link: formData.button_link.trim() || undefined,
+          button_text: formData.button_text?.trim() || undefined,
+          button_link: formData.button_link?.trim() || undefined,
         });
         categoryId = updated.id;
         showSuccess('Категория успешно обновлена');
@@ -128,12 +136,12 @@ export default function AdminCategoriesPage() {
         const created = await createStoreCategory({
           restaurant_id: null,
           name: categoryName,
-          description: formData.description.trim() || undefined,
+          description: formData.description?.trim() || undefined,
           image_url: formData.image_url || undefined,
           display_order: formData.display_order,
           is_active: formData.is_active,
-          button_text: formData.button_text.trim() || undefined,
-          button_link: formData.button_link.trim() || undefined,
+          button_text: formData.button_text?.trim() || undefined,
+          button_link: formData.button_link?.trim() || undefined,
         });
         categoryId = created.id;
         showSuccess('Категория успешно создана');
@@ -184,13 +192,17 @@ export default function AdminCategoriesPage() {
       const updatedCategories = await getAllStoreCategories(true);
       setCategories(updatedCategories);
     } catch (error) {
+      console.error('Error submitting category form:', error);
       showError(handleApiError(error));
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleCancel = () => {
     setShowForm(false);
     setEditingCategory(null);
+    setSubmitting(false);
     setFormData({
       name: '',
       description: '',
@@ -244,6 +256,7 @@ export default function AdminCategoriesPage() {
         <button
           onClick={async () => {
             setEditingCategory(null);
+            setSubmitting(false);
             
             // Загружаем товары главной страницы при открытии формы создания
             setLoadingMenuItems(true);
@@ -440,9 +453,10 @@ export default function AdminCategoriesPage() {
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                disabled={submitting}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {editingCategory ? 'Сохранить' : 'Создать'}
+                {submitting ? 'Сохранение...' : (editingCategory ? 'Сохранить' : 'Создать')}
               </button>
               <button
                 type="button"
