@@ -568,11 +568,12 @@ export async function createStoreCategory(data: {
   button_text?: string;
   button_link?: string;
 }): Promise<StoreCategory> {
-  // Если restaurant_id === null, не включаем его в запрос (для совместимости со старыми версиями сервера)
-  const requestData = { ...data };
+  // Если restaurant_id === null, отправляем его как null (новый сервер) или не включаем вообще (старый сервер)
+  // Но лучше всегда отправлять null явно, чтобы новый сервер мог обработать
+  const requestData: any = { ...data };
+  // Убеждаемся, что null передается правильно
   if (requestData.restaurant_id === null) {
-    // Явно устанавливаем null, чтобы сервер мог его обработать
-    requestData.restaurant_id = null as any;
+    requestData.restaurant_id = null;
   }
   const response = await api.post<{ success: boolean; data: StoreCategory }>('/api/store-categories', requestData);
   return response.data.data;
