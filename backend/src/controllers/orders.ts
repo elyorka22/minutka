@@ -142,7 +142,18 @@ export async function createOrder(req: AuthenticatedRequest, res: Response) {
       .single();
 
     if (error) {
-      throw error;
+      console.error('[createOrder] Supabase error:', error);
+      console.error('[createOrder] Error code:', error.code);
+      console.error('[createOrder] Error message:', error.message);
+      console.error('[createOrder] Error details:', error.details);
+      
+      // Возвращаем детальное сообщение об ошибке
+      return res.status(400).json({
+        success: false,
+        error: error.message || 'Failed to create order',
+        details: error.details || error.hint,
+        code_version: CODE_VERSION
+      });
     }
 
     // Логируем статус в историю
