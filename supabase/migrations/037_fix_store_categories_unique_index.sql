@@ -4,37 +4,30 @@
 -- ============================================
 
 -- Удаляем старый уникальный constraint (PostgreSQL создает constraint, а не просто индекс)
--- Пробуем разные возможные имена constraint
+-- Пробуем стандартные имена, которые PostgreSQL может создать
+ALTER TABLE store_categories DROP CONSTRAINT IF EXISTS store_categories_restaurant_id_name_key;
+ALTER TABLE store_categories DROP CONSTRAINT IF EXISTS store_categories_restaurant_id_name_idx;
+ALTER TABLE store_categories DROP CONSTRAINT IF EXISTS store_categories_restaurant_id_name_ukey;
+
+-- Также пытаемся найти и удалить constraint по колонкам
 DO $$
+DECLARE
+    constraint_name text;
 BEGIN
-    -- Пытаемся удалить constraint с разными возможными именами
-    IF EXISTS (
-        SELECT 1 FROM pg_constraint 
-        WHERE conrelid = 'store_categories'::regclass 
-        AND contype = 'u'
-        AND array_to_string(conkey, ',') = (
-            SELECT array_to_string(array_agg(attnum), ',')
-            FROM pg_attribute
-            WHERE attrelid = 'store_categories'::regclass
-            AND attname IN ('restaurant_id', 'name')
-            ORDER BY attnum
-        )
-    ) THEN
-        -- Находим имя constraint и удаляем его
-        EXECUTE (
-            SELECT 'ALTER TABLE store_categories DROP CONSTRAINT ' || conname
-            FROM pg_constraint
-            WHERE conrelid = 'store_categories'::regclass
-            AND contype = 'u'
-            AND array_to_string(conkey, ',') = (
-                SELECT array_to_string(array_agg(attnum), ',')
-                FROM pg_attribute
-                WHERE attrelid = 'store_categories'::regclass
-                AND attname IN ('restaurant_id', 'name')
-                ORDER BY attnum
-            )
-            LIMIT 1
-        );
+    -- Находим constraint по колонкам restaurant_id и name
+    SELECT conname INTO constraint_name
+    FROM pg_constraint
+    WHERE conrelid = 'store_categories'::regclass
+    AND contype = 'u'
+    AND (
+        SELECT COUNT(*) = 2
+        FROM unnest(conkey) AS col_idx
+        JOIN pg_attribute ON pg_attribute.attrelid = conrelid AND pg_attribute.attnum = col_idx
+        WHERE pg_attribute.attname IN ('restaurant_id', 'name')
+    );
+    
+    IF constraint_name IS NOT NULL THEN
+        EXECUTE 'ALTER TABLE store_categories DROP CONSTRAINT ' || quote_ident(constraint_name);
     END IF;
 END $$;
 
