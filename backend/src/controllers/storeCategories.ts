@@ -97,19 +97,25 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
   try {
     const { restaurant_id, name, description, image_url, display_order, is_active, display_type, button_text, button_link } = req.body;
 
+    console.log('[createStoreCategory] Request body:', { restaurant_id, name, description, image_url, display_order, is_active, display_type, button_text, button_link });
+    console.log('[createStoreCategory] User:', req.user?.role, req.user?.telegram_id);
+
     // Валидация обязательных полей
     if (!name) {
       return res.status(400).json({ success: false, error: 'Missing required field: name' });
     }
 
+    // Нормализуем restaurant_id: если это строка "null" или пустая строка, преобразуем в null
+    const normalizedRestaurantId = restaurant_id === null || restaurant_id === undefined || restaurant_id === '' || restaurant_id === 'null' ? null : restaurant_id;
+
     // Для категорий главной страницы restaurant_id может быть null (только для супер-админов)
     // Для категорий магазинов restaurant_id обязателен
-    if (restaurant_id && !validateUuid(restaurant_id)) {
+    if (normalizedRestaurantId && !validateUuid(normalizedRestaurantId)) {
       return res.status(400).json({ success: false, error: 'Invalid restaurant_id format' });
     }
 
     // Если restaurant_id не указан, разрешаем только супер-админам
-    if (!restaurant_id && req.user?.role !== 'super_admin') {
+    if (!normalizedRestaurantId && req.user?.role !== 'super_admin') {
       return res.status(403).json({
         success: false,
         error: 'Forbidden: Only super admins can create main page categories (without restaurant_id)'
@@ -135,14 +141,14 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
     // Супер-админы могут создавать категории для любых магазинов или главной страницы (restaurant_id = null)
     if (req.user.role !== 'super_admin') {
       // Админы ресторана могут создавать категории только для своего магазина (restaurant_id обязателен)
-      if (!restaurant_id) {
+      if (!normalizedRestaurantId) {
         return res.status(403).json({
           success: false,
           error: 'Forbidden: Only super admins can create main page categories (without restaurant_id)'
         });
       }
       
-      if (req.user.role === 'restaurant_admin' && req.user.restaurant_id !== restaurant_id) {
+      if (req.user.role === 'restaurant_admin' && req.user.restaurant_id !== normalizedRestaurantId) {
         return res.status(403).json({
           success: false,
           error: 'Forbidden: You can only create store categories for your own store'
@@ -165,8 +171,8 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
       .order('display_order', { ascending: false })
       .limit(1);
     
-    if (restaurant_id) {
-      maxOrderQuery = maxOrderQuery.eq('restaurant_id', restaurant_id);
+    if (normalizedRestaurantId) {
+      maxOrderQuery = maxOrderQuery.eq('restaurant_id', normalizedRestaurantId);
     } else {
       maxOrderQuery = maxOrderQuery.is('restaurant_id', null);
     }
@@ -177,10 +183,16 @@ export async function createStoreCategory(req: AuthenticatedRequest, res: Respon
       ? display_order 
       : (maxOrderData?.display_order ?? 0) + 1;
 
+    console.log('[createStoreCategory] Inserting category with:', {
+      restaurant_id: normalizedRestaurantId,
+      name,
+      display_order: newDisplayOrder
+    });
+
     const { data, error } = await supabase
       .from('store_categories')
       .insert({
-        restaurant_id,
+        restaurant_id: normalizedRestaurantId,
         name,
         description: description || null,
         image_url: image_url || null,

@@ -133,8 +133,8 @@ export default function AdminCategoriesPage() {
         showSuccess('Категория успешно обновлена');
       } else {
         // Создаем категорию главной страницы (restaurant_id = null)
-        const created = await createStoreCategory({
-          restaurant_id: null,
+        const categoryData = {
+          restaurant_id: null as string | null,
           name: categoryName,
           description: formData.description?.trim() || undefined,
           image_url: formData.image_url || undefined,
@@ -142,7 +142,9 @@ export default function AdminCategoriesPage() {
           is_active: formData.is_active,
           button_text: formData.button_text?.trim() || undefined,
           button_link: formData.button_link?.trim() || undefined,
-        });
+        };
+        console.log('[AdminCategories] Creating category with data:', categoryData);
+        const created = await createStoreCategory(categoryData);
         categoryId = created.id;
         showSuccess('Категория успешно создана');
       }
