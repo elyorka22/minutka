@@ -8,6 +8,7 @@ import { useState } from 'react';
 import Image from 'next/image';
 import { MenuItem as MenuItemType } from '@/lib/types';
 import { useCart } from '@/contexts/CartContext';
+import { shouldUnoptimizeImage } from '@/lib/imageUtils';
 
 interface MenuItemProps {
   item: MenuItemType;
@@ -83,6 +84,7 @@ export default function MenuItem({ item }: MenuItemProps) {
             fill
             className={`object-contain ${!item.is_available ? 'opacity-50' : ''}`}
             sizes="(max-width: 768px) 50vw, 33vw"
+            unoptimized={shouldUnoptimizeImage(item.image_url)}
           />
           {/* Плюсик в правом нижнем углу картинки */}
           {!isExpanded && !cartItem ? (

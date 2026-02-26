@@ -6,6 +6,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '@/lib/imageUtils';
 import Link from 'next/link';
 import { Banner } from '../../shared/types';
 
@@ -148,6 +149,7 @@ function BannerSlide({ banner }: { banner: Banner }) {
           fill
           className="object-cover"
           priority={false}
+          unoptimized={shouldUnoptimizeImage(banner.image_url)}
         />
       )}
       {banner.title && (

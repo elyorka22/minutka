@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '@/lib/imageUtils';
 
 export interface Category {
   id: string;
@@ -84,6 +85,7 @@ export default function RestaurantCategories({
                     alt="Hammasi"
                     fill
                     className="object-cover"
+                    unoptimized={shouldUnoptimizeImage(allCategoryImage)}
                     onError={(e) => {
                       console.error('Error loading all category image:', allCategoryImage);
                       // Fallback to emoji if image fails to load
@@ -174,6 +176,7 @@ export default function RestaurantCategories({
                       alt={category.name}
                       fill
                       className="object-cover"
+                      unoptimized={shouldUnoptimizeImage(category.image_url)}
                     />
                   )}
                 </div>

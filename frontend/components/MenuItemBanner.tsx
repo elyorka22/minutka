@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '@/lib/imageUtils';
 import { MenuItem as MenuItemType } from '@/lib/types';
 import { useCart } from '@/contexts/CartContext';
 
@@ -77,6 +78,7 @@ export default function MenuItemBanner({ item }: MenuItemBannerProps) {
             className={`object-cover ${!item.is_available ? 'opacity-50' : ''}`}
             sizes="(max-width: 768px) 100vw, 50vw"
             priority
+            unoptimized={shouldUnoptimizeImage(item.image_url)}
           />
           {/* Кнопка добавления в корзину */}
           {!isExpanded && !cartItem ? (
