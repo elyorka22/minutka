@@ -7,6 +7,7 @@ import { getRestaurantById, getMenuItems } from '@/lib/api';
 import { getMenuCategories } from '@/lib/api';
 import Link from 'next/link';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '@/lib/imageUtils';
 import MenuItemBanner from '@/components/MenuItemBanner';
 import MenuItem from '@/components/MenuItem';
 import Cart from '@/components/Cart';
@@ -113,6 +114,7 @@ export default async function RestaurantPage({ params }: PageProps) {
                 alt={restaurant.name}
                 fill
                 className="object-cover"
+                unoptimized={shouldUnoptimizeImage(restaurant.image_url)}
               />
             </div>
           )}

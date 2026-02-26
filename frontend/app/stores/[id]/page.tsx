@@ -7,6 +7,7 @@ import { getRestaurantById, getBanners, getMenuItems } from '@/lib/api';
 import { getStoreCarouselsServer, getStoreCarouselItemsServer } from '@/lib/api-server';
 import Link from 'next/link';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '@/lib/imageUtils';
 import MenuItemBanner from '@/components/MenuItemBanner';
 import MenuItem from '@/components/MenuItem';
 import Cart from '@/components/Cart';
@@ -219,6 +220,7 @@ export default async function StorePage({ params }: PageProps) {
                           src={banner.image_url}
                           alt={banner.title || 'Banner'}
                           fill
+                          unoptimized={shouldUnoptimizeImage(banner.image_url)}
                           className="object-cover"
                         />
                       </div>
