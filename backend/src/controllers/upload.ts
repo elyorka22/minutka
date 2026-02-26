@@ -80,8 +80,6 @@ export async function uploadImage(req: Request, res: Response) {
       let errorMessage = 'Ошибка загрузки изображения';
       if (error.message) {
         errorMessage = error.message;
-      } else if (error.error) {
-        errorMessage = error.error;
       }
       
       // Проверяем специфичные ошибки
@@ -96,7 +94,7 @@ export async function uploadImage(req: Request, res: Response) {
       return res.status(500).json({
         success: false,
         error: errorMessage,
-        message: error.message || error.error,
+        message: error.message,
         details: error
       });
     }
