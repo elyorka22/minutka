@@ -61,23 +61,58 @@ export default function ImageUpload({
       formData.append('image', file);
       formData.append('folder', folder);
 
+      console.log('[ImageUpload] Uploading image:', {
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        folder: folder,
+        apiUrl: `${API_BASE_URL}/api/upload/image`
+      });
+
       const response = await fetch(`${API_BASE_URL}/api/upload/image`, {
         method: 'POST',
         body: formData,
+        // Не устанавливаем Content-Type вручную - браузер сделает это автоматически с правильным boundary
       });
 
+      console.log('[ImageUpload] Response status:', response.status);
+      console.log('[ImageUpload] Response headers:', Object.fromEntries(response.headers.entries()));
+
+      // Проверяем, является ли ответ JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('[ImageUpload] Non-JSON response:', text);
+        throw new Error(`Сервер вернул неожиданный ответ: ${response.status} ${response.statusText}`);
+      }
+
       const data = await response.json();
+      console.log('[ImageUpload] Response data:', data);
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Ошибка загрузки изображения');
+        const errorMessage = data.error || data.message || 'Ошибка загрузки изображения';
+        const errorDetails = data.details ? `\nДетали: ${JSON.stringify(data.details)}` : '';
+        throw new Error(`${errorMessage}${errorDetails}`);
+      }
+
+      if (!data.data || !data.data.url) {
+        throw new Error('Сервер не вернул URL изображения');
       }
 
       // Обновляем значение
       onChange(data.data.url);
       setPreview(data.data.url);
+      console.log('[ImageUpload] Image uploaded successfully:', data.data.url);
     } catch (error: any) {
-      console.error('Error uploading image:', error);
-      alert(error.message || 'Ошибка загрузки изображения');
+      console.error('[ImageUpload] Error uploading image:', error);
+      console.error('[ImageUpload] Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      
+      const errorMessage = error.message || 'Ошибка загрузки изображения';
+      alert(`Ошибка загрузки изображения:\n${errorMessage}`);
       setPreview(value || null);
     } finally {
       setUploading(false);
