@@ -7,6 +7,7 @@
 
 import { useState, useRef } from 'react';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '@/lib/imageUtils';
 
 interface ImageUploadProps {
   value: string; // Текущий URL изображения
@@ -142,6 +143,7 @@ export default function ImageUpload({
             fill
             className="object-cover"
             onError={() => setPreview(null)}
+            unoptimized={shouldUnoptimizeImage(preview)}
           />
           {!uploading && (
             <button

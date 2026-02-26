@@ -9,10 +9,19 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**',
       },
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
     ],
     // Оптимизация изображений
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60,
+    // Кастомный loader для изображений из Supabase Storage
+    // Отключаем оптимизацию для Supabase, чтобы избежать 402 ошибок
+    loader: 'default',
+    loaderFile: undefined,
   },
   // Оптимизация компиляции
   swcMinify: true,
