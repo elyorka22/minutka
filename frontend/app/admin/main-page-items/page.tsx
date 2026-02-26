@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { MenuItem } from '@/lib/types';
 import { getMenuItems, createMenuItem, updateMenuItem, deleteMenuItem, getAllStoreCategories, getMenuItemCategories } from '@/lib/api';
 import Image from 'next/image';
+import { shouldUnoptimizeImage } from '@/lib/imageUtils';
 import ImageUpload from '@/components/ImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
 import { handleApiError } from '@/lib/errorHandler';
@@ -115,6 +116,7 @@ export default function AdminMainPageItemsPage() {
                   alt={item.name}
                   fill
                   className="object-cover"
+                  unoptimized={shouldUnoptimizeImage(item.image_url)}
                 />
               </div>
             )}
