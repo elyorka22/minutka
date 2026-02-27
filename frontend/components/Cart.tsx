@@ -11,6 +11,7 @@ import { createOrder } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
 import { getCurrentLocation, isGeolocationSupported } from '@/lib/geolocation';
 import { getTelegramUserId } from '@/lib/telegram-webapp';
+import { shouldUnoptimizeImage } from '@/lib/imageUtils';
 
 interface CartProps {
   restaurantId: string;
@@ -260,6 +261,8 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                               alt={cartItem.item.name}
                               fill
                               className="object-cover"
+                              // Изображения из Supabase грузим без оптимизации Next.js, чтобы избежать 402
+                              unoptimized={shouldUnoptimizeImage(cartItem.item.image_url)}
                             />
                           </div>
                         )}
