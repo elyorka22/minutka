@@ -28,7 +28,7 @@ class _CartScreenState extends State<CartScreen> {
   String _deliveryType = 'standard'; // 'standard' or 'express'
   bool _submitting = false;
 
-  final _api = const ApiClient();
+  final _api = ApiClient();
 
   @override
   void dispose() {

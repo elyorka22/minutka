@@ -20,7 +20,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final _api = const ApiClient();
+  final _api = ApiClient();
 
   late Future<_HomeData> _future;
 
