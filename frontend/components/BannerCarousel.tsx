@@ -63,10 +63,11 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
                   rel="noopener noreferrer"
                   className="block"
                 >
-                  <BannerSlide banner={banner} />
+                  {/* Первый баннер загружаем с максимальным приоритетом */}
+                  <BannerSlide banner={banner} isPriority={index === 0} />
                 </Link>
               ) : (
-                <BannerSlide banner={banner} />
+                <BannerSlide banner={banner} isPriority={index === 0} />
               )}
             </div>
           ))}
@@ -139,7 +140,7 @@ export default function BannerCarousel({ banners }: BannerCarouselProps) {
 }
 
 // Компонент для отдельного слайда баннера
-function BannerSlide({ banner }: { banner: Banner }) {
+function BannerSlide({ banner, isPriority }: { banner: Banner; isPriority: boolean }) {
   return (
     <div className="relative w-full h-40 md:h-48 lg:h-56">
       {banner.image_url && (
@@ -148,7 +149,8 @@ function BannerSlide({ banner }: { banner: Banner }) {
           alt={banner.title || 'Banner'}
           fill
           className="object-cover"
-          priority={false}
+          priority={isPriority}
+          loading={isPriority ? 'eager' : 'lazy'}
           unoptimized={shouldUnoptimizeImage(banner.image_url)}
         />
       )}

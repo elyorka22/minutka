@@ -12,9 +12,11 @@ import { shouldUnoptimizeImage } from '@/lib/imageUtils';
 
 interface MenuItemProps {
   item: MenuItemType;
+  // Важный товар (верх списка) – картинка грузится с приоритетом
+  isPriority?: boolean;
 }
 
-export default function MenuItem({ item }: MenuItemProps) {
+export default function MenuItem({ item, isPriority = false }: MenuItemProps) {
   const { addItem, updateQuantity, items } = useCart();
   const cartItem = items.find((ci) => ci.item.id === item.id);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -85,6 +87,9 @@ export default function MenuItem({ item }: MenuItemProps) {
             className={`object-contain ${!item.is_available ? 'opacity-50' : ''}`}
             sizes="(max-width: 768px) 50vw, 33vw"
             unoptimized={shouldUnoptimizeImage(item.image_url)}
+            // Первые 10 товаров загружаем с приоритетом, остальные – лениво
+            priority={isPriority}
+            loading={isPriority ? 'eager' : 'lazy'}
           />
           {/* Плюсик в правом нижнем углу картинки */}
           {!isExpanded && !cartItem ? (

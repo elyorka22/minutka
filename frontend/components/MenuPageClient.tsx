@@ -250,7 +250,7 @@ export default function MenuPageClient({
                         alignContent: 'stretch'
                       } as React.CSSProperties}
                     >
-                      {category.items.map((item) => (
+                      {category.items.map((item, index) => (
                         <div 
                           key={item.id} 
                           className="flex-shrink-0"
@@ -265,7 +265,11 @@ export default function MenuPageClient({
                             height: '100%'
                           }}
                         >
-                          <MenuItem item={item} />
+                          <MenuItem
+                            item={item}
+                            // Внутри горизонтальной карусели категории приоритет для первых 10
+                            isPriority={index < 10}
+                          />
                         </div>
                       ))}
                     </div>

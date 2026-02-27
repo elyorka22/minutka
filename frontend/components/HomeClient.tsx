@@ -802,8 +802,13 @@ export default function HomeClient({
                     {/* Товары без номера ряда - отображаются после всех рядов */}
                     {itemsWithoutRow.length > 0 && (
                       <div className="grid grid-cols-2 gap-4">
-                        {itemsWithoutRow.map((item) => (
-                          <MenuItem key={item.id} item={item} />
+                        {itemsWithoutRow.map((item, index) => (
+                          <MenuItem
+                            key={item.id}
+                            item={item}
+                            // Приоритет только для первых 10 товаров без ряда
+                            isPriority={index < 10}
+                          />
                         ))}
                       </div>
                     )}
@@ -814,8 +819,13 @@ export default function HomeClient({
               // По умолчанию - сетка из 2 колонок
               return (
                 <div className="grid grid-cols-2 gap-4">
-                  {categoryItems.map((item) => (
-                    <MenuItem key={item.id} item={item} />
+                  {categoryItems.map((item, index) => (
+                    <MenuItem
+                      key={item.id}
+                      item={item}
+                      // При заходе в категорию загружаем картинки первых 10 товаров в первую очередь
+                      isPriority={index < 10}
+                    />
                   ))}
                 </div>
               );
@@ -824,8 +834,13 @@ export default function HomeClient({
             // Показываем все товары главной страницы
             allItems.length > 0 ? (
               <div className="grid grid-cols-2 gap-4">
-                {allItems.map((item) => (
-                  <MenuItem key={item.id} item={item} />
+                {allItems.map((item, index) => (
+                  <MenuItem
+                    key={item.id}
+                    item={item}
+                    // На главной странице приоритет у первых 10 товаров
+                    isPriority={index < 10}
+                  />
                 ))}
               </div>
             ) : (
