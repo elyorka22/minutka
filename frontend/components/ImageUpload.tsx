@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import Image from 'next/image';
+import NextImage from 'next/image';
 import { shouldUnoptimizeImage } from '@/lib/imageUtils';
 
 interface ImageUploadProps {
@@ -29,7 +29,7 @@ const MAX_IMAGE_DIMENSION = 1400;
 async function resizeImageIfNeeded(file: File): Promise<File> {
   return new Promise((resolve, reject) => {
     try {
-      const image = new Image();
+      const image = new window.Image();
       const url = URL.createObjectURL(file);
 
       image.onload = () => {
@@ -222,7 +222,7 @@ export default function ImageUpload({
       {/* Превью изображения */}
       {preview && (
         <div className="mb-4 relative w-full h-48 rounded-lg overflow-hidden border border-gray-300 bg-gray-100">
-          <Image
+          <NextImage
             src={preview}
             alt="Preview"
             fill
