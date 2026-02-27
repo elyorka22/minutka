@@ -69,7 +69,10 @@ export async function uploadImage(req: Request, res: Response) {
       .from('images')
       .upload(fileName, file.buffer, {
         contentType: file.mimetype,
-        upsert: false
+        upsert: false,
+        // Кешируем изображения в браузере на 1 год (31536000 секунд)
+        // Это сильно ускоряет повторную загрузку картинок при навигации по сайту
+        cacheControl: '31536000',
       });
 
     if (error) {
