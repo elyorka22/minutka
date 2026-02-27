@@ -9,6 +9,11 @@ import 'package:http/http.dart' as http;
 import 'models.dart';
 
 /// Base URL of your existing backend (Railway)
+/// 
+/// To set a custom URL when building:
+/// flutter build apk --dart-define=API_BASE_URL=https://your-backend.railway.app
+/// 
+/// Or change the default value below to your actual backend URL
 const String apiBaseUrl =
     String.fromEnvironment('API_BASE_URL', defaultValue: 'https://minutka-production.up.railway.app');
 

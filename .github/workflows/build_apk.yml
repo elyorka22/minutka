@@ -42,7 +42,12 @@ jobs:
 
       - name: Build APK
         working-directory: mobile/minutka_app
-        run: flutter build apk --release
+        run: |
+          if [ -n "${{ secrets.API_BASE_URL }}" ]; then
+            flutter build apk --release --dart-define=API_BASE_URL=${{ secrets.API_BASE_URL }}
+          else
+            flutter build apk --release
+          fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
