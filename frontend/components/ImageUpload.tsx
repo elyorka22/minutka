@@ -20,6 +20,88 @@ interface ImageUploadProps {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3001';
 
+// Максимальный размер картинки по большей стороне (в пикселях),
+// до которого мы уменьшаем изображение перед загрузкой.
+const MAX_IMAGE_DIMENSION = 1400;
+
+// Перекодируем картинку в JPEG/WebP меньшего размера перед загрузкой,
+// чтобы ускорить её последующую загрузку на сайте.
+async function resizeImageIfNeeded(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    try {
+      const image = new Image();
+      const url = URL.createObjectURL(file);
+
+      image.onload = () => {
+        try {
+          const width = image.width;
+          const height = image.height;
+
+          // Если картинка и так небольшая — ничего не делаем
+          const maxSide = Math.max(width, height);
+          if (maxSide <= MAX_IMAGE_DIMENSION) {
+            URL.revokeObjectURL(url);
+            resolve(file);
+            return;
+          }
+
+          const scale = MAX_IMAGE_DIMENSION / maxSide;
+          const targetWidth = Math.round(width * scale);
+          const targetHeight = Math.round(height * scale);
+
+          const canvas = document.createElement('canvas');
+          canvas.width = targetWidth;
+          canvas.height = targetHeight;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            URL.revokeObjectURL(url);
+            resolve(file);
+            return;
+          }
+
+          ctx.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+          canvas.toBlob(
+            (blob) => {
+              URL.revokeObjectURL(url);
+              if (!blob) {
+                resolve(file);
+                return;
+              }
+
+              const optimizedFile = new File(
+                [blob],
+                file.name.replace(/\.[^.]+$/, '.jpg'),
+                { type: 'image/jpeg' }
+              );
+
+              console.log('[ImageUpload] Original size:', file.size, 'Optimized size:', optimizedFile.size);
+              resolve(optimizedFile);
+            },
+            'image/jpeg',
+            0.8
+          );
+        } catch (err) {
+          URL.revokeObjectURL(url);
+          console.error('[ImageUpload] resizeImageIfNeeded error:', err);
+          resolve(file);
+        }
+      };
+
+      image.onerror = (err) => {
+        URL.revokeObjectURL(url);
+        console.error('[ImageUpload] Failed to load image for resize:', err);
+        resolve(file);
+      };
+
+      image.src = url;
+    } catch (error) {
+      console.error('[ImageUpload] resizeImageIfNeeded unexpected error:', error);
+      resolve(file);
+    }
+  });
+}
+
 export default function ImageUpload({
   value,
   onChange,
@@ -42,9 +124,9 @@ export default function ImageUpload({
       return;
     }
 
-    // Проверка размера (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Размер изображения не должен превышать 5MB');
+    // Жёсткий лимит размера (например, 10MB), чтобы не принимать совсем огромные файлы
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Размер изображения не должен превышать 10MB');
       return;
     }
 
@@ -58,14 +140,17 @@ export default function ImageUpload({
     // Загружаем на сервер
     setUploading(true);
     try {
+      // Уменьшаем изображение перед загрузкой, если оно слишком большое
+      const uploadFile = await resizeImageIfNeeded(file);
+
       const formData = new FormData();
-      formData.append('image', file);
+      formData.append('image', uploadFile);
       formData.append('folder', folder);
 
       console.log('[ImageUpload] Uploading image:', {
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
+        fileName: uploadFile.name,
+        fileSize: uploadFile.size,
+        fileType: uploadFile.type,
         folder: folder,
         apiUrl: `${API_BASE_URL}/api/upload/image`
       });
