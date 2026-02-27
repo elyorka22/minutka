@@ -28,6 +28,8 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
   const [phone, setPhone] = useState('+998');
   const [name, setName] = useState('');
   const [notes, setNotes] = useState('');
+  // Tip dostavki: odatdagi (bepul) yoki ekspress (pullik)
+  const [deliveryType, setDeliveryType] = useState<'standard' | 'express'>('standard');
   const [chatId, setChatId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [latitude, setLatitude] = useState<number | null>(null);
@@ -81,7 +83,14 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
     if (address) {
       orderText += `📍 Manzil: ${address}\n`;
     }
-    
+
+    // Tip dostavki
+    if (deliveryType === 'express') {
+      orderText += `\n🚚 Yetkazib berish turi: EKSPRESS (pullik)\n`;
+    } else {
+      orderText += `\n🚚 Yetkazib berish turi: Oddiy (bepul)\n`;
+    }
+
     if (notes) {
       orderText += `\n📝 Izoh: ${notes}\n`;
     }
@@ -445,6 +454,40 @@ export default function Cart({ restaurantId, restaurantName, telegramBotUsername
                       </p>
                     </div>
                   )}
+                </div>
+
+                {/* Tanlash: oddiy yoki ekspress dostavka */}
+                <div>
+                  <p className="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+                    Yetkazib berish turi
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryType('standard')}
+                      className={`w-full px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg border font-semibold ${
+                        deliveryType === 'standard'
+                          ? 'bg-green-500 text-white border-green-500'
+                          : 'bg-white text-gray-700 border-gray-300'
+                      }`}
+                    >
+                      Oddiy (bepul)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeliveryType('express')}
+                      className={`w-full px-3 sm:px-4 py-2 text-xs sm:text-sm rounded-lg border font-semibold ${
+                        deliveryType === 'express'
+                          ? 'bg-orange-500 text-white border-orange-500'
+                          : 'bg-white text-gray-700 border-gray-300'
+                      }`}
+                    >
+                      Ekspress (pullik)
+                    </button>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Ekspress — tez va pullik yetkazib berish, oddiy — bepul standart yetkazib berish.
+                  </p>
                 </div>
 
                 <div>
