@@ -31,9 +31,43 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<_HomeData> _load() async {
-    final banners = await _api.fetchHomeBanners();
-    final categories = await _api.fetchStoreCategories();
-    final items = await _api.fetchMainPageItems();
+    // Загружаем данные параллельно, с обработкой ошибок для каждого запроса
+    List<BannerModel> banners = [];
+    List<StoreCategoryModel> categories = [];
+    List<MenuItemModel> items = [];
+    String? errorMessage;
+
+    try {
+      banners = await _api.fetchHomeBanners();
+    } catch (e) {
+      errorMessage = 'Bannerlar yuklanmadi: $e';
+    }
+
+    try {
+      categories = await _api.fetchStoreCategories();
+    } catch (e) {
+      if (errorMessage != null) {
+        errorMessage += '\nKategoriyalar yuklanmadi: $e';
+      } else {
+        errorMessage = 'Kategoriyalar yuklanmadi: $e';
+      }
+    }
+
+    try {
+      items = await _api.fetchMainPageItems();
+    } catch (e) {
+      if (errorMessage != null) {
+        errorMessage += '\nTovarlar yuklanmadi: $e';
+      } else {
+        errorMessage = 'Tovarlar yuklanmadi: $e';
+      }
+    }
+
+    // Если все запросы провалились, выбрасываем ошибку
+    if (banners.isEmpty && categories.isEmpty && items.isEmpty && errorMessage != null) {
+      throw Exception(errorMessage);
+    }
+
     return _HomeData(
       banners: banners,
       categories: categories,
@@ -59,9 +93,39 @@ class _HomeScreenState extends State<HomeScreen> {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text(
-                  'Xatolik: ${snapshot.error}',
-                  textAlign: TextAlign.center,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Xatolik yuz berdi',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '${snapshot.error}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _future = _load();
+                        });
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Qayta urinish'),
+                    ),
+                  ],
                 ),
               ),
             );
