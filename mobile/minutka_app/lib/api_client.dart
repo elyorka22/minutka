@@ -15,7 +15,7 @@ const String apiBaseUrl =
 class ApiClient {
   final http.Client _client;
 
-  const ApiClient({http.Client? client}) : _client = client ?? const http.Client();
+  ApiClient({http.Client? client}) : _client = client ?? http.Client();
 
   Uri _buildUri(String path, [Map<String, String>? query]) {
     return Uri.parse(apiBaseUrl).replace(
