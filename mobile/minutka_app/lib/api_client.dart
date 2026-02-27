@@ -30,42 +30,78 @@ class ApiClient {
   }
 
   Future<List<BannerModel>> fetchHomeBanners() async {
-    final uri = _buildUri('/api/banners', {'position': 'homepage'});
-    final resp = await _client.get(uri);
-    if (resp.statusCode != 200) {
-      throw Exception('Failed to load banners: ${resp.statusCode}');
+    try {
+      final uri = _buildUri('/api/banners', {'position': 'homepage'});
+      final resp = await _client.get(uri).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Время ожидания истекло. Проверьте интернет-соединение.');
+        },
+      );
+      if (resp.statusCode != 200) {
+        throw Exception('Ошибка загрузки баннеров: ${resp.statusCode}');
+      }
+      final body = jsonDecode(resp.body) as Map<String, dynamic>;
+      final list = (body['data'] as List<dynamic>? ?? const []);
+      return list.map((e) => BannerModel.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      if (e.toString().contains('Failed host lookup') || e.toString().contains('SocketException')) {
+        throw Exception('Не удалось подключиться к серверу. Проверьте интернет-соединение и убедитесь, что бэкенд запущен.\n\nURL: $apiBaseUrl');
+      }
+      rethrow;
     }
-    final body = jsonDecode(resp.body) as Map<String, dynamic>;
-    final list = (body['data'] as List<dynamic>? ?? const []);
-    return list.map((e) => BannerModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   /// Store categories used on main page (same as web main page categories).
   Future<List<StoreCategoryModel>> fetchStoreCategories() async {
-    final uri = _buildUri('/api/store-categories', {'all': 'true'});
-    final resp = await _client.get(uri);
-    if (resp.statusCode != 200) {
-      throw Exception('Failed to load categories: ${resp.statusCode}');
+    try {
+      final uri = _buildUri('/api/store-categories', {'all': 'true'});
+      final resp = await _client.get(uri).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Время ожидания истекло. Проверьте интернет-соединение.');
+        },
+      );
+      if (resp.statusCode != 200) {
+        throw Exception('Ошибка загрузки категорий: ${resp.statusCode}');
+      }
+      final body = jsonDecode(resp.body) as Map<String, dynamic>;
+      final list = (body['data'] as List<dynamic>? ?? const []);
+      return list
+          .map((e) => StoreCategoryModel.fromJson(e as Map<String, dynamic>))
+          .toList()
+          .where((c) => c.name.isNotEmpty)
+          .toList();
+    } catch (e) {
+      if (e.toString().contains('Failed host lookup') || e.toString().contains('SocketException')) {
+        throw Exception('Не удалось подключиться к серверу. Проверьте интернет-соединение и убедитесь, что бэкенд запущен.\n\nURL: $apiBaseUrl');
+      }
+      rethrow;
     }
-    final body = jsonDecode(resp.body) as Map<String, dynamic>;
-    final list = (body['data'] as List<dynamic>? ?? const []);
-    return list
-        .map((e) => StoreCategoryModel.fromJson(e as Map<String, dynamic>))
-        .toList()
-        .where((c) => c.name.isNotEmpty)
-        .toList();
   }
 
   /// Main page items (is_main_page = true), like on web home page.
   Future<List<MenuItemModel>> fetchMainPageItems() async {
-    final uri = _buildUri('/api/menu', {'main_page': 'true'});
-    final resp = await _client.get(uri);
-    if (resp.statusCode != 200) {
-      throw Exception('Failed to load main page items: ${resp.statusCode}');
+    try {
+      final uri = _buildUri('/api/menu', {'main_page': 'true'});
+      final resp = await _client.get(uri).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          throw Exception('Время ожидания истекло. Проверьте интернет-соединение.');
+        },
+      );
+      if (resp.statusCode != 200) {
+        throw Exception('Ошибка загрузки товаров: ${resp.statusCode}');
+      }
+      final body = jsonDecode(resp.body) as Map<String, dynamic>;
+      final list = (body['data'] as List<dynamic>? ?? const []);
+      return list.map((e) => MenuItemModel.fromJson(e as Map<String, dynamic>)).toList();
+    } catch (e) {
+      if (e.toString().contains('Failed host lookup') || e.toString().contains('SocketException')) {
+        throw Exception('Не удалось подключиться к серверу. Проверьте интернет-соединение и убедитесь, что бэкенд запущен.\n\nURL: $apiBaseUrl');
+      }
+      rethrow;
     }
-    final body = jsonDecode(resp.body) as Map<String, dynamic>;
-    final list = (body['data'] as List<dynamic>? ?? const []);
-    return list.map((e) => MenuItemModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 
   /// Create order in backend (same endpoint as web app).
