@@ -44,15 +44,31 @@ jobs:
         working-directory: mobile/minutka_app
         run: |
           if [ -n "${{ secrets.API_BASE_URL }}" ]; then
+            flutter build apk --release --split-per-abi --dart-define=API_BASE_URL=${{ secrets.API_BASE_URL }}
+          else
+            flutter build apk --release --split-per-abi
+          fi
+
+      - name: Upload APK artifacts (split)
+        uses: actions/upload-artifact@v4
+        with:
+          name: minutka-app-release-split
+          path: mobile/minutka_app/build/app/outputs/flutter-apk/*.apk
+          retention-days: 30
+
+      - name: Build universal APK (for compatibility)
+        working-directory: mobile/minutka_app
+        run: |
+          if [ -n "${{ secrets.API_BASE_URL }}" ]; then
             flutter build apk --release --dart-define=API_BASE_URL=${{ secrets.API_BASE_URL }}
           else
             flutter build apk --release
           fi
 
-      - name: Upload APK artifact
+      - name: Upload universal APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: minutka-app-release
+          name: minutka-app-release-universal
           path: mobile/minutka_app/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
 
