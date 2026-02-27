@@ -1,0 +1,61 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'mobile/**'
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Install dependencies
+        working-directory: mobile/minutka_app
+        run: flutter pub get
+
+      - name: Create Android project structure
+        working-directory: mobile/minutka_app
+        run: |
+          # Create android directory structure if it doesn't exist
+          if [ ! -d "android" ]; then
+            flutter create --platforms=android .
+          fi
+
+      - name: Build APK
+        working-directory: mobile/minutka_app
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: minutka-app-release
+          path: mobile/minutka_app/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      - name: Create Release (if tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: mobile/minutka_app/build/app/outputs/flutter-apk/app-release.apk
+          draft: false
+          prerelease: false
+
