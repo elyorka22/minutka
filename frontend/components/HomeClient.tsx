@@ -76,7 +76,7 @@ export default function HomeClient({
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
   const { items: cartItems } = useCart();
-  // Вкладки: 'asosiy', 'do\'konlar', 'restoranlar', 'xizmatlar'
+  // Вкладки: 'asosiy', 'do\'konlar', 'restoranlar', 'xizmatlar' (Xizmatlar отображается как Uy-joy)
   const [selectedTab, setSelectedTab] = useState<'asosiy' | 'do\'konlar' | 'restoranlar' | 'xizmatlar'>('asosiy');
   // По умолчанию категория "Все" (null означает "Все")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -390,7 +390,7 @@ export default function HomeClient({
         </div>
       </header>
 
-      {/* Tabs - Asosiy, Do'konlar, Restoranlar, Xizmatlar */}
+      {/* Tabs - Asosiy, Do'konlar, Restoranlar, Uy-joy */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
         <div className="flex gap-4 border-b border-gray-200 overflow-x-auto">
           <button
@@ -443,7 +443,7 @@ export default function HomeClient({
                 : 'border-transparent text-gray-600 hover:text-gray-900'
             }`}
           >
-            Xizmatlar
+            Uy-joy
           </button>
         </div>
       </section>
@@ -1022,7 +1022,7 @@ export default function HomeClient({
         </section>
       )}
 
-      {/* Xizmatlar Tab - пустое состояние */}
+      {/* Uy-joy Tab - пустое состояние */}
       {selectedTab === 'xizmatlar' && !searchQuery && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
           <div className="text-center py-12 text-gray-500">
