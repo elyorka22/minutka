@@ -76,8 +76,8 @@ export default function HomeClient({
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
   const { items: cartItems } = useCart();
-  // Вкладки: 'asosiy', 'do\'konlar', 'xizmatlar'
-  const [selectedTab, setSelectedTab] = useState<'asosiy' | 'do\'konlar' | 'xizmatlar'>('asosiy');
+  // Вкладки: 'asosiy', 'do\'konlar', 'restoranlar', 'xizmatlar'
+  const [selectedTab, setSelectedTab] = useState<'asosiy' | 'do\'konlar' | 'restoranlar' | 'xizmatlar'>('asosiy');
   // По умолчанию категория "Все" (null означает "Все")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -214,25 +214,10 @@ export default function HomeClient({
     [pharmaciesStores, pharmacies]
   );
 
-  // Фильтрация ресторанов - удалено, оставляем только магазины
+  // Фильтрация ресторанов
   const filteredRestaurants = useMemo(() => {
-    const restaurants = initialRestaurants.filter(r => r.type === 'restaurant');
+    const restaurants = initialRestaurants.filter(r => r.type === 'restaurant' && r.is_active);
     return restaurants.filter((r) => {
-      // Если выбрана категория аптек или магазинов, не показываем рестораны
-      if (
-        selectedCategory === 'pharmacies-stores' ||
-        (pharmaciesCategory && selectedCategory === pharmaciesCategory.id) ||
-        (storesCategory && selectedCategory === storesCategory.id)
-      ) {
-        return false;
-      }
-      // Фильтр по категории
-      if (selectedCategory) {
-        const restaurantIds = initialCategoryRestaurantMap[selectedCategory] || [];
-        if (!restaurantIds.includes(r.id)) {
-          return false;
-        }
-      }
       // Фильтр по поисковому запросу
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase().trim();
@@ -242,7 +227,7 @@ export default function HomeClient({
       }
       return true;
     });
-  }, [initialRestaurants, selectedCategory, searchQuery, initialCategoryRestaurantMap, pharmaciesCategory, storesCategory]);
+  }, [initialRestaurants, searchQuery]);
 
   // Фильтрация магазинов
   const filteredStores = useMemo(() => {
@@ -405,15 +390,15 @@ export default function HomeClient({
         </div>
       </header>
 
-      {/* Tabs - Asosiy, Do'konlar, Xizmatlar */}
+      {/* Tabs - Asosiy, Do'konlar, Restoranlar, Xizmatlar */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
-        <div className="flex gap-4 border-b border-gray-200">
+        <div className="flex gap-4 border-b border-gray-200 overflow-x-auto">
           <button
             onClick={() => {
               setSelectedTab('asosiy');
               setSelectedCategory(null);
             }}
-            className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
+            className={`px-6 py-3 font-semibold transition-colors border-b-2 whitespace-nowrap ${
               selectedTab === 'asosiy'
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -426,7 +411,7 @@ export default function HomeClient({
               setSelectedTab('do\'konlar');
               setSelectedCategory(null);
             }}
-            className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
+            className={`px-6 py-3 font-semibold transition-colors border-b-2 whitespace-nowrap ${
               selectedTab === 'do\'konlar'
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -436,10 +421,23 @@ export default function HomeClient({
           </button>
           <button
             onClick={() => {
+              setSelectedTab('restoranlar');
+              setSelectedCategory(null);
+            }}
+            className={`px-6 py-3 font-semibold transition-colors border-b-2 whitespace-nowrap ${
+              selectedTab === 'restoranlar'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🍽️ Restoranlar
+          </button>
+          <button
+            onClick={() => {
               setSelectedTab('xizmatlar');
               setSelectedCategory(null);
             }}
-            className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
+            className={`px-6 py-3 font-semibold transition-colors border-b-2 whitespace-nowrap ${
               selectedTab === 'xizmatlar'
                 ? 'border-primary-500 text-primary-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -940,6 +938,19 @@ export default function HomeClient({
                 ))}
               </div>
             )
+          ) : selectedTab === 'restoranlar' ? (
+            /* На вкладке Restoranlar показываем рестораны при поиске */
+            filteredRestaurants.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                Restoranlar topilmadi
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-4 md:gap-6">
+                {filteredRestaurants.map((restaurant) => (
+                  <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+                ))}
+              </div>
+            )
           ) : null}
         </section>
       )}
@@ -987,6 +998,24 @@ export default function HomeClient({
             <div className="grid grid-cols-1 gap-4 md:gap-6">
               {filteredStores.map((store) => (
                 <RestaurantCard key={store.id} restaurant={store} />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* All Restaurants on Restoranlar Tab - все рестораны на вкладке Restoranlar */}
+      {selectedTab === 'restoranlar' && !searchQuery && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">🍽️ Restoranlar</h2>
+          {filteredRestaurants.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              Tez kunlarda
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-4 md:gap-6">
+              {filteredRestaurants.map((restaurant) => (
+                <RestaurantCard key={restaurant.id} restaurant={restaurant} />
               ))}
             </div>
           )}

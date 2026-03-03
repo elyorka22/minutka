@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import HomeClient from '@/components/HomeClient';
 import {
   getStoresServer,
+  getRestaurantsServer,
   getBannersServer,
   getPharmaciesStoresServer,
   getBotSettingsServer,
@@ -36,9 +37,10 @@ const SkeletonCategory = () => (
 async function HomeData() {
   try {
     // Загружаем критичные данные параллельно на сервере
-    const [storesResult, banners, pharmaciesStores, botSettings, storeCategories, storeCategoryStoreMap] =
+    const [storesResult, restaurantsResult, banners, pharmaciesStores, botSettings, storeCategories, storeCategoryStoreMap] =
       await Promise.all([
         getStoresServer(),
+        getRestaurantsServer(undefined, undefined, undefined, 'restaurant').catch(() => ({ data: [] })),
         getBannersServer('homepage').catch(() => []),
         getPharmaciesStoresServer(true).catch(() => []),
         getBotSettingsServer().catch(() => []),
@@ -52,7 +54,7 @@ async function HomeData() {
 
     return (
       <HomeClient
-        initialRestaurants={[]}
+        initialRestaurants={restaurantsResult.data || []}
         initialStores={storesResult.data || []}
         initialCategories={[]}
         initialBanners={banners || []}
