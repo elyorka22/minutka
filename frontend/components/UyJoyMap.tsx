@@ -2,10 +2,11 @@
 
 // ============================================
 // Uy-joy Map Section
-// Карта города + список объявлений по недвижимости
+// Карта города с точками объявлений
 // ============================================
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
+import L from 'leaflet';
 
 interface UyJoyListing {
   id: string;
@@ -14,6 +15,8 @@ interface UyJoyListing {
   price: string;
   address: string;
   description?: string;
+  lat: number;
+  lng: number;
 }
 
 // Примерные координаты города: 40°59′52″ с. ш. 71°14′25″ в. д.
@@ -25,7 +28,7 @@ const CITY_CENTER = {
   lng: 71.2403,
 };
 
-// Простые примеры объявлений (позже можно будет брать с бэкенда)
+// Простые примеры объявлений с координатами рядом с центром города
 const SAMPLE_LISTINGS: UyJoyListing[] = [
   {
     id: '1',
@@ -34,6 +37,8 @@ const SAMPLE_LISTINGS: UyJoyListing[] = [
     price: '$500 / месяц',
     address: 'Центр города, рядом с рынком',
     description: 'Проходное место, идеально для магазина или кофейни.',
+    lat: CITY_CENTER.lat + 0.01,
+    lng: CITY_CENTER.lng,
   },
   {
     id: '2',
@@ -42,6 +47,8 @@ const SAMPLE_LISTINGS: UyJoyListing[] = [
     price: '$85 000',
     address: 'Жилой массив, 1-й этаж',
     description: 'Отдельный вход, есть парковка перед домом.',
+    lat: CITY_CENTER.lat - 0.008,
+    lng: CITY_CENTER.lng + 0.012,
   },
   {
     id: '3',
@@ -50,91 +57,59 @@ const SAMPLE_LISTINGS: UyJoyListing[] = [
     price: '$300 / месяц',
     address: 'Деловой центр города',
     description: 'Светлый офис, кондиционер, быстрый интернет.',
+    lat: CITY_CENTER.lat + 0.005,
+    lng: CITY_CENTER.lng - 0.015,
   },
 ];
 
-function getOpenStreetMapEmbedUrl() {
-  // Делаем небольшой прямоугольник вокруг центра города
-  const delta = 0.05;
-  const minLat = CITY_CENTER.lat - delta;
-  const maxLat = CITY_CENTER.lat + delta;
-  const minLng = CITY_CENTER.lng - delta;
-  const maxLng = CITY_CENTER.lng + delta;
-
-  // bbox: minLng,minLat,maxLng,maxLat
-  const bbox = `${minLng},${minLat},${maxLng},${maxLat}`;
-
-  // В качестве маркера используем центр города
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${CITY_CENTER.lat},${CITY_CENTER.lng}`;
-}
-
 export default function UyJoyMap() {
-  const iframeUrl = getOpenStreetMapEmbedUrl();
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
 
-  return (
-    <div className="relative w-full h-full">
-      {/* Карта занимает всю доступную область */}
-      <iframe
-        src={iframeUrl}
-        className="w-full h-full border-0"
-        loading="lazy"
-        referrerPolicy="no-referrer-when-downgrade"
-        title="Uy-joy map"
-      />
+  useEffect(() => {
+    if (!mapContainerRef.current) return;
+    if (mapInstanceRef.current) return; // уже инициализировано
 
-      {/* Нижняя панель объявлений, карта остаётся видна сверху */}
-      <div className="absolute left-0 right-0 bottom-0 p-3 md:p-4 flex justify-center items-end pointer-events-none">
-        <div className="pointer-events-auto bg-white/95 backdrop-blur-sm rounded-t-2xl shadow-lg max-w-md w-full p-3 md:p-4 flex flex-col max-h-[55vh]">
-          <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
-            <span>🏠</span>
-            <span>Uy-joy e&apos;lonlari</span>
-          </h2>
+    // Инициализируем карту
+    const map = L.map(mapContainerRef.current).setView(
+      [CITY_CENTER.lat, CITY_CENTER.lng],
+      13
+    );
+    mapInstanceRef.current = map;
 
-          <div className="space-y-2 md:space-y-3 overflow-y-auto">
-            {SAMPLE_LISTINGS.map((item) => (
-              <div
-                key={item.id}
-                className="border border-gray-200 rounded-lg p-2.5 md:p-3 bg-white hover:shadow-md transition-shadow"
-              >
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <h3 className="text-sm md:text-base font-semibold text-gray-900 line-clamp-2">
-                    {item.title}
-                  </h3>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      item.type === 'rent'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-green-100 text-green-700'
-                    }`}
-                  >
-                    {item.type === 'rent' ? 'Аренда' : 'Продажа'}
-                  </span>
-                </div>
+    // Подключаем слой тайлов OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      maxZoom: 19,
+    }).addTo(map);
 
-                <p className="text-xs md:text-sm text-gray-700 font-medium mb-1">
-                  {item.price}
-                </p>
+    // Добавляем маркеры для объявлений
+    SAMPLE_LISTINGS.forEach((item) => {
+      const marker = L.marker([item.lat, item.lng]).addTo(map);
 
-                <p className="text-xs text-gray-500 mb-1 line-clamp-2">
-                  📍 {item.address}
-                </p>
-
-                {item.description && (
-                  <p className="text-[11px] md:text-xs text-gray-500 line-clamp-2">
-                    {item.description}
-                  </p>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-2 text-[11px] md:text-xs text-gray-400">
-            Ko&apos;proq e&apos;lonlar tez orada qo&apos;shiladi.
-          </p>
+      const popupHtml = `
+        <div style="min-width: 180px;">
+          <div style="font-weight: 600; margin-bottom: 4px;">${item.title}</div>
+          <div style="font-weight: 600; color: #16a34a; margin-bottom: 4px;">${item.price}</div>
+          <div style="font-size: 12px; margin-bottom: 4px;">📍 ${item.address}</div>
+          ${
+            item.description
+              ? `<div style="font-size: 11px; color: #6b7280;">${item.description}</div>`
+              : ''
+          }
         </div>
-      </div>
-    </div>
-  );
-}
+      `;
 
+      marker.bindPopup(popupHtml);
+    });
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, []);
+
+  return <div ref={mapContainerRef} className="w-full h-full" />;
+}
 
