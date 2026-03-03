@@ -28,6 +28,16 @@ const BannerCarousel = dynamic(() => import('./BannerCarousel'), {
   ssr: false, // Баннеры не критичны для SEO
 });
 
+// Карта и объявления для вкладки Uy-joy
+const UyJoyMap = dynamic(() => import('./UyJoyMap'), {
+  loading: () => (
+    <div className="w-full h-[50vh] flex items-center justify-center text-gray-500">
+      Карта загружается...
+    </div>
+  ),
+  ssr: false,
+});
+
 interface HomeClientProps {
   initialRestaurants: Restaurant[];
   initialStores: Restaurant[];
@@ -1022,12 +1032,10 @@ export default function HomeClient({
         </section>
       )}
 
-      {/* Uy-joy Tab - пустое состояние */}
+      {/* Uy-joy Tab - карта города + объявления по недвижимости */}
       {selectedTab === 'xizmatlar' && !searchQuery && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
-          <div className="text-center py-12 text-gray-500">
-            Tez kunlarda
-          </div>
+        <section className="w-full h-[calc(100vh-180px)] pt-2 pb-4">
+          <UyJoyMap />
         </section>
       )}
     </div>
