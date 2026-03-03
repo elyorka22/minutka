@@ -82,14 +82,15 @@ export default function UyJoyMap() {
         title="Uy-joy map"
       />
 
-      {/* Панель объявлений поверх карты */}
-      <div className="absolute inset-4 md:inset-6 flex justify-end pointer-events-none">
-        <div className="pointer-events-auto bg-white/90 backdrop-blur-sm rounded-xl shadow-lg max-w-sm w-full md:w-80 p-3 md:p-4 flex flex-col">
-          <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-2">
-            🏠 Uy-joy e&apos;lonlari
+      {/* Нижняя панель объявлений, карта остаётся видна сверху */}
+      <div className="absolute left-0 right-0 bottom-0 p-3 md:p-4 flex justify-center items-end pointer-events-none">
+        <div className="pointer-events-auto bg-white/95 backdrop-blur-sm rounded-t-2xl shadow-lg max-w-md w-full p-3 md:p-4 flex flex-col max-h-[55vh]">
+          <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
+            <span>🏠</span>
+            <span>Uy-joy e&apos;lonlari</span>
           </h2>
 
-          <div className="space-y-2 md:space-y-3 overflow-y-auto max-h-[60vh]">
+          <div className="space-y-2 md:space-y-3 overflow-y-auto">
             {SAMPLE_LISTINGS.map((item) => (
               <div
                 key={item.id}
