@@ -84,9 +84,15 @@ export default function UyJoyMap() {
       maxZoom: 19,
     }).addTo(map);
 
-    // Добавляем маркеры для объявлений
+    // Добавляем маркеры для объявлений (круги вместо дефолтных иконок)
     SAMPLE_LISTINGS.forEach((item) => {
-      const marker = L.marker([item.lat, item.lng]).addTo(map);
+      const marker = L.circleMarker([item.lat, item.lng], {
+        radius: 10,
+        color: '#f97316', // оранжевый
+        weight: 2,
+        fillColor: '#fb923c',
+        fillOpacity: 0.9,
+      }).addTo(map);
 
       const popupHtml = `
         <div style="min-width: 180px;">
