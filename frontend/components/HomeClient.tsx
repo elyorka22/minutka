@@ -539,326 +539,40 @@ export default function HomeClient({
         </section>
       )}
 
-      {/* Store Categories Carousel - Категории магазинов под баннером (только для вкладки Asosiy) */}
+      {/* Store Categories Carousel - Категории магазинов под баннером (только для вкладки Asosiy).
+          Карточки товаров под категориями убраны. */}
       {selectedTab === 'asosiy' && storeCategories.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-2">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-4">
           <RestaurantCategories
-            categories={storeCategories.map(cat => ({
-              id: cat.name, // Используем название как ID для единообразия
+            categories={storeCategories.map((cat) => ({
+              id: cat.name,
               name: cat.name,
               image_url: cat.image_url || '',
               is_active: true,
             }))}
-            selectedCategory={selectedCategory}
+            selectedCategory={null}
             onCategorySelect={(categoryId) => {
-              console.log('[HomeClient] Category selected:', categoryId);
-              console.log('[HomeClient] Available categories:', storeCategories.map(c => ({ id: c.id, name: c.name, display_type: c.display_type })));
-              
-              // Если выбрана категория "Все", сбрасываем фильтр
               if (categoryId === null || categoryId === 'all') {
-                console.log('[HomeClient] Setting category to null (All)');
-                setSelectedCategory(null);
                 return;
               }
-              
-              // Ищем категорию по ID или названию
-              // Важно: categoryId может быть либо UUID (cat.id), либо название (cat.name)
-              const category = storeCategories.find(c => 
-                c.id === categoryId || 
-                c.name === categoryId ||
-                (c.id || c.name) === categoryId
+              const category = storeCategories.find(
+                (c) => c.id === categoryId || c.name === categoryId
               );
-              
-              console.log('[HomeClient] Found category:', category);
-              
-              if (category) {
-                // Если это категория "Все", сбрасываем
-                if (category.name === 'Все' || category.name === 'Hammasi') {
-                  console.log('[HomeClient] Category is "All", setting to null');
-                  setSelectedCategory(null);
-                } else {
-                  // ВАЖНО: Используем название категории для поиска товаров в API
-                  // API ищет товары по полю category в таблице menu_items, которое содержит название категории
-                  console.log('[HomeClient] Setting category to name:', category.name);
-                  setSelectedCategory(category.name);
-                }
-              } else {
-                // Если категория не найдена, возможно categoryId это уже название
-                // Проверяем, есть ли категория с таким названием
-                const categoryByName = storeCategories.find(c => c.name === categoryId);
-                if (categoryByName && categoryByName.name !== 'Все' && categoryByName.name !== 'Hammasi') {
-                  console.log('[HomeClient] Found category by name, setting to:', categoryByName.name);
-                  setSelectedCategory(categoryByName.name);
-                } else {
-                  console.warn('[HomeClient] Category not found, using categoryId as name:', categoryId);
-                  setSelectedCategory(categoryId);
-                }
-              }
+              const name = category?.name || categoryId;
+              const slug = encodeURIComponent(name);
+              router.push(`/categories/${slug}`);
             }}
             allCategoryImage={
               storeCategories.find(
-                (c) => c.name === 'Все' || c.name === 'Hammasi' || c.name?.toLowerCase() === 'все' || c.name?.toLowerCase() === 'hammasi' || c.id === 'all'
+                (c) =>
+                  c.name === 'Все' ||
+                  c.name === 'Hammasi' ||
+                  c.name?.toLowerCase() === 'все' ||
+                  c.name?.toLowerCase() === 'hammasi' ||
+                  c.id === 'all'
               )?.image_url
             }
           />
-        </section>
-      )}
-
-      {/* Items Display - Товары на вкладке Asosiy */}
-      {selectedTab === 'asosiy' && !searchQuery && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
-          {loadingCategoryItems || loadingAllItems ? (
-            <div className="text-center py-12 text-gray-500">Загрузка товаров...</div>
-          ) : selectedCategory && !isAllCategory ? (
-            // Показываем товары выбранной категории
-            (() => {
-              // Находим выбранную категорию для проверки типа отображения
-              const selectedCategoryData = storeCategories.find(cat => cat.name === selectedCategory);
-              const displayType = selectedCategoryData?.display_type || 'grid';
-              
-              console.log('[HomeClient] Selected category data:', selectedCategoryData);
-              console.log('[HomeClient] Display type:', displayType);
-              console.log('[HomeClient] Category items:', categoryItems);
-              
-              if (categoryItems.length === 0) {
-                return (
-                  <div className="text-center py-12 text-gray-500">
-                    Tez kunlarda
-                  </div>
-                );
-              }
-              
-              // Если тип отображения - карусель
-              if (displayType === 'carousel') {
-                // Разделяем товары: с carousel_row и без него
-                const itemsWithRow = categoryItems.filter(item => (item as any).carousel_row !== null && (item as any).carousel_row !== undefined);
-                const itemsWithoutRow = categoryItems.filter(item => (item as any).carousel_row === null || (item as any).carousel_row === undefined);
-                
-                // Группируем товары с carousel_row по рядам
-                const itemsByRow = new Map<number, typeof categoryItems>();
-                
-                itemsWithRow.forEach((item) => {
-                  const row = (item as any).carousel_row;
-                  console.log('[HomeClient] Item:', item.name, 'carousel_row:', row, 'assigned to row:', row);
-                  if (!itemsByRow.has(row)) {
-                    itemsByRow.set(row, []);
-                  }
-                  itemsByRow.get(row)!.push(item);
-                });
-                
-                // Сортируем ряды по номеру
-                const sortedRows = Array.from(itemsByRow.keys()).sort((a, b) => a - b);
-                
-                console.log('[HomeClient] Items grouped by rows:', Array.from(itemsByRow.entries()).map(([row, items]) => ({ row, count: items.length })));
-                console.log('[HomeClient] Items without row:', itemsWithoutRow.length);
-                
-                return (
-                  <div className="space-y-6">
-                    {/* Ряды карусели с номерами */}
-                    {sortedRows.map((row) => {
-                      const rowItems = itemsByRow.get(row)!;
-                      const carouselId = `carousel-row-${row}`;
-                      
-                      // Компонент для бесконечной карусели
-                      const InfiniteCarousel = () => {
-                        const containerRef = useRef<HTMLDivElement>(null);
-                        const isScrollingRef = useRef(false);
-                        
-                        // Дублируем карточки для бесконечной прокрутки
-                        const duplicatedItems = [...rowItems, ...rowItems, ...rowItems];
-                        
-                        // Функция для вычисления ширины карточки (такой же как в grid grid-cols-2 gap-4)
-                        const getItemWidth = (container: HTMLDivElement) => {
-                          const containerWidth = container.offsetWidth;
-                          // В grid grid-cols-2 gap-4 каждая карточка занимает (100% - 16px) / 2
-                          // gap-4 = 16px, значит каждая карточка = (containerWidth - 16px) / 2
-                          const gap = 16; // gap-4 = 16px
-                          const cardWidth = (containerWidth - gap) / 2; // Точно такой же размер как в grid
-                          return cardWidth + gap; // Возвращаем ширину карточки + gap для прокрутки
-                        };
-                        
-                        // Инициализация: устанавливаем начальную позицию на средний набор карточек
-                        useEffect(() => {
-                          const container = containerRef.current;
-                          if (container && rowItems.length > 0) {
-                            const itemWidth = getItemWidth(container);
-                            // Прокручиваем к началу среднего набора (второй копии)
-                            const startPosition = rowItems.length * itemWidth;
-                            container.scrollLeft = startPosition;
-                          }
-                        }, [rowItems.length]);
-                        
-                        // Обработка бесконечной прокрутки
-                        useEffect(() => {
-                          const container = containerRef.current;
-                          if (!container || rowItems.length === 0) return;
-                          
-                          const handleScroll = () => {
-                            if (isScrollingRef.current) return;
-                            
-                            const itemWidthWithGap = getItemWidth(container);
-                            const totalItems = rowItems.length;
-                            const scrollLeft = container.scrollLeft;
-                            
-                            // Если прокрутили до начала первого набора, перескакиваем на начало среднего
-                            if (scrollLeft < itemWidthWithGap) {
-                              isScrollingRef.current = true;
-                              container.scrollLeft = totalItems * itemWidthWithGap + scrollLeft;
-                              setTimeout(() => { isScrollingRef.current = false; }, 50);
-                            }
-                            // Если прокрутили до конца последнего набора, перескакиваем на конец среднего
-                            else if (scrollLeft > (totalItems * 2 - 1) * itemWidthWithGap) {
-                              isScrollingRef.current = true;
-                              container.scrollLeft = totalItems * itemWidthWithGap + (scrollLeft - totalItems * 2 * itemWidthWithGap);
-                              setTimeout(() => { isScrollingRef.current = false; }, 50);
-                            }
-                          };
-                          
-                          container.addEventListener('scroll', handleScroll);
-                          return () => container.removeEventListener('scroll', handleScroll);
-                        }, [rowItems.length]);
-                        
-                        const scrollToNext = () => {
-                          const container = containerRef.current;
-                          if (!container) return;
-                          
-                          const itemWidthWithGap = getItemWidth(container);
-                          const currentScroll = container.scrollLeft;
-                          const nextPosition = Math.round(currentScroll / itemWidthWithGap) * itemWidthWithGap + itemWidthWithGap;
-                          container.scrollTo({ left: nextPosition, behavior: 'smooth' });
-                        };
-                        
-                        const scrollToPrev = () => {
-                          const container = containerRef.current;
-                          if (!container) return;
-                          
-                          const itemWidthWithGap = getItemWidth(container);
-                          const currentScroll = container.scrollLeft;
-                          const prevPosition = Math.round(currentScroll / itemWidthWithGap) * itemWidthWithGap - itemWidthWithGap;
-                          container.scrollTo({ left: prevPosition, behavior: 'smooth' });
-                        };
-                        
-                        return (
-                          <div className="relative w-full" style={{ overflow: 'hidden' }}>
-                            {/* Стрелка влево */}
-                            <button
-                              onClick={scrollToPrev}
-                              className="flex absolute left-1 top-[40%] -translate-y-1/2 z-10 items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/85 md:bg-white/90 backdrop-blur-sm border border-gray-300/60 md:border-gray-300/70 shadow-md hover:bg-white hover:shadow-lg transition-all"
-                              aria-label="Прокрутить влево"
-                            >
-                              <span className="text-xl md:text-2xl text-gray-500 md:text-gray-600 font-medium">‹</span>
-                            </button>
-                            
-                            {/* Карусель */}
-                            <div
-                              ref={containerRef}
-                              id={carouselId}
-                              className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
-                              style={{ 
-                                scrollbarWidth: 'none', 
-                                msOverflowStyle: 'none',
-                                display: 'flex',
-                                flexDirection: 'row',
-                                flexWrap: 'nowrap',
-                                width: '100%',
-                                overflowX: 'auto',
-                                overflowY: 'hidden',
-                                WebkitOverflowScrolling: 'touch',
-                                alignItems: 'stretch',
-                                scrollSnapType: 'x mandatory',
-                              } as React.CSSProperties}
-                            >
-                              {duplicatedItems.map((item, index) => {
-                                // Размер карточки такой же, как в grid grid-cols-2 gap-4
-                                return (
-                                  <div 
-                                    key={`${item.id}-${index}`}
-                                    className="flex-shrink-0 w-[calc(50%-0.5rem)] min-w-[calc(50%-0.5rem)] max-w-[calc(50%-0.5rem)]"
-                                    style={{ 
-                                      flexShrink: 0,
-                                      display: 'flex',
-                                      scrollSnapAlign: 'start',
-                                      scrollSnapStop: 'always',
-                                    }}
-                                  >
-                                    <MenuItem item={item} />
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            
-                            {/* Стрелка вправо */}
-                            <button
-                              onClick={scrollToNext}
-                              className="flex absolute right-1 top-[40%] -translate-y-1/2 z-10 items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-full bg-white/85 md:bg-white/90 backdrop-blur-sm border border-gray-300/60 md:border-gray-300/70 shadow-md hover:bg-white hover:shadow-lg transition-all"
-                              aria-label="Прокрутить вправо"
-                            >
-                              <span className="text-xl md:text-2xl text-gray-500 md:text-gray-600 font-medium">›</span>
-                            </button>
-                            
-                            {/* Скрываем скроллбар */}
-                            <style jsx>{`
-                              #${carouselId}::-webkit-scrollbar {
-                                display: none;
-                              }
-                            `}</style>
-                          </div>
-                        );
-                      };
-                      
-                      return <InfiniteCarousel key={row} />;
-                    })}
-                    
-                    {/* Товары без номера ряда - отображаются после всех рядов */}
-                    {itemsWithoutRow.length > 0 && (
-                      <div className="grid grid-cols-2 gap-4">
-                        {itemsWithoutRow.map((item, index) => (
-                          <MenuItem
-                            key={item.id}
-                            item={item}
-                            // Приоритет только для первых 10 товаров без ряда
-                            isPriority={index < 10}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-              
-              // По умолчанию - сетка из 2 колонок
-              return (
-                <div className="grid grid-cols-2 gap-4">
-                  {categoryItems.map((item, index) => (
-                    <MenuItem
-                      key={item.id}
-                      item={item}
-                      // При заходе в категорию загружаем картинки первых 10 товаров в первую очередь
-                      isPriority={index < 10}
-                    />
-                  ))}
-                </div>
-              );
-            })()
-          ) : (
-            // Показываем все товары главной страницы
-            allItems.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4">
-                {allItems.map((item, index) => (
-                  <MenuItem
-                    key={item.id}
-                    item={item}
-                    // На главной странице приоритет у первых 10 товаров
-                    isPriority={index < 10}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                Tez kunlarda
-              </div>
-            )
-          )}
         </section>
       )}
 
