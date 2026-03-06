@@ -30,7 +30,7 @@ export default function RestaurantCategories({
 }: RestaurantCategoriesProps) {
   return (
     <div className="mb-6">
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {categories
           .filter((category) => {
             const isAllCategory =
