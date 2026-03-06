@@ -17,6 +17,9 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getMenuItems, getAllStoreCategories } from '@/lib/api';
 import Cart from './Cart';
 import { useCart } from '@/contexts/CartContext';
+import UyJoyForm from './UyJoyForm';
+import AvtoElonForm from './AvtoElonForm';
+import ElektronikaForm from './ElektronikaForm';
 
 // Lazy loading для больших компонентов
 const BannerCarousel = dynamic(() => import('./BannerCarousel'), {
@@ -93,6 +96,11 @@ export default function HomeClient({
   const [searchQuery, setSearchQuery] = useState('');
   const [banners, setBanners] = useState(initialBanners);
   const [pharmaciesStores, setPharmaciesStores] = useState(initialPharmaciesStores);
+  
+  // Состояния для форм объявлений
+  const [isUyJoyFormOpen, setIsUyJoyFormOpen] = useState(false);
+  const [isAvtoElonFormOpen, setIsAvtoElonFormOpen] = useState(false);
+  const [isElektronikaFormOpen, setIsElektronikaFormOpen] = useState(false);
   
   // Фильтруем баннеры по текущей вкладке
   const currentTabBanners = useMemo(() => {
@@ -810,6 +818,42 @@ export default function HomeClient({
           </div>
         </section>
       )}
+
+      {/* Floating Action Button - кнопка добавления объявления */}
+      {(selectedTab === 'xizmatlar' || selectedTab === 'avto-elonlar' || selectedTab === 'elektronika') && (
+        <button
+          onClick={() => {
+            if (selectedTab === 'xizmatlar') {
+              setIsUyJoyFormOpen(true);
+            } else if (selectedTab === 'avto-elonlar') {
+              setIsAvtoElonFormOpen(true);
+            } else if (selectedTab === 'elektronika') {
+              setIsElektronikaFormOpen(true);
+            }
+          }}
+          className="fixed bottom-6 right-6 w-14 h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-110 z-40"
+          aria-label="Добавить объявление"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4v16m8-8H4"
+            />
+          </svg>
+        </button>
+      )}
+
+      {/* Формы объявлений */}
+      <UyJoyForm isOpen={isUyJoyFormOpen} onClose={() => setIsUyJoyFormOpen(false)} />
+      <AvtoElonForm isOpen={isAvtoElonFormOpen} onClose={() => setIsAvtoElonFormOpen(false)} />
+      <ElektronikaForm isOpen={isElektronikaFormOpen} onClose={() => setIsElektronikaFormOpen(false)} />
     </div>
   );
 }
