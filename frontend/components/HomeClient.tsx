@@ -86,8 +86,8 @@ export default function HomeClient({
   const router = useRouter();
   const { user, loading: authLoading, login } = useAuth();
   const { items: cartItems } = useCart();
-  // Вкладки: 'asosiy', 'do\'konlar', 'restoranlar', 'xizmatlar' (Xizmatlar отображается как Uy-joy)
-  const [selectedTab, setSelectedTab] = useState<'asosiy' | 'do\'konlar' | 'restoranlar' | 'xizmatlar'>('asosiy');
+  // Вкладки: 'asosiy', 'do\'konlar', 'restoranlar', 'xizmatlar', 'avto-elonlar', 'elektronika'
+  const [selectedTab, setSelectedTab] = useState<'asosiy' | 'do\'konlar' | 'restoranlar' | 'xizmatlar' | 'avto-elonlar' | 'elektronika'>('asosiy');
   // По умолчанию категория "Все" (null означает "Все")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -455,6 +455,32 @@ export default function HomeClient({
           >
             Uy-joy
           </button>
+          <button
+            onClick={() => {
+              setSelectedTab('avto-elonlar');
+              setSelectedCategory(null);
+            }}
+            className={`px-6 py-3 font-semibold transition-colors border-b-2 whitespace-nowrap ${
+              selectedTab === 'avto-elonlar'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            🚗 Avto-e'lonlar
+          </button>
+          <button
+            onClick={() => {
+              setSelectedTab('elektronika');
+              setSelectedCategory(null);
+            }}
+            className={`px-6 py-3 font-semibold transition-colors border-b-2 whitespace-nowrap ${
+              selectedTab === 'elektronika'
+                ? 'border-primary-500 text-primary-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            📱 Elektronika
+          </button>
         </div>
       </section>
 
@@ -677,6 +703,16 @@ export default function HomeClient({
                 ))}
               </div>
             )
+          ) : selectedTab === 'avto-elonlar' ? (
+            /* На вкладке Avto-e'lonlar показываем результаты поиска */
+            <div className="text-center py-12 text-gray-500">
+              Tez kunlarda
+            </div>
+          ) : selectedTab === 'elektronika' ? (
+            /* На вкладке Elektronika показываем результаты поиска */
+            <div className="text-center py-12 text-gray-500">
+              Tez kunlarda
+            </div>
           ) : null}
         </section>
       )}
@@ -752,6 +788,26 @@ export default function HomeClient({
       {selectedTab === 'xizmatlar' && !searchQuery && (
         <section className="w-full h-[calc(100vh-180px)] pt-2 pb-4">
           <UyJoyMap />
+        </section>
+      )}
+
+      {/* Avto-e'lonlar Tab - объявления о продаже автомобилей */}
+      {selectedTab === 'avto-elonlar' && !searchQuery && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">🚗 Avto-e'lonlar</h2>
+          <div className="text-center py-12 text-gray-500">
+            Tez kunlarda
+          </div>
+        </section>
+      )}
+
+      {/* Elektronika Tab - электроника */}
+      {selectedTab === 'elektronika' && !searchQuery && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">📱 Elektronika</h2>
+          <div className="text-center py-12 text-gray-500">
+            Tez kunlarda
+          </div>
         </section>
       )}
     </div>
